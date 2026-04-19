@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\IdentityHub.Application\IdentityHub.Application.csproj" />
     <ProjectReference Include="..\IdentityHub.Infrastructure\IdentityHub.Infrastructure.csproj" />
   </ItemGroup>
