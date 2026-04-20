@@ -1,24 +1,25 @@
 using IdentityHub.API.Authorization;
+using IdentityHub.Domain.Entities;
+using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.IoC;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 🔐 Swagger com suporte a JWT
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using Bearer scheme. Example: \"Bearer eyJhbGciOiJIUzI1NiIs...\"",
+        Description = "JWT Authorization header using Bearer scheme.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
@@ -26,7 +27,7 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT"
     });
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -42,20 +43,14 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// 🔌 Infraestrutura (EF + Identity)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// 🔐 Authorization Handler (permissions)
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 
-// 🔐 Authorization (dinâmico por policy)
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Users.View", policy =>
-    policy.Requirements.Add(new PermissionRequirement("Users.View")));
-});
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
-// 🔐 JWT Config
+builder.Services.AddAuthorization();
+
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
 builder.Services.AddAuthentication(options =>
@@ -71,24 +66,22 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtSettings["Key"]))
     };
 
-    // 🔍 Logs úteis (debug de 401 / 403)
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine($"❌ Token inválido: {context.Exception.Message}");
+            Console.WriteLine($"Invalid token: {context.Exception.Message}");
             return Task.CompletedTask;
         },
         OnForbidden = context =>
         {
-            Console.WriteLine("🚫 Acesso negado (403)");
+            Console.WriteLine("Access denied");
             return Task.CompletedTask;
         }
     };
@@ -96,31 +89,26 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// 📘 Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-// 🔐 Ordem correta (CRÍTICO)
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// 🔹 Seed de Roles
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var services = scope.ServiceProvider;
 
-    string[] roles = { "Admin", "Manager", "User" };
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    foreach (var role in roles)
+    if (!await userManager.Users.AnyAsync())
     {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
+        await UserSeed.SeedAsync(userManager, roleManager);
     }
 }
 

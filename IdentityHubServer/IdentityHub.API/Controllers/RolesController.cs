@@ -146,25 +146,6 @@ namespace IdentityHub.API.Controllers
             if (request.Permissions == null || !request.Permissions.Any())
                 return BadRequest("Permissions are required");
 
-            // 🔒 valida no banco
-            var dbPermissions = await _context.Permissions
-                .Where(p => request.Permissions.Contains(p.Name))
-                .Select(p => p.Name)
-                .ToListAsync();
-
-            var invalidPermissions = request.Permissions
-                .Except(dbPermissions)
-                .ToList();
-
-            if (invalidPermissions.Any())
-            {
-                return BadRequest(new
-                {
-                    message = "Invalid permissions",
-                    invalidPermissions
-                });
-            }
-
             var currentClaims = await _roleManager.GetClaimsAsync(role);
 
             var currentPermissions = currentClaims
