@@ -11,6 +11,7 @@ namespace IdentityHub.Application.Authorization
         public const string Users_Update = "Users.Update";
         public const string Users_Delete = "Users.Delete";
 
+        public const string Roles_View = "Roles.View";
         public const string Roles_Manage = "Roles.Manage";
     }
 }

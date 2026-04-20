@@ -28,11 +28,11 @@ namespace IdentityHub.Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim("fullName", user.FullName ?? user.UserName ?? string.Empty),
             };
 
             var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // 🔹 Roles + permissions das roles
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -53,7 +53,6 @@ namespace IdentityHub.Application.Services
                 }
             }
 
-            // 🔹 Permissions diretas do usuário
             var userClaims = await userManager.GetClaimsAsync(user);
 
             foreach (var claim in userClaims)
@@ -64,13 +63,11 @@ namespace IdentityHub.Application.Services
                 }
             }
 
-            // 🔹 Adiciona permissions finais (sem duplicar)
             foreach (var permission in permissions)
             {
                 claims.Add(new Claim("permission", permission));
             }
 
-            // 🔐 Config JWT
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 

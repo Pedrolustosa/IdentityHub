@@ -1,0 +1,56 @@
+<aside
+  class="bg-slate-950 text-slate-200 min-h-screen p-4 sticky top-0 transition-all duration-200"
+  [class.w-64]="!collapsed"
+  [class.w-20]="collapsed"
+>
+  <div class="flex items-center px-2 py-3 mb-4" [class.justify-center]="collapsed" [class.gap-3]="!collapsed">
+    <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">IH</div>
+    @if (!collapsed) {
+      <div>
+        <p class="font-semibold leading-none">IdentityHub</p>
+        <small class="text-slate-400">Admin Panel</small>
+      </div>
+    }
+  </div>
+
+  <nav class="flex flex-col gap-1">
+    @for (item of menuItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="!bg-slate-800 !text-white border-l-4 border-blue-500"
+        class="transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 hover:bg-slate-800/70 flex items-center"
+        [class.justify-center]="collapsed"
+        [class.gap-2]="!collapsed"
+      >
+        <span class="text-base">
+          @switch (item.icon) {
+            @case ('dashboard') {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v7.5H3.75V3Zm0 10.5h7.5V21h-7.5v-7.5Zm10.5 0h6v3h-6v-3Zm0 6h6v1.5h-6V19.5Z"/>
+              </svg>
+            }
+            @case ('users') {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.5v-1.125A3.375 3.375 0 0 0 11.625 15h-5.25A3.375 3.375 0 0 0 3 18.375V19.5m15-6a2.625 2.625 0 1 0 0-5.25 2.625 2.625 0 0 0 0 5.25ZM9 10.5A3 3 0 1 0 9 4.5a3 3 0 0 0 0 6Zm6 9v-1.125A3.375 3.375 0 0 1 18.375 15h.375A3.375 3.375 0 0 1 22.125 18.375V19.5"/>
+              </svg>
+            }
+            @case ('roleClaims') {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
+              </svg>
+            }
+            @default {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.278a1.125 1.125 0 0 0 1.516.84l1.205-.486a1.125 1.125 0 0 1 1.36.42l1.296 2.244a1.125 1.125 0 0 1-.204 1.431l-.993.994a1.125 1.125 0 0 0 0 1.59l.993.994c.39.39.47.99.204 1.43l-1.296 2.245a1.125 1.125 0 0 1-1.36.42l-1.205-.486a1.125 1.125 0 0 0-1.516.84l-.213 1.278a1.125 1.125 0 0 1-1.11.94h-2.592a1.125 1.125 0 0 1-1.11-.94l-.213-1.278a1.125 1.125 0 0 0-1.516-.84l-1.205.486a1.125 1.125 0 0 1-1.36-.42L2.204 17.09a1.125 1.125 0 0 1 .204-1.43l.993-.994a1.125 1.125 0 0 0 0-1.59l-.993-.994a1.125 1.125 0 0 1-.204-1.431L3.5 8.407a1.125 1.125 0 0 1 1.36-.42l1.205.486a1.125 1.125 0 0 0 1.516-.84l.213-1.278Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
+              </svg>
+            }
+          }
+        </span>
+        @if (!collapsed) {
+          <span>{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+</aside>

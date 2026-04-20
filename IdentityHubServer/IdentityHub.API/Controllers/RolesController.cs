@@ -23,7 +23,6 @@ namespace IdentityHub.API.Controllers
             _context = context;
         }
 
-        // 🔹 LISTAR TODAS
         [HttpGet]
         [Authorize(Policy = "Roles.View")]
         public IActionResult GetAll()
@@ -39,7 +38,6 @@ namespace IdentityHub.API.Controllers
             return Ok(roles);
         }
 
-        // 🔹 GET BY ID
         [HttpGet("{id}")]
         [Authorize(Policy = "Roles.View")]
         public async Task<IActionResult> GetById(string id)
@@ -56,7 +54,6 @@ namespace IdentityHub.API.Controllers
             });
         }
 
-        // 🔹 CREATE ROLE
         [HttpPost]
         [Authorize(Policy = "Roles.Manage")]
         public async Task<IActionResult> Create(CreateRoleRequest request)
@@ -80,7 +77,6 @@ namespace IdentityHub.API.Controllers
             return Ok("Role created");
         }
 
-        // 🔹 UPDATE ROLE
         [HttpPut("{id}")]
         [Authorize(Policy = "Roles.Manage")]
         public async Task<IActionResult> Update(string id, UpdateRoleRequest request)
@@ -111,7 +107,6 @@ namespace IdentityHub.API.Controllers
             return Ok("Role updated");
         }
 
-        // 🔹 LISTAR PERMISSIONS DA ROLE
         [HttpGet("{id}/permissions")]
         [Authorize(Policy = "Roles.View")]
         public async Task<IActionResult> GetPermissions(string id)
@@ -131,7 +126,6 @@ namespace IdentityHub.API.Controllers
             return Ok(permissions);
         }
 
-        // 🔹 ATUALIZAR PERMISSIONS DA ROLE
         [HttpPut("{id}/permissions")]
         [Authorize(Policy = "Roles.Manage")]
         public async Task<IActionResult> UpdatePermissions(
@@ -152,13 +146,11 @@ namespace IdentityHub.API.Controllers
                 .Where(c => c.Type == "permission")
                 .ToList();
 
-            // 🔹 remove antigas
             foreach (var claim in currentPermissions)
             {
                 await _roleManager.RemoveClaimAsync(role, claim);
             }
 
-            // 🔹 adiciona novas
             foreach (var permission in request.Permissions.Distinct())
             {
                 await _roleManager.AddClaimAsync(
@@ -169,7 +161,6 @@ namespace IdentityHub.API.Controllers
             return Ok("Permissions updated");
         }
 
-        // 🔹 DELETE ROLE
         [HttpDelete("{id}")]
         [Authorize(Policy = "Roles.Manage")]
         public async Task<IActionResult> Delete(string id)

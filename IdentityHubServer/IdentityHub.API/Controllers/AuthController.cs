@@ -29,7 +29,6 @@ namespace IdentityHub.API.Controllers
             _context = context;
         }
 
-        // 🔹 REGISTER
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
@@ -44,7 +43,8 @@ namespace IdentityHub.API.Controllers
                 UserName = email,
                 Email = email,
                 FullName = request.FullName?.Trim(),
-                IsActive = true
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             var result = await _userManager.CreateAsync(user, request.Password);
@@ -58,7 +58,6 @@ namespace IdentityHub.API.Controllers
             return Ok("User created successfully");
         }
 
-        // 🔹 LOGIN
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
@@ -71,20 +70,27 @@ namespace IdentityHub.API.Controllers
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
+            {
+                await LogSecurityEvent(null, "LOGIN_FAILED", "User not found");
                 return Unauthorized("Invalid credentials");
+            }
 
             if (!user.IsActive)
+            {
+                await LogSecurityEvent(user.Id, "USER_INACTIVE", "Inactive user tried to login");
                 return Unauthorized("User is inactive");
+            }
 
-            var passwordValid = await _userManager
-                .CheckPasswordAsync(user, request.Password);
+            var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
 
             if (!passwordValid)
+            {
+                await LogSecurityEvent(user.Id, "LOGIN_FAILED", "Invalid password");
                 return Unauthorized("Invalid credentials");
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 🔐 JWT Access Token
             var accessToken = await _tokenService.GenerateToken(
                 user,
                 roles,
@@ -92,8 +98,17 @@ namespace IdentityHub.API.Controllers
                 _roleManager
             );
 
-            // 🔄 Refresh Token
             var refreshToken = _tokenService.GenerateRefreshToken();
+
+            var session = new UserSession
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _context.UserSessions.Add(session);
 
             _context.RefreshTokens.Add(new RefreshToken
             {
@@ -114,7 +129,6 @@ namespace IdentityHub.API.Controllers
             });
         }
 
-        // 🔄 REFRESH TOKEN
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(RefreshTokenRequest request)
         {
@@ -139,10 +153,8 @@ namespace IdentityHub.API.Controllers
                 _roleManager
             );
 
-            // 🔄 revoga token antigo
             storedToken.IsRevoked = true;
 
-            // 🔄 gera novo refresh token
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             _context.RefreshTokens.Add(new RefreshToken
@@ -155,6 +167,24 @@ namespace IdentityHub.API.Controllers
                 IsRevoked = false
             });
 
+            var activeSessions = await _context.UserSessions
+                .Where(x => x.UserId == user.Id && x.IsActive)
+                .ToListAsync();
+
+            foreach (var session in activeSessions)
+            {
+                session.IsActive = false;
+                session.RevokedAt = DateTime.UtcNow;
+            }
+
+            _context.UserSessions.Add(new UserSession
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            });
+
             await _context.SaveChangesAsync();
 
             return Ok(new AuthResponse
@@ -164,7 +194,6 @@ namespace IdentityHub.API.Controllers
             });
         }
 
-        // 🔹 LOGOUT
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(RefreshTokenRequest request)
         {
@@ -174,10 +203,35 @@ namespace IdentityHub.API.Controllers
             if (token != null)
             {
                 token.IsRevoked = true;
+
+                var sessions = await _context.UserSessions
+                    .Where(x => x.UserId == token.UserId && x.IsActive)
+                    .ToListAsync();
+
+                foreach (var session in sessions)
+                {
+                    session.IsActive = false;
+                    session.RevokedAt = DateTime.UtcNow;
+                }
+
                 await _context.SaveChangesAsync();
             }
 
             return Ok("Logged out successfully");
+        }
+
+        private async Task LogSecurityEvent(string? userId, string type, string description)
+        {
+            _context.SecurityEvents.Add(new SecurityEvent
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Type = type,
+                Description = description,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
         }
     }
 }

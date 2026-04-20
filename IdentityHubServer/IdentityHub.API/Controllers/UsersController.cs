@@ -21,7 +21,6 @@ namespace IdentityHub.API.Controllers
             _roleManager = roleManager;
         }
 
-        // 🔹 LISTAR TODOS
         [HttpGet]
         [Authorize(Policy = "Users.View")]
         public async Task<IActionResult> GetAll()
@@ -47,7 +46,6 @@ namespace IdentityHub.API.Controllers
             return Ok(result);
         }
 
-        // 🔹 GET BY ID
         [HttpGet("{id}")]
         [Authorize(Policy = "Users.View")]
         public async Task<IActionResult> GetById(string id)
@@ -69,7 +67,6 @@ namespace IdentityHub.API.Controllers
             });
         }
 
-        // 🔹 CREATE USER
         [HttpPost]
         [Authorize(Policy = "Users.Create")]
         public async Task<IActionResult> Create(CreateUserRequest request)
@@ -93,7 +90,6 @@ namespace IdentityHub.API.Controllers
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            // 🔹 default role
             if (await _roleManager.RoleExistsAsync("User"))
             {
                 await _userManager.AddToRoleAsync(user, "User");
@@ -102,7 +98,6 @@ namespace IdentityHub.API.Controllers
             return Ok("User created");
         }
 
-        // 🔹 UPDATE USER
         [HttpPut("{id}")]
         [Authorize(Policy = "Users.Update")]
         public async Task<IActionResult> Update(string id, UpdateUserRequest request)
@@ -120,7 +115,6 @@ namespace IdentityHub.API.Controllers
             return Ok("User updated");
         }
 
-        // 🔹 DELETE USER
         [HttpDelete("{id}")]
         [Authorize(Policy = "Users.Delete")]
         public async Task<IActionResult> Delete(string id)
@@ -135,7 +129,6 @@ namespace IdentityHub.API.Controllers
             return Ok("User deleted");
         }
 
-        // 🔹 UPDATE ROLES
         [HttpPut("{id}/roles")]
         [Authorize(Policy = "Roles.Manage")]
         public async Task<IActionResult> UpdateRoles(string id, UpdateRolesRequest request)
@@ -145,7 +138,6 @@ namespace IdentityHub.API.Controllers
             if (user == null)
                 return NotFound();
 
-            // 🔒 valida roles existentes
             var invalidRoles = new List<string>();
 
             foreach (var role in request.Roles)

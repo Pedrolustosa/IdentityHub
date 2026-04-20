@@ -1,0 +1,84 @@
+<section class="max-w-2xl space-y-6">
+  <a
+    [routerLink]="roleId ? ['/app/role-claims', roleId] : ['/app/role-claims']"
+    class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+    </svg>
+    @if (role) {
+      Back to details
+    } @else {
+      Back to list
+    }
+  </a>
+
+  @if (isLoading) {
+    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+      <div class="h-8 w-56 rounded-md bg-slate-100 animate-pulse"></div>
+      <div class="h-32 rounded-lg bg-slate-100 animate-pulse"></div>
+    </div>
+  } @else if (loadError || !role) {
+    <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
+      <p class="text-slate-900 font-medium">Cannot edit this role</p>
+      <a routerLink="/app/role-claims" class="text-sm text-blue-600 hover:text-blue-500 font-medium">Go to role claims</a>
+    </div>
+  } @else {
+    <header>
+      <h1 class="text-2xl font-semibold text-slate-900">Edit role permissions</h1>
+      <p class="text-slate-500 mt-1">{{ role.name || 'Unnamed role' }}</p>
+    </header>
+
+    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-6">
+      <p class="text-sm text-slate-600">
+        Changes are saved via <span class="font-mono text-xs">PUT /api/RoleClaims/:roleId</span> and require
+        <span class="font-mono text-xs">Roles.Manage</span>.
+      </p>
+
+      <div class="border-t border-slate-100 pt-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Known permissions</h2>
+        @if (permissionCatalog.length === 0) {
+          <p class="mt-2 text-sm text-slate-500">No permission keys available for this role yet.</p>
+        } @else {
+          <ul class="mt-3 space-y-2 max-h-72 overflow-y-auto pr-1">
+            @for (perm of permissionCatalog; track perm) {
+              <li class="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  [id]="'perm-' + perm"
+                  [checked]="isChecked(perm)"
+                  (change)="togglePermission(perm, $any($event.target).checked)"
+                />
+                <label [for]="'perm-' + perm" class="text-sm font-mono text-slate-800 break-all">{{ perm }}</label>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button
+          type="button"
+          (click)="submit()"
+          [disabled]="isSaving"
+          class="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 disabled:pointer-events-none transition-colors duration-150"
+        >
+          @if (isSaving) {
+            Saving…
+          } @else {
+            Save permissions
+          }
+        </button>
+        <button
+          type="button"
+          (click)="cancel()"
+          [disabled]="isSaving"
+          class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors duration-150"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  }
+</section>

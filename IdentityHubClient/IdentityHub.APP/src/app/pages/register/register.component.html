@@ -1,0 +1,96 @@
+<main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+  <section class="w-full max-w-lg bg-white rounded-xl shadow-xl p-6">
+      <div class="flex flex-col items-center gap-3 pb-4">
+        <div class="flex gap-3">
+          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Google</button>
+          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">GitHub</button>
+        </div>
+        <h1 class="text-2xl font-semibold text-slate-900">Create account</h1>
+        <p class="text-sm text-slate-500">It takes less than a minute.</p>
+      </div>
+      <hr class="mb-4" />
+
+    <form [formGroup]="registerForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label for="fullName" class="text-sm font-medium text-slate-700">Name</label>
+        <input id="fullName" type="text" formControlName="fullName" placeholder="John Doe" class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+        @if (fullNameControl?.invalid && (fullNameControl?.dirty || fullNameControl?.touched)) {
+          <small class="text-red-600">Please enter your full name.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="email" class="text-sm font-medium text-slate-700">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="you@example.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+        @if (emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)) {
+          <small class="text-red-600">Please enter a valid email.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="password" class="text-sm font-medium text-slate-700">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="At least 8 characters"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+        <div class="h-2 w-full rounded bg-slate-200 overflow-hidden">
+          <div class="h-full bg-blue-600 transition-all duration-200" [style.width.%]="strengthPercentage"></div>
+        </div>
+        <small class="text-slate-500">Strength: {{ strengthLabel }}</small>
+        <ul class="text-xs space-y-1 text-slate-500">
+          <li [ngClass]="{ 'text-green-600': hasMinLength }">Use at least 8 characters</li>
+          <li [ngClass]="{ 'text-green-600': hasUppercase }">Include 1 uppercase letter</li>
+          <li [ngClass]="{ 'text-green-600': hasNumber }">Include 1 number</li>
+        </ul>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="confirmPassword" class="text-sm font-medium text-slate-700">Confirm password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="Confirm your password"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+        @if ((confirmPasswordControl?.dirty || confirmPasswordControl?.touched) && registerForm.hasError('passwordMismatch')) {
+          <small class="text-red-600">Passwords do not match.</small>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input id="agreeToTerms" type="checkbox" formControlName="agreeToTerms" class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+        <label for="agreeToTerms" class="text-sm text-slate-600">
+          I agree to the <span class="text-blue-600">terms</span>.
+        </label>
+      </div>
+      @if (registerForm.get('agreeToTerms')?.invalid && (registerForm.get('agreeToTerms')?.dirty || registerForm.get('agreeToTerms')?.touched)) {
+        <small class="text-red-600">You must accept the terms to continue.</small>
+      }
+
+      @if (errorMessage.length > 0) {
+        <p class="rounded-lg border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">{{ errorMessage }}</p>
+      }
+
+      @if (successMessage.length > 0) {
+        <p class="rounded-lg border border-green-200 bg-green-50 text-green-700 px-3 py-2 text-sm">{{ successMessage }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="isLoading || registerForm.invalid"
+        class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 transition-all duration-150 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {{ isLoading ? 'Please wait...' : 'Create account' }}
+      </button>
+    </form>
+
+    <div class="pt-4 text-center text-sm text-slate-500">
+      Already have an account?
+      <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/login">Sign in</a>
+    </div>
+  </section>
+</main>

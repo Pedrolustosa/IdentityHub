@@ -10,9 +10,6 @@ namespace IdentityHub.Infrastructure.Data.Seed
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            // =========================
-            // ROLES
-            // =========================
             string[] roles = { "Admin", "Manager", "User" };
 
             foreach (var role in roles)
@@ -21,14 +18,8 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
 
-            // =========================
-            // PERMISSIONS NAS ROLES
-            // =========================
             await SeedPermissions(roleManager);
 
-            // =========================
-            // USERS
-            // =========================
             await CreateUserIfNotExists(
                 userManager, roleManager,
                 "admin@identityhub.com",
@@ -51,25 +42,21 @@ namespace IdentityHub.Infrastructure.Data.Seed
                 "User");
         }
 
-        // 🔥 CENTRALIZA TODAS AS PERMISSIONS
         private static async Task SeedPermissions(RoleManager<IdentityRole> roleManager)
         {
-            // ADMIN
             await AddPermission(roleManager, "Admin", "Users.View");
             await AddPermission(roleManager, "Admin", "Users.Create");
             await AddPermission(roleManager, "Admin", "Users.Update");
             await AddPermission(roleManager, "Admin", "Users.Delete");
+            await AddPermission(roleManager, "Admin", "Roles.View");
             await AddPermission(roleManager, "Admin", "Roles.Manage");
 
-            // MANAGER
             await AddPermission(roleManager, "Manager", "Users.View");
             await AddPermission(roleManager, "Manager", "Users.Update");
 
-            // USER
             await AddPermission(roleManager, "User", "Users.View");
         }
 
-        // 🔧 MÉTODO AUXILIAR (FICA AQUI 👇)
         private static async Task AddPermission(
             RoleManager<IdentityRole> roleManager,
             string roleName,
