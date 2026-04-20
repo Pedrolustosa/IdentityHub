@@ -7,7 +7,7 @@
 ![Entity Framework Core](https://img.shields.io/badge/Entity%20Framework%20Core-ORM-6DB33F)
 ![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite&logoColor=white)
 ![JWT](https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white)
-![License](https://img.shields.io/badge/License-Private-informational)
+![License](https://img.shields.io/badge/License-Public-informational)
 
 IdentityHub is a user management platform with an administrative panel focused on creating, editing, and assigning roles to users in a secure and controlled way.
 
