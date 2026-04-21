@@ -1,10 +1,31 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { finalize, take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+
+function loginErrorMessage(err: unknown): string {
+  if (!(err instanceof HttpErrorResponse)) {
+    return 'Login failed. Please check your credentials.';
+  }
+
+  if (typeof err.error === 'string' && err.error.trim()) {
+    return err.error;
+  }
+
+  if (typeof err.error === 'object' && err.error !== null) {
+    const o = err.error as { detail?: string; title?: string; message?: string };
+    const fromApi = o.detail ?? o.message ?? o.title;
+    if (typeof fromApi === 'string' && fromApi.trim()) {
+      return fromApi;
+    }
+  }
+
+  return 'Login failed. Please check your credentials.';
+}
 
 @Component({
   selector: 'app-login',
@@ -13,10 +34,11 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  emailNotConfirmed = false;
 
   readonly loginForm: FormGroup;
 
@@ -24,12 +46,22 @@ export class LoginComponent {
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly toastr: ToastrService
   ) {
     this.loginForm = this.formBuilder.nonNullable.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       rememberMe: [true]
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams.pipe(take(1)).subscribe((params) => {
+      const email = params['email'];
+      if (typeof email === 'string' && email.trim()) {
+        this.loginForm.patchValue({ email: email.trim() });
+      }
     });
   }
 
@@ -49,6 +81,7 @@ export class LoginComponent {
 
     this.errorMessage = '';
     this.successMessage = '';
+    this.emailNotConfirmed = false;
     this.isLoading = true;
 
     const formValue = this.loginForm.getRawValue();
@@ -72,9 +105,11 @@ export class LoginComponent {
           this.toastr.success('You are now signed in.', 'Success');
           void this.router.navigate(['/app/dashboard']);
         },
-        error: (error) => {
-          this.errorMessage = error?.error ?? 'Login failed. Please check your credentials.';
-          this.toastr.error(this.errorMessage, 'Login failed');
+        error: (error: unknown) => {
+          const msg = loginErrorMessage(error);
+          this.errorMessage = msg;
+          this.emailNotConfirmed = msg.toLowerCase().includes('email not confirmed');
+          this.toastr.error(msg, 'Login failed');
         }
       });
   }

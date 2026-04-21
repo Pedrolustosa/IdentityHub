@@ -43,11 +43,22 @@
           <input id="rememberMe" type="checkbox" formControlName="rememberMe" class="h-4 w-4 rounded border-slate-300 text-blue-600" />
           <label for="rememberMe" class="text-sm text-slate-600">Remember me</label>
         </div>
-        <a routerLink="/login" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
+        <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
       </div>
 
       @if (errorMessage.length > 0) {
-        <p class="rounded-lg border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">{{ errorMessage }}</p>
+        <div class="rounded-lg border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm space-y-2">
+          <p>{{ errorMessage }}</p>
+          @if (emailNotConfirmed) {
+            <a
+              routerLink="/resend-confirmation"
+              [queryParams]="{ email: loginForm.get('email')?.value }"
+              class="inline-block text-sm font-medium text-blue-700 hover:text-blue-600"
+            >
+              Resend confirmation email
+            </a>
+          }
+        </div>
       }
 
       @if (successMessage.length > 0) {
@@ -63,9 +74,14 @@
       </button>
     </form>
 
-    <div class="pt-4 text-center text-sm text-slate-500">
-      No account yet?
-      <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/register">Create account</a>
+    <div class="pt-4 text-center text-sm text-slate-500 space-y-2">
+      <div>
+        No account yet?
+        <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/register">Create account</a>
+      </div>
+      <div>
+        <a routerLink="/resend-confirmation" class="text-slate-600 hover:text-slate-800">Resend email confirmation</a>
+      </div>
     </div>
   </section>
 </main>

@@ -10,19 +10,6 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-16.5 5.25h16.5m-16.5 5.25h16.5"/>
       </svg>
     </button>
-
-    <div class="relative">
-    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m0 0a7.5 7.5 0 1 0-10.607 0 7.5 7.5 0 0 0 10.607 0Z"/>
-      </svg>
-    </span>
-    <input
-      type="text"
-      placeholder="Search..."
-      class="pl-9 pr-3 py-2 w-72 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
-    />
-    </div>
   </div>
 
   <div class="flex items-center gap-3 relative">
@@ -41,8 +28,14 @@
     </button>
 
     @if (isUserMenuOpen) {
-      <div class="absolute right-0 top-12 w-40 rounded-lg border bg-white shadow-lg py-1 z-10">
-        <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50">Profile</button>
+      <div class="absolute right-0 top-12 w-48 rounded-lg border bg-white shadow-lg py-1 z-10">
+        <a
+          routerLink="/app/profile"
+          (click)="isUserMenuOpen = false"
+          class="block w-full text-left px-3 py-2 text-sm hover:bg-slate-50 text-slate-700"
+        >
+          Profile
+        </a>
         <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 text-red-600" (click)="logout()">Logout</button>
       </div>
     }

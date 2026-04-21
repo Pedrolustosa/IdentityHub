@@ -118,8 +118,10 @@ export class RegisterComponent {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: () => {
-          this.successMessage = 'Registration successful. Redirecting to login...';
-          this.toastr.success('Account created successfully.', 'Success');
+          const registeredEmail = formValue.email.trim().toLowerCase();
+          this.successMessage =
+            'Account created. Check your inbox to confirm your email before signing in. Redirecting to sign in…';
+          this.toastr.success('We sent a confirmation link to your email.', 'Account created');
           this.registerForm.reset({
             fullName: '',
             email: '',
@@ -127,7 +129,13 @@ export class RegisterComponent {
             confirmPassword: '',
             agreeToTerms: false
           });
-          setTimeout(() => void this.router.navigate(['/login']), 800);
+          setTimeout(
+            () =>
+              void this.router.navigate(['/login'], {
+                queryParams: { email: registeredEmail }
+              }),
+            2200
+          );
         },
         error: (error) => {
           this.errorMessage = error?.error ?? 'Registration failed. Please try again.';

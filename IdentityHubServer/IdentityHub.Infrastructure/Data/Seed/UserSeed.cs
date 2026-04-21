@@ -29,6 +29,13 @@ namespace IdentityHub.Infrastructure.Data.Seed
 
             await CreateUserIfNotExists(
                 userManager, roleManager,
+                "pedroeternalss@gmail.com",
+                "Pedro Lustosa",
+                "Pedro@Admin123",
+                "Admin");
+
+            await CreateUserIfNotExists(
+                userManager, roleManager,
                 "manager@identityhub.com",
                 "Manager User",
                 "Manager@123",

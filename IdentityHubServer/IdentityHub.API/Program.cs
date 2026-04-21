@@ -1,4 +1,6 @@
 using IdentityHub.API.Authorization;
+using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.IoC;
@@ -61,6 +63,11 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection("Smtp"));
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
