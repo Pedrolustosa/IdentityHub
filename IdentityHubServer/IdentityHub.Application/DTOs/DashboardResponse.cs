@@ -8,11 +8,10 @@ namespace IdentityHub.Application.DTOs
     {
         public int TotalUsers { get; set; }
         public int ActiveSessions { get; set; }
-        public int NewUsersThisWeek { get; set; }
-        public int SecurityAlerts { get; set; }
+        public int NewUsers { get; set; }
+        public double NewUsersGrowth { get; set; }
 
-        public double UsersGrowthPercent { get; set; }
-        public double SessionsGrowthPercent { get; set; }
-        public double AlertsGrowthPercent { get; set; }
+        public int SecurityAlerts { get; set; }
+        public double SecurityGrowth { get; set; }
     }
 }

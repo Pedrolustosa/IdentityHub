@@ -1,6 +1,9 @@
-﻿using IdentityHub.Application.Services;
+﻿using IdentityHub.Application.Interfaces;
+using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
+using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
+using IdentityHub.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +25,19 @@ namespace IdentityHub.IoC
                 .AddDefaultTokenProviders();
 
             services.AddScoped<TokenService>();
+
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IRoleClaimService, RoleClaimService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+
+            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
+
+            services.AddScoped<IEmailService, EmailService>();
 
             return services;
         }

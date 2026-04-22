@@ -1,6 +1,7 @@
 using IdentityHub.API.Authorization;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
+using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.IoC;

@@ -1,96 +1,41 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
-namespace IdentityHub.API.Controllers
+[ApiController]
+[Route("api/role-claims")]
+public class RoleClaimsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class RoleClaimsController : ControllerBase
+    private readonly IRoleClaimService _service;
+
+    public RoleClaimsController(IRoleClaimService service)
     {
-        private readonly RoleManager<IdentityRole> _roleManager;
+        _service = service;
+    }
 
-        public RoleClaimsController(RoleManager<IdentityRole> roleManager)
-        {
-            _roleManager = roleManager;
-        }
+    [HttpGet("{roleId}")]
+    public async Task<IActionResult> GetPermissions(string roleId)
+        => Ok(await _service.GetPermissionsAsync(roleId));
 
-        [HttpGet]
-        [Authorize(Policy = "Roles.Manage")]
-        public async Task<IActionResult> GetAllPermissions()
-        {
-            var roles = _roleManager.Roles.ToList();
-            var permissions = new HashSet<string>();
+    [HttpPost("{roleId}")]
+    public async Task<IActionResult> AddPermission(string roleId, [FromBody] string permission)
+    {
+        await _service.AddPermissionAsync(roleId, permission);
+        return Ok();
+    }
 
-            foreach (var role in roles)
-            {
-                var claims = await _roleManager.GetClaimsAsync(role);
+    [HttpDelete("{roleId}")]
+    public async Task<IActionResult> RemovePermission(string roleId, [FromQuery] string permission)
+    {
+        await _service.RemovePermissionAsync(roleId, permission);
+        return Ok();
+    }
 
-                var rolePermissions = claims
-                    .Where(c => c.Type == "permission")
-                    .Select(c => c.Value);
-
-                foreach (var permission in rolePermissions)
-                {
-                    permissions.Add(permission);
-                }
-            }
-
-            return Ok(permissions.OrderBy(p => p));
-        }
-
-        [HttpGet("{roleId}")]
-        [Authorize(Policy = "Roles.Manage")]
-        public async Task<IActionResult> GetByRole(string roleId)
-        {
-            var role = await _roleManager.FindByIdAsync(roleId);
-
-            if (role == null)
-                return NotFound("Role not found");
-
-            var claims = await _roleManager.GetClaimsAsync(role);
-
-            var permissions = claims
-                .Where(c => c.Type == "permission")
-                .Select(c => c.Value);
-
-            return Ok(permissions);
-        }
-
-        [HttpPut("{roleId}")]
-        [Authorize(Policy = "Roles.Manage")]
-        public async Task<IActionResult> UpdateRolePermissions(
-            string roleId,
-            [FromBody] List<string> permissions)
-        {
-            var role = await _roleManager.FindByIdAsync(roleId);
-
-            if (role == null)
-                return NotFound("Role not found");
-
-            var currentClaims = await _roleManager.GetClaimsAsync(role);
-
-            var currentPermissions = currentClaims
-                .Where(c => c.Type == "permission")
-                .ToList();
-
-            foreach (var claim in currentPermissions)
-            {
-                await _roleManager.RemoveClaimAsync(role, claim);
-            }
-
-            if (permissions != null && permissions.Any())
-            {
-                foreach (var permission in permissions.Distinct())
-                {
-                    await _roleManager.AddClaimAsync(
-                        role,
-                        new Claim("permission", permission));
-                }
-            }
-
-            return Ok("Permissions updated");
-        }
+    [HttpPut("{roleId}")]
+    public async Task<IActionResult> ReplacePermissions(
+        string roleId,
+        [FromBody] List<string> permissions)
+    {
+        await _service.ReplacePermissionsAsync(roleId, permissions);
+        return Ok();
     }
 }

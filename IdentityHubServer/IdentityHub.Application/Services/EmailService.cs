@@ -1,9 +1,10 @@
 ﻿using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
 
-namespace IdentityHub.Application.Interfaces
+namespace IdentityHub.Application.Services
 {
     public class EmailService : IEmailService
     {
