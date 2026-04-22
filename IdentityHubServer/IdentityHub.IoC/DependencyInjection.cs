@@ -4,6 +4,7 @@ using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -1,7 +1,5 @@
 using IdentityHub.API.Authorization;
 using IdentityHub.Application.DTOs;
-using IdentityHub.Application.Interfaces;
-using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.IoC;
@@ -14,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
 const string FrontendCorsPolicy = "FrontendPolicy";
 
 builder.Services.AddControllers();
@@ -49,11 +48,10 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
-
-builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-
 builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
 builder.Services.AddCors(options =>
 {
@@ -67,8 +65,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<SmtpSettings>(
     builder.Configuration.GetSection("Smtp"));
-
-builder.Services.AddScoped<IEmailService, EmailService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
