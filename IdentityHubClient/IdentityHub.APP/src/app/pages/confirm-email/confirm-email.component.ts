@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { BrandLogoComponent } from '../../components/brand-logo/brand-logo.component';
 
 function confirmEmailErrorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) {
@@ -28,7 +29,7 @@ function confirmEmailErrorMessage(err: unknown): string {
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, BrandLogoComponent],
   templateUrl: './confirm-email.component.html',
   styleUrl: './confirm-email.component.css'
 })

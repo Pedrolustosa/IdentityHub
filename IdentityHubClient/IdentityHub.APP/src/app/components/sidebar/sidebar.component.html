@@ -3,13 +3,15 @@
   [class.w-64]="!collapsed"
   [class.w-20]="collapsed"
 >
-  <div class="flex items-center px-2 py-3 mb-4" [class.justify-center]="collapsed" [class.gap-3]="!collapsed">
-    <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">IH</div>
+  <div
+    class="mb-4 min-w-0 py-3"
+    [class.px-1]="collapsed"
+    [class.px-2]="!collapsed"
+    [class.w-full]="collapsed"
+  >
+    <app-brand-logo variant="sidebar" [collapsed]="collapsed" />
     @if (!collapsed) {
-      <div>
-        <p class="font-semibold leading-none">IdentityHub</p>
-        <small class="text-slate-400">Admin Panel</small>
-      </div>
+      <small class="mt-2 block text-slate-400">Admin Panel</small>
     }
   </div>
 

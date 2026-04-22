@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize, take } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { BrandLogoComponent } from '../../components/brand-logo/brand-logo.component';
 
 function loginErrorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) {
@@ -30,7 +31,7 @@ function loginErrorMessage(err: unknown): string {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })

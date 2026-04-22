@@ -5,11 +5,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize, take } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../services/auth.service';
+import { BrandLogoComponent } from '../../components/brand-logo/brand-logo.component';
 
 @Component({
   selector: 'app-resend-confirmation',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
   templateUrl: './resend-confirmation.component.html',
   styleUrl: './resend-confirmation.component.css'
 })

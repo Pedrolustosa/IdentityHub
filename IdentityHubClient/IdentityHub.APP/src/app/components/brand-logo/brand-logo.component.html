@@ -1,0 +1,25 @@
+@if (variant === 'sidebar') {
+  <img
+    [src]="imageSrc"
+    [attr.alt]="collapsed ? 'IdentityHub' : ''"
+    width="320"
+    height="80"
+    class="block h-auto w-full min-w-0 object-contain object-center"
+    [ngClass]="collapsed ? 'max-h-9' : 'max-h-14 md:max-h-16'"
+    decoding="async"
+  />
+} @else {
+  <img
+    [src]="imageSrc"
+    alt="IdentityHub"
+    width="320"
+    height="80"
+    class="mx-auto block min-w-0 object-contain object-center"
+    [ngClass]="
+      wordmark
+        ? 'h-auto w-full max-w-md max-h-[4.25rem] sm:max-h-[4.75rem] md:max-h-[5.25rem]'
+        : 'h-auto w-auto max-h-20 max-w-[5rem] sm:max-h-24 sm:max-w-[6rem]'
+    "
+    decoding="async"
+  />
+}
