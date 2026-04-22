@@ -1,4 +1,5 @@
-﻿using IdentityHub.Domain.Entities;
+﻿using IdentityHub.Domain.Constants;
+using IdentityHub.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -6,9 +7,18 @@ namespace IdentityHub.Infrastructure.Data.Seed
 {
     public static class UserSeed
     {
+        private const string PermissionClaimType = "permission";
+
         public static async Task SeedAsync(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
+        {
+            await EnsureRoles(roleManager);
+            await EnsurePermissions(roleManager);
+            await EnsureUsers(userManager);
+        }
+
+        private static async Task EnsureRoles(RoleManager<IdentityRole> roleManager)
         {
             string[] roles = { "Admin", "Manager", "User" };
 
@@ -17,93 +27,101 @@ namespace IdentityHub.Infrastructure.Data.Seed
                 if (!await roleManager.RoleExistsAsync(role))
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
-
-            await SeedPermissions(roleManager);
-
-            await CreateUserIfNotExists(
-                userManager, roleManager,
-                "admin@identityhub.com",
-                "Admin User",
-                "Admin@123",
-                "Admin");
-
-            await CreateUserIfNotExists(
-                userManager, roleManager,
-                "pedroeternalss@gmail.com",
-                "Pedro Lustosa",
-                "Pedro@Admin123",
-                "Admin");
-
-            await CreateUserIfNotExists(
-                userManager, roleManager,
-                "manager@identityhub.com",
-                "Manager User",
-                "Manager@123",
-                "Manager");
-
-            await CreateUserIfNotExists(
-                userManager, roleManager,
-                "user@identityhub.com",
-                "Normal User",
-                "User@123",
-                "User");
         }
 
-        private static async Task SeedPermissions(RoleManager<IdentityRole> roleManager)
+        private static async Task EnsurePermissions(RoleManager<IdentityRole> roleManager)
         {
-            await AddPermission(roleManager, "Admin", "Users.View");
-            await AddPermission(roleManager, "Admin", "Users.Create");
-            await AddPermission(roleManager, "Admin", "Users.Update");
-            await AddPermission(roleManager, "Admin", "Users.Delete");
-            await AddPermission(roleManager, "Admin", "Roles.View");
-            await AddPermission(roleManager, "Admin", "Roles.Manage");
-
-            await AddPermission(roleManager, "Manager", "Users.View");
-            await AddPermission(roleManager, "Manager", "Users.Update");
-
-            await AddPermission(roleManager, "User", "Users.View");
-        }
-
-        private static async Task AddPermission(
-            RoleManager<IdentityRole> roleManager,
-            string roleName,
-            string permission)
-        {
-            var role = await roleManager.FindByNameAsync(roleName);
-
-            if (role == null)
-                return;
-
-            var claims = await roleManager.GetClaimsAsync(role);
-
-            if (!claims.Any(c => c.Type == "permission" && c.Value == permission))
+            var rolePermissions = new Dictionary<string, List<string>>
             {
-                await roleManager.AddClaimAsync(
-                    role,
-                    new Claim("permission", permission));
+                ["Admin"] = new()
+                {
+                    AppPermissions.Users.View,
+                    AppPermissions.Users.Create,
+                    AppPermissions.Users.Update,
+                    AppPermissions.Users.Delete,
+                    AppPermissions.Users.UpdateRoles,
+
+                    AppPermissions.Roles.View,
+                    AppPermissions.Roles.Create,
+                    AppPermissions.Roles.Update,
+                    AppPermissions.Roles.Delete,
+                    AppPermissions.Roles.PermissionsView,
+                    AppPermissions.Roles.PermissionsUpdate,
+
+                    AppPermissions.RoleClaims.View,
+                    AppPermissions.RoleClaims.Manage,
+
+                    AppPermissions.Dashboard.View
+                },
+
+                ["Manager"] = new()
+                {
+                    AppPermissions.Users.View,
+                    AppPermissions.Users.Update,
+
+                    AppPermissions.Roles.View,
+                    AppPermissions.Roles.PermissionsView,
+
+                    AppPermissions.Dashboard.View
+                },
+
+                ["User"] = new()
+                {
+                    AppPermissions.Users.View
+                }
+            };
+
+            foreach (var (roleName, permissions) in rolePermissions)
+            {
+                var role = await roleManager.FindByNameAsync(roleName);
+
+                if (role == null)
+                    continue;
+
+                var existingClaims = await roleManager.GetClaimsAsync(role);
+
+                foreach (var permission in permissions)
+                {
+                    if (!existingClaims.Any(c =>
+                        c.Type == PermissionClaimType &&
+                        c.Value == permission))
+                    {
+                        await roleManager.AddClaimAsync(
+                            role,
+                            new Claim(PermissionClaimType, permission));
+                    }
+                }
             }
         }
 
-        private static async Task CreateUserIfNotExists(
+        private static async Task EnsureUsers(
+            UserManager<ApplicationUser> userManager)
+        {
+            await CreateUser(userManager, "admin@identityhub.com", "Admin User", "Admin@123", "Admin");
+            await CreateUser(userManager, "manager@identityhub.com", "Manager User", "Manager@123", "Manager");
+            await CreateUser(userManager, "user@identityhub.com", "Normal User", "User@123", "User");
+        }
+
+        private static async Task CreateUser(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
             string email,
             string name,
             string password,
             string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var existing = await userManager.FindByEmailAsync(email);
 
-            if (user != null)
+            if (existing != null)
                 return;
 
-            user = new ApplicationUser
+            var user = new ApplicationUser
             {
                 UserName = email,
                 Email = email,
                 FullName = name,
                 IsActive = true,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             var result = await userManager.CreateAsync(user, password);

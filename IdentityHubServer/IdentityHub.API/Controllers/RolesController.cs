@@ -1,16 +1,13 @@
 ﻿using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
-using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace IdentityHub.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "Roles.View")]
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _service;
@@ -36,6 +33,7 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Roles.Create")]
         public async Task<IActionResult> Create(CreateRoleRequest request)
         {
             await _service.CreateAsync(request);
@@ -43,6 +41,7 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "Roles.Update")]
         public async Task<IActionResult> Update(string id, UpdateRoleRequest request)
         {
             await _service.UpdateAsync(id, request);
@@ -50,6 +49,7 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "Roles.Delete")]
         public async Task<IActionResult> Delete(string id)
         {
             await _service.DeleteAsync(id);
@@ -57,10 +57,12 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpGet("{id}/permissions")]
+        [Authorize(Policy = "Roles.Permissions.View")]
         public async Task<IActionResult> GetPermissions(string id)
             => Ok(await _service.GetPermissionsAsync(id));
 
         [HttpPut("{id}/permissions")]
+        [Authorize(Policy = "Roles.Permissions.Update")]
         public async Task<IActionResult> UpdatePermissions(
             string id,
             UpdateRolePermissionsRequest request)

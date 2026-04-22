@@ -1,12 +1,7 @@
 ﻿using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
-using IdentityHub.Application.Services;
-using IdentityHub.Domain.Entities;
-using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace IdentityHub.API.Controllers
@@ -29,6 +24,20 @@ namespace IdentityHub.API.Controllers
             return Ok();
         }
 
+        [HttpGet("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string email, string token)
+        {
+            await _service.ConfirmEmailAsync(email, token);
+            return Ok();
+        }
+
+        [HttpPost("resend-confirmation")]
+        public async Task<IActionResult> ResendConfirmation(ForgotPasswordRequest request)
+        {
+            await _service.ResendConfirmationAsync(request.Email);
+            return Ok();
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
             => Ok(await _service.LoginAsync(request));
@@ -37,6 +46,7 @@ namespace IdentityHub.API.Controllers
         public async Task<IActionResult> Refresh(RefreshTokenRequest request)
             => Ok(await _service.RefreshAsync(request));
 
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout(RefreshTokenRequest request)
         {
@@ -58,11 +68,11 @@ namespace IdentityHub.API.Controllers
             return Ok();
         }
 
-        [Authorize]
+        [Authorize(Policy = "Users.ChangePassword")]
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await _service.ChangePasswordAsync(userId, request);
             return Ok();
         }

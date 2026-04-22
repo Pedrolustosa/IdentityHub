@@ -1,13 +1,12 @@
 ﻿using IdentityHub.Application.Interfaces;
-using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace IdentityHub.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "Dashboard.View")]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _service;
