@@ -17,14 +17,22 @@ namespace IdentityHub.Application.Services
         public async Task<List<UserResponse>> GetAllAsync()
         {
             var users = await _repository.GetAllAsync();
+            var list = new List<UserResponse>();
 
-            return users.Select(u => new UserResponse
+            foreach (var u in users)
             {
-                Id = u.Id,
-                Email = u.Email,
-                FullName = u.FullName,
-                IsActive = u.IsActive
-            }).ToList();
+                var roles = await _repository.GetRolesAsync(u);
+                list.Add(new UserResponse
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = u.FullName,
+                    IsActive = u.IsActive,
+                    Roles = roles.ToList()
+                });
+            }
+
+            return list;
         }
 
         public async Task<UserResponse?> GetByIdAsync(string id)
@@ -33,12 +41,15 @@ namespace IdentityHub.Application.Services
 
             if (user == null) return null;
 
+            var roles = await _repository.GetRolesAsync(user);
+
             return new UserResponse
             {
                 Id = user.Id,
                 Email = user.Email,
                 FullName = user.FullName,
-                IsActive = user.IsActive
+                IsActive = user.IsActive,
+                Roles = roles.ToList()
             };
         }
 
@@ -79,6 +90,16 @@ namespace IdentityHub.Application.Services
                 throw new Exception("User not found");
 
             await _repository.DeleteAsync(user);
+        }
+
+        public async Task UpdateRolesAsync(string id, UpdateRolesRequest request)
+        {
+            var user = await _repository.GetByIdAsync(id);
+
+            if (user == null)
+                throw new Exception("User not found");
+
+            await _repository.ReplaceUserRolesAsync(user, request.Roles ?? new List<string>());
         }
     }
 }

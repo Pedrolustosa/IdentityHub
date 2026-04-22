@@ -12,5 +12,6 @@ namespace IdentityHub.Application.Interfaces
         Task CreateAsync(CreateUserRequest request);
         Task UpdateAsync(string id, UpdateUserRequest request);
         Task DeleteAsync(string id);
+        Task UpdateRolesAsync(string id, UpdateRolesRequest request);
     }
 }

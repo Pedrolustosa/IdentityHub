@@ -24,4 +24,10 @@ export class RolesService {
   getRolePermissions(id: string): Observable<string[]> {
     return this.http.get<string[]>(`${this.rolesApiUrl}/${encodeURIComponent(id)}/permissions`);
   }
+
+  updateRolePermissions(roleId: string, permissions: string[]): Observable<string> {
+    return this.http.put(`${this.rolesApiUrl}/${encodeURIComponent(roleId)}/permissions`, { permissions }, {
+      responseType: 'text'
+    });
+  }
 }

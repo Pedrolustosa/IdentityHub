@@ -13,5 +13,8 @@ namespace IdentityHub.Domain.Interfaces
         Task CreateAsync(ApplicationUser user, string password);
         Task UpdateAsync(ApplicationUser user);
         Task DeleteAsync(ApplicationUser user);
+
+        Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user);
+        Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames);
     }
 }

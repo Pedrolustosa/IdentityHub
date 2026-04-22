@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize, map } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
+import { finalize, map } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
-import { RoleClaimsService } from '../../../services/role-claims.service';
+import { PERMISSION_CATALOG } from '../../../constants/permissions-catalog';
 import { RoleListItem, RolesService } from '../../../services/roles.service';
 
 function uniqueSorted(values: string[]): string[] {
@@ -33,7 +33,6 @@ export class RoleClaimsEditComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly rolesService: RolesService,
-    private readonly roleClaimsService: RoleClaimsService,
     private readonly toastr: ToastrService
   ) {}
 
@@ -47,13 +46,12 @@ export class RoleClaimsEditComponent implements OnInit {
 
     forkJoin({
       role: this.rolesService.getRoleById(id),
-      assigned: this.rolesService.getRolePermissions(id),
-      catalog: this.roleClaimsService.getAllPermissions().pipe(catchError(() => of<string[]>([])))
+      assigned: this.rolesService.getRolePermissions(id)
     })
       .pipe(
-        map(({ role, assigned, catalog }) => {
+        map(({ role, assigned }) => {
           const assignedList = assigned ?? [];
-          const merged = uniqueSorted([...catalog, ...assignedList]);
+          const merged = uniqueSorted([...PERMISSION_CATALOG, ...assignedList]);
           return { role, assignedList, merged };
         }),
         finalize(() => (this.isLoading = false))
@@ -95,7 +93,7 @@ export class RoleClaimsEditComponent implements OnInit {
     }
 
     this.isSaving = true;
-    this.roleClaimsService.updateRolePermissions(this.roleId, this.selectedPermissions).subscribe({
+    this.rolesService.updateRolePermissions(this.roleId, this.selectedPermissions).subscribe({
       next: () => {
         this.toastr.success('Permissions updated.', 'Role claims');
         this.isSaving = false;

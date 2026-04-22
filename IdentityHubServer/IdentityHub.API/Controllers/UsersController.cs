@@ -45,5 +45,12 @@ namespace IdentityHub.API.Controllers
             await _service.DeleteAsync(id);
             return Ok();
         }
+
+        [HttpPut("{id}/roles")]
+        public async Task<IActionResult> UpdateRoles(string id, UpdateRolesRequest request)
+        {
+            await _service.UpdateRolesAsync(id, request);
+            return Ok();
+        }
     }
 }
