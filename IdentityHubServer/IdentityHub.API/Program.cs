@@ -1,4 +1,5 @@
 using IdentityHub.API.Authorization;
+using IdentityHub.API.Middlewares;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Infrastructure.Data.Seed;
@@ -111,6 +112,7 @@ app.UseHttpsRedirection();
 app.UseCors(FrontendCorsPolicy);
 
 app.UseAuthentication();
+app.UsePermissionMiddleware();
 app.UseAuthorization();
 
 app.MapControllers();
