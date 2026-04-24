@@ -77,7 +77,7 @@ For non-local environments, **do not** commit real secrets; use [User Secrets](h
 
 - **Authentication:** JWT Bearer; users and passwords via **ASP.NET Core Identity**.
 - **Authorization:** dynamic policies aligned with **permissions** (e.g. `Users.View`). `PermissionPolicyProvider` maps the policy name to `PermissionRequirement`; `PermissionHandler` checks user claims of type **`permission`** (typically from roles).
-- **Reference permissions** (`IdentityHub.Application/Authorization/Permissions.cs`): `Users.View`, `Users.Create`, `Users.Update`, `Users.Delete`, `Roles.View`, `Roles.Manage` — assigned to roles in **`UserSeed`**.
+- **Reference permissions** (`IdentityHub.Domain.Constants.AppPermissions`): `Users.View`, `Users.Create`, `Users.Update`, `Roles.View`, `Roles.Manage` — assigned to roles in **`UserSeed`**.
 
 ### REST API (summary)
 
@@ -85,7 +85,7 @@ Typical local base: **`https://localhost:7039`**. Common prefix: **`/api/...`**.
 
 | Area | Main routes | Notes |
 |------|-------------|--------|
-| **Auth** | `POST /api/auth/register`, `login`, `refresh`, `logout`, `forgot-password`, `reset-password`, `change-password` (authenticated), … | Text or DTO responses per endpoint. |
+| **Auth** | `POST /api/auth/register`, `login`, `refresh`, `logout`, `forgot-password`, `reset-password`, `change-password` (policy **`Users.ChangePassword`**), **`PUT /api/auth/profile`** (any authenticated user) | `PUT /api/auth/profile` updates **display name** for the signed-in user; response JSON `{ id, email, fullName }` (camelCase). Email is not modified server-side by this handler. Other routes return text or DTOs per Swagger. |
 | **Users** | `GET/POST /api/users`, `GET/PUT/DELETE /api/users/{id}`, **`PUT /api/users/{id}/roles`** | `GET` returns `roles` per user; **`roles`** in the body (JSON camelCase) updates membership. |
 | **Roles** | `GET/POST /api/roles`, `GET/PUT/DELETE /api/roles/{id}`, **`GET/PUT /api/roles/{id}/permissions`** | List of permission strings; `PUT` body `{ "permissions": [ "Users.View", ... ] }`. |
 | **Role claims** (alternate) | `GET/POST/PUT/DELETE /api/role-claims/{roleId}` | Same `permission` claim model; the SPA primarily uses **Roles** + `.../permissions`. |
@@ -133,16 +133,23 @@ dotnet run --launch-profile http    # http://localhost:5081
 | Area | Location |
 |------|----------|
 | Authenticated shell | `src/app/layout/shell.component.*` |
-| Pages | `src/app/pages/` — auth (`login`, `register`, …), `dashboard`, `users` (list, detail, edit, delete), `role-claims` (list, detail, edit permissions per role) |
-| Shared chrome | `src/app/components/sidebar`, `top-navbar` |
+| Pages | `src/app/features/` — auth (`login`, `register`, forgot/reset password, resend/confirm email), `dashboard`, `users` (list, detail, edit), `role-claims` (list, detail, edit), `profile` |
+| Shared chrome | `src/app/layout/` (shell, sidebar, top-navbar) |
 | Routing | `src/app/app.routes.ts` — `/app` uses `authGuard`; public routes use `guestGuard` where applicable |
-| HTTP services | `src/app/services/` — `auth.service`, `users.service`, `roles.service`, `dashboard.service` |
-| Known permissions (UI) | `src/app/constants/permissions-catalog.ts` — aligned with server `Permissions.cs` (checkboxes on role-claims edit) |
-| Guards / interceptor | `src/app/guards/`, `src/app/interceptors/auth.interceptor.ts` (`Authorization: Bearer` from `localStorage` or `sessionStorage`) |
+| HTTP / core | `src/app/core/services/` — `auth.service`, guards, token usage; feature services under `features/**` (e.g. `users.service`, `roles.service`, `dashboard.service`) |
+| Shared UI (errors) | `src/app/shared/http/ui-load-error.ts` — maps `HttpErrorResponse` to typed UI errors; `src/app/shared/components/load-error-banner/` — banner + optional retry (used on dashboard, users, role-claims, profile forms, auth flows) |
+| Known permissions (UI) | `src/app/shared/constants/permissions-catalog.ts` — aligned with server (checkboxes on role-claims edit) |
+| Guards / interceptor | `src/app/core/guards/`, `src/app/core/interceptors/auth.interceptor.ts` (`Authorization: Bearer` from `localStorage` or `sessionStorage`) |
 
 ### API integration
 
 Services use a fixed development base URL **`https://localhost:7039`** (same as the API HTTPS profile). For other environments, the typical next step is to drive the base URL from **`environment`** files. Keep CORS and origins consistent between the SPA and the API.
+
+### Profile and password (SPA)
+
+- **Account:** **Full name** is editable; **email** is read-only in the UI (sign-in email is sent unchanged on save for API contract compatibility). Save calls **`PUT /api/auth/profile`** then refreshes the session when possible.
+- **Password:** Client-side rules (**7–12** characters, one **uppercase**, **two digits**, one **special** character), confirmation must match, strength **progress bar** and contextual **suggestions**, plus a **help** (?) tooltip on the password card. **`POST /api/auth/change-password`** still enforces server-side Identity rules — align API password options with the SPA if you tighten policy in production.
+- **Errors:** Failed loads and form submissions show a shared **load-error banner** (403 / 401 / 404 / network / server / unknown) with **ngx-toastr** as secondary feedback; **Retry** appears only when it is useful (not for 403/401).
 
 ### NPM scripts
 
@@ -155,8 +162,8 @@ Services use a fixed development base URL **`https://localhost:7039`** (same as 
 
 ### Navigation (summary)
 
-- **Public:** login, registration, password and email confirmation flows (see `app.routes.ts`).
-- **Authenticated (`/app`):** dashboard, users, role claims (view and edit per-role permissions; persistence via **`RolesService`** → `PUT /api/roles/{id}/permissions`).
+- **Public:** login, registration, password and email confirmation flows (see `app.routes.ts`); forms use the same structured error UX as the app shell where applicable.
+- **Authenticated (`/app`):** dashboard, users, role claims (view and edit per-role permissions; persistence via **`RolesService`** → `PUT /api/roles/{id}/permissions`), **profile** (display name + password).
 
 ---
 
@@ -173,7 +180,8 @@ Services use a fixed development base URL **`https://localhost:7039`** (same as 
 
 **Product features:**
 
-- User CRUD, listing with **roles**, profile editing, and **role updates** (`PUT .../users/{id}/roles`).
+- User CRUD, listing with **roles**, admin user edit, and **role updates** (`PUT .../users/{id}/roles`).
+- **Self-service profile:** update **full name** via auth API; **change password** revokes sessions server-side.
 - Role listing and **per-role permission** editing (via the Roles API).
 - Dashboard with aggregate metrics.
 - JWT, refresh tokens, and sessions persisted in the API data model.

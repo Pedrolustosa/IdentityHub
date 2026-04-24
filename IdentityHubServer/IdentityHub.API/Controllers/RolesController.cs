@@ -62,7 +62,7 @@ namespace IdentityHub.API.Controllers
             => Ok(await _service.GetPermissionsAsync(id));
 
         [HttpPut("{id}/permissions")]
-        [Authorize(Policy = "Roles.Permissions.Update")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdatePermissions(
             string id,
             UpdateRolePermissionsRequest request)

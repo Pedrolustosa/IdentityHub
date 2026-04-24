@@ -1,0 +1,85 @@
+<main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+  <section class="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
+    <div class="flex flex-col items-center gap-3 pb-4">
+        <app-brand-logo variant="auth" [wordmark]="false" />
+        <h1 class="text-2xl font-semibold text-slate-900">Welcome back</h1>
+        <p class="text-sm text-slate-500">Sign in to continue to your workspace.</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label for="email" class="text-sm font-medium text-slate-700">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          [ngClass]="{
+            'border-red-500': emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)
+          }"
+        />
+        @if (emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)) {
+          <small class="text-red-600">Please enter a valid email address.</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="password" class="text-sm font-medium text-slate-700">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Your password"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+        @if (passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)) {
+          <small class="text-red-600">Password must have at least 6 characters.</small>
+        }
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <input id="rememberMe" type="checkbox" formControlName="rememberMe" class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+          <label for="rememberMe" class="text-sm text-slate-600">Remember me</label>
+        </div>
+        <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
+      </div>
+
+      @if (requestError) {
+        <app-load-error-banner [error]="requestError" (retry)="submit()" />
+        @if (emailNotConfirmed) {
+          <a
+            routerLink="/resend-confirmation"
+            [queryParams]="{ email: loginForm.get('email')?.value }"
+            class="inline-block text-sm font-medium text-blue-700 hover:text-blue-600"
+          >
+            Resend confirmation email
+          </a>
+        }
+      }
+
+      @if (successMessage.length > 0) {
+        <p class="rounded-lg border border-green-200 bg-green-50 text-green-700 px-3 py-2 text-sm">{{ successMessage }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="isLoading || loginForm.invalid"
+        class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 transition-all duration-150 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {{ isLoading ? 'Please wait...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <div class="pt-4 text-center text-sm text-slate-500 space-y-2">
+      <div>
+        No account yet?
+        <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/register">Create account</a>
+      </div>
+      <div>
+        <a routerLink="/resend-confirmation" class="text-slate-600 hover:text-slate-800">Resend email confirmation</a>
+      </div>
+    </div>
+  </section>
+</main>

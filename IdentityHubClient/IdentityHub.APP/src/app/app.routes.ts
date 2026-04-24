@@ -1,34 +1,26 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { RegisterComponent } from './pages/register/register.component';
-import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
-import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
-import { ConfirmEmailComponent } from './pages/confirm-email/confirm-email.component';
-import { ResendConfirmationComponent } from './pages/resend-confirmation/resend-confirmation.component';
-import { ProfileComponent } from './pages/profile/profile.component';
-import { ShellComponent } from './layout/shell.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { UsersComponent } from './pages/users/users.component';
-import { UserDetailComponent } from './pages/users/user-detail/user-detail.component';
-import { UserEditComponent } from './pages/users/user-edit/user-edit.component';
-import { UserDeleteComponent } from './pages/users/user-delete/user-delete.component';
-import { RoleClaimsComponent } from './pages/role-claims/role-claims.component';
-import { RoleClaimsDetailComponent } from './pages/role-claims/role-claims-detail/role-claims-detail.component';
-import { RoleClaimsEditComponent } from './pages/role-claims/role-claims-edit/role-claims-edit.component';
-import { authGuard } from './guards/auth.guard';
-import { guestGuard } from './guards/guest.guard';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
+import { ProfileComponent } from './features/profile/pages/profile/profile.component';
+import { UsersComponent } from './features/users/pages/users/users.component';
+import { UserDetailComponent } from './features/users/pages/users/user-detail/user-detail.component';
+import { UserEditComponent } from './features/users/pages/users/user-edit/user-edit.component';
+import { RoleClaimsComponent } from './features/role-claims/pages/role-claims/role-claims.component';
+import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component';
+import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
+import { authGuard } from './core/guards/auth.guard';
+import { authLayoutChildRoutes } from './features/auth/auth.routes';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
-  { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
-  { path: 'register', component: RegisterComponent, canActivate: [guestGuard] },
-  { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [guestGuard] },
-  { path: 'resend-confirmation', component: ResendConfirmationComponent, canActivate: [guestGuard] },
-  { path: 'confirm-email', component: ConfirmEmailComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
+  {
+    path: '',
+    component: AuthLayoutComponent,
+    children: authLayoutChildRoutes
+  },
   {
     path: 'app',
-    component: ShellComponent,
+    component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -40,7 +32,6 @@ export const routes: Routes = [
       { path: 'role-claims/:roleId', component: RoleClaimsDetailComponent },
       { path: 'role-claims', component: RoleClaimsComponent },
       { path: 'users/:id/edit', component: UserEditComponent },
-      { path: 'users/:id/delete', component: UserDeleteComponent },
       { path: 'users/:id', component: UserDetailComponent },
       { path: 'users', component: UsersComponent }
     ]

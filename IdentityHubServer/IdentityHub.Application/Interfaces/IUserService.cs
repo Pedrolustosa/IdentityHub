@@ -10,8 +10,7 @@ namespace IdentityHub.Application.Interfaces
         Task<List<UserResponse>> GetAllAsync();
         Task<UserResponse?> GetByIdAsync(string id);
         Task CreateAsync(CreateUserRequest request);
-        Task UpdateAsync(string id, UpdateUserRequest request);
-        Task DeleteAsync(string id);
+        Task UpdateAsync(string id, UpdateUserRequest request, string? actingUserId);
         Task UpdateRolesAsync(string id, UpdateRolesRequest request);
     }
 }

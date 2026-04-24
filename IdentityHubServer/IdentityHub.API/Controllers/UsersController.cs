@@ -2,6 +2,7 @@
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace IdentityHub.API.Controllers
 {
@@ -41,15 +42,8 @@ namespace IdentityHub.API.Controllers
         [Authorize(Policy = "Users.Update")]
         public async Task<IActionResult> Update(string id, UpdateUserRequest request)
         {
-            await _service.UpdateAsync(id, request);
-            return Ok();
-        }
-
-        [HttpDelete("{id}")]
-        [Authorize(Policy = "Users.Delete")]
-        public async Task<IActionResult> Delete(string id)
-        {
-            await _service.DeleteAsync(id);
+            var actingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _service.UpdateAsync(id, request, actingUserId);
             return Ok();
         }
 

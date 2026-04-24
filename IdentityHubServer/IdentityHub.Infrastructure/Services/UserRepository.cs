@@ -46,11 +46,6 @@ namespace IdentityHub.Infrastructure.Services
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task DeleteAsync(ApplicationUser user)
-        {
-            await _userManager.DeleteAsync(user);
-        }
-
         public async Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user)
         {
             var roles = await _userManager.GetRolesAsync(user);

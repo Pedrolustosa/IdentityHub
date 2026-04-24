@@ -19,6 +19,6 @@ namespace IdentityHub.Application.Interfaces
         Task ConfirmEmailAsync(string email, string token);
         Task ResendConfirmationAsync(string email);
 
-        Task UpdateProfileAsync(string userId, UpdateProfileRequest request);
+        Task<ProfileResponse?> UpdateProfileAsync(string userId, UpdateProfileRequest request);
     }
 }

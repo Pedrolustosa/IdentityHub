@@ -1,0 +1,88 @@
+<section class="max-w-3xl space-y-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <a
+      routerLink="/app/users"
+      class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+      Back to users
+    </a>
+  </div>
+
+  @if (isLoading) {
+    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+      <div class="h-8 w-48 rounded-md bg-slate-100 animate-pulse"></div>
+      <div class="h-4 w-full max-w-md rounded-md bg-slate-100 animate-pulse"></div>
+      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="bg-white rounded-xl border shadow-sm p-4">
+      <app-load-error-banner
+        [error]="loadError"
+        [notFoundBackLink]="['/app/users']"
+        notFoundBackLabel="Back to users"
+        (retry)="loadUser(userId)"
+      />
+    </div>
+  } @else if (!user) {
+    <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
+      <p class="text-slate-900 font-medium">User unavailable</p>
+      <a routerLink="/app/users" class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
+        Return to list
+      </a>
+    </div>
+  } @else {
+    <header>
+      <h1 class="text-2xl font-semibold text-slate-900">User details</h1>
+      <p class="text-slate-500 mt-1">Account information and access</p>
+    </header>
+
+    <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div class="min-w-0">
+          <p class="text-lg font-semibold text-slate-900 break-all">{{ user.email || 'No email' }}</p>
+          <p class="text-sm text-slate-500 mt-1 font-mono">ID: {{ user.id }}</p>
+        </div>
+        <span
+          class="inline-flex self-start items-center rounded-full px-3 py-1 text-xs font-medium"
+          [ngClass]="user.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'"
+        >
+          {{ user.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+
+      <dl class="p-6 grid gap-6 sm:grid-cols-2">
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full name</dt>
+          <dd class="mt-1 text-slate-900">{{ user.fullName || 'Not provided' }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Roles</dt>
+          <dd class="mt-2 flex flex-wrap gap-2">
+            @if (user.roles && user.roles.length) {
+              @for (role of user.roles; track role) {
+                <span class="inline-flex rounded-full border border-slate-200 px-2.5 py-1 text-xs text-slate-700">{{ role }}</span>
+              }
+            } @else {
+              <span class="text-sm text-slate-500">No roles assigned</span>
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <div class="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3">
+        <a
+          [routerLink]="['/app/users', user.id, 'edit']"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/>
+          </svg>
+          Edit
+        </a>
+      </div>
+    </div>
+  }
+</section>

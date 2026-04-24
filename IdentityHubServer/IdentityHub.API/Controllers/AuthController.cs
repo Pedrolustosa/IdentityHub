@@ -76,5 +76,32 @@ namespace IdentityHub.API.Controllers
             await _service.ChangePasswordAsync(userId, request);
             return Ok();
         }
+
+        /// <summary>Updates the signed-in user's own profile (e.g. display name). Email is not changed via this API.</summary>
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(UpdateProfileRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var profile = await _service.UpdateProfileAsync(userId, request);
+                if (profile == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(profile);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

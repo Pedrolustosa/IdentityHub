@@ -69,7 +69,7 @@ namespace IdentityHub.Application.Services
             await _repository.CreateAsync(user, request.Password);
         }
 
-        public async Task UpdateAsync(string id, UpdateUserRequest request)
+        public async Task UpdateAsync(string id, UpdateUserRequest request, string? actingUserId)
         {
             var user = await _repository.GetByIdAsync(id);
 
@@ -77,19 +77,22 @@ namespace IdentityHub.Application.Services
                 throw new Exception("User not found");
 
             user.FullName = request.FullName;
-            user.IsActive = request.IsActive;
+
+            var isSelf =
+                !string.IsNullOrEmpty(actingUserId) &&
+                string.Equals(id, actingUserId, StringComparison.Ordinal);
+
+            if (isSelf && user.IsActive != request.IsActive)
+            {
+                throw new Exception("You cannot activate or deactivate your own account.");
+            }
+
+            if (!isSelf)
+            {
+                user.IsActive = request.IsActive;
+            }
 
             await _repository.UpdateAsync(user);
-        }
-
-        public async Task DeleteAsync(string id)
-        {
-            var user = await _repository.GetByIdAsync(id);
-
-            if (user == null)
-                throw new Exception("User not found");
-
-            await _repository.DeleteAsync(user);
         }
 
         public async Task UpdateRolesAsync(string id, UpdateRolesRequest request)

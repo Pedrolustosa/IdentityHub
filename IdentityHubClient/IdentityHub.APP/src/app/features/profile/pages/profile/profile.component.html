@@ -1,0 +1,243 @@
+<div class="w-full flex justify-center px-2 sm:px-4 pb-12">
+  <div class="w-full max-w-5xl mx-auto space-y-8">
+    <div class="space-y-4">
+      <a
+        routerLink="/app/dashboard"
+        class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+        Back to dashboard
+      </a>
+
+      <header class="text-center">
+        <h1 class="text-2xl font-semibold text-slate-900">Profile and security</h1>
+        <p class="text-slate-500 mt-1 max-w-xl mx-auto">Update your account details and password.</p>
+      </header>
+    </div>
+
+    <div
+      class="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch justify-items-center lg:justify-items-stretch"
+    >
+      <div
+        class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
+      >
+        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3 shrink-0">
+          <h2 class="text-sm font-semibold text-slate-800">Account</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Display name. Sign-in email cannot be changed here.</p>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
+          @if (profileSubmitError) {
+            <app-load-error-banner [error]="profileSubmitError" (retry)="submit()" />
+          }
+          <div class="flex flex-col gap-1">
+            <label for="pf-fullname" class="text-sm font-medium text-slate-700">Full name</label>
+            <input
+              id="pf-fullname"
+              type="text"
+              formControlName="fullName"
+              autocomplete="name"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="pf-email" class="text-sm font-medium text-slate-700">Email</label>
+            <input
+              id="pf-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 cursor-not-allowed"
+            />
+            <p class="text-xs text-slate-500">Read-only. Contact an administrator if you need a different sign-in email.</p>
+          </div>
+
+          <div class="flex-1 min-h-[0.5rem]"></div>
+
+          <button
+            type="submit"
+            [disabled]="isLoading || form.invalid || !initialEmail"
+            class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 disabled:opacity-60 transition-colors duration-150 mt-auto"
+          >
+            {{ isLoading ? 'Please wait…' : 'Save profile' }}
+          </button>
+        </form>
+      </div>
+
+      <div
+        class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
+      >
+        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3 shrink-0">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 class="text-sm font-semibold text-slate-800">Password</h2>
+              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                You will be signed out everywhere after a successful change.
+              </p>
+            </div>
+            <div class="relative shrink-0 group pt-0.5">
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/90 bg-white text-slate-500 shadow-sm ring-1 ring-slate-900/5 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50"
+                aria-label="Password change help"
+                aria-describedby="password-card-help-tooltip"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.75"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+                  />
+                </svg>
+              </button>
+              <div
+                id="password-card-help-tooltip"
+                role="tooltip"
+                class="invisible absolute right-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2.5rem)] rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-left text-xs text-slate-600 shadow-lg ring-1 ring-slate-900/5 opacity-0 transition-[opacity,visibility] duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+              >
+                <p class="font-semibold text-slate-900">About this card</p>
+                <ul class="mt-2 list-disc space-y-1.5 pl-4 leading-relaxed text-slate-600">
+                  <li>After you save, <strong class="text-slate-800">all sessions end</strong> — sign in again on each device.</li>
+                  <li>
+                    New password: <strong class="text-slate-800">7–12 characters</strong>, one uppercase letter,
+                    <strong class="text-slate-800">two digits</strong>, and one <strong class="text-slate-800">special character</strong>.
+                  </li>
+                  <li>The bar and suggestions update as you type. Confirmation must match the new password exactly.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
+          @if (passwordSubmitError) {
+            <app-load-error-banner [error]="passwordSubmitError" (retry)="submitPassword()" />
+          }
+          <div class="flex flex-col gap-1">
+            <label for="pf-curr" class="text-sm font-medium text-slate-700">Current password</label>
+            <input
+              id="pf-curr"
+              type="password"
+              formControlName="currentPassword"
+              autocomplete="current-password"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="pf-new" class="text-sm font-medium text-slate-700">New password</label>
+            <input
+              id="pf-new"
+              type="password"
+              formControlName="newPassword"
+              autocomplete="new-password"
+              maxlength="12"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+
+            <div class="space-y-1.5 pt-0.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-medium text-slate-600">Account password security</span>
+                <span
+                  class="text-xs font-semibold tabular-nums"
+                  [ngClass]="{
+                    'text-slate-400': newPasswordStrengthPercent() === 0,
+                    'text-rose-600': newPasswordStrengthPercent() > 0 && newPasswordStrengthPercent() < 40,
+                    'text-amber-700': newPasswordStrengthPercent() >= 40 && newPasswordStrengthPercent() < 70,
+                    'text-lime-700': newPasswordStrengthPercent() >= 70 && newPasswordStrengthPercent() < 100,
+                    'text-emerald-700': newPasswordStrengthPercent() === 100
+                  }"
+                >
+                  {{ newPasswordStrengthLabel() }}
+                </span>
+              </div>
+              <div class="h-2.5 w-full rounded-full bg-slate-200 overflow-hidden ring-1 ring-slate-900/5">
+                <div
+                  class="h-full rounded-full min-w-0 transition-[width] duration-200 ease-out"
+                  [ngClass]="newPasswordStrengthBarClass()"
+                  [style.width.%]="newPasswordStrengthPercent()"
+                ></div>
+              </div>
+              <p class="text-[11px] text-slate-500">
+                @if (newPasswordStrengthPercent() === 0) {
+                  Strength updates as you type.
+                } @else if (newPasswordStrongEnough()) {
+                  All rules met — this password meets the strong policy for this account.
+                } @else {
+                  {{ newPasswordStrengthPercent() }}% of the way to a strong password — see suggestions below.
+                }
+              </p>
+            </div>
+
+            @if (showNewPasswordSuggestions()) {
+              <div class="rounded-lg border border-amber-200/90 bg-amber-50 px-3 py-2.5 space-y-2">
+                <p class="text-xs font-semibold text-amber-950">Suggestions</p>
+                <ul class="text-xs text-amber-900/95 space-y-1.5 list-disc pl-4 leading-relaxed">
+                  @for (tip of newPasswordSuggestions(); track tip) {
+                    <li>{{ tip }}</li>
+                  }
+                </ul>
+                <p class="text-[11px] text-amber-900/80 border-t border-amber-200/80 pt-2">
+                  <span class="font-medium text-amber-950">Example pattern:</span>
+                  <code class="ml-1 rounded bg-white/80 px-1.5 py-0.5 font-mono text-amber-950 ring-1 ring-amber-200/80">{{ exampleStrongPassword }}</code>
+                  <span class="text-amber-800/90"> — use your own words; do not reuse this exact password.</span>
+                </p>
+              </div>
+            }
+
+            <ul class="text-xs space-y-1 text-slate-500">
+              <li [ngClass]="{ 'text-green-600': passwordLengthRuleMet() }">7–12 characters</li>
+              <li [ngClass]="{ 'text-green-600': passwordUppercaseMet() }">At least one uppercase letter</li>
+              <li [ngClass]="{ 'text-green-600': passwordTwoDigitsMet() }">At least two digits</li>
+              <li [ngClass]="{ 'text-green-600': passwordSpecialMet() }">At least one special character (not a letter or digit)</li>
+            </ul>
+            @if (
+              passwordForm.controls.newPassword.touched &&
+              passwordForm.controls.newPassword.errors?.['profilePasswordStrength']
+            ) {
+              <small class="text-red-600 text-xs">New password must meet every rule above.</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="pf-confirm" class="text-sm font-medium text-slate-700">Confirm new password</label>
+            <input
+              id="pf-confirm"
+              type="password"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              maxlength="12"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+            @if (
+              passwordForm.touched &&
+              passwordForm.hasError('profilePasswordMismatch') &&
+              passwordForm.controls.confirmPassword.value
+            ) {
+              <small class="text-red-600 text-xs">New password and confirmation do not match.</small>
+            }
+          </div>
+
+          <div class="flex-1 min-h-[0.5rem]"></div>
+
+          <button
+            type="submit"
+            [disabled]="isPasswordLoading || passwordForm.invalid"
+            class="w-full rounded-lg bg-slate-800 text-white font-medium py-2.5 text-sm hover:bg-slate-700 disabled:opacity-60 transition-colors duration-150 mt-auto"
+          >
+            {{ isPasswordLoading ? 'Please wait…' : 'Update password' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

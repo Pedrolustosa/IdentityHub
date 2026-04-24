@@ -1,4 +1,5 @@
-﻿using IdentityHub.Application.DTOs;
+﻿using System.Linq;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
@@ -227,14 +228,32 @@ namespace IdentityHub.Application.Services
             await SendConfirmationEmail(user);
         }
 
-        public async Task UpdateProfileAsync(string userId, UpdateProfileRequest request)
+        public async Task<ProfileResponse?> UpdateProfileAsync(string userId, UpdateProfileRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return null;
+            }
 
             if (!string.IsNullOrWhiteSpace(request.FullName))
+            {
                 user.FullName = request.FullName.Trim();
+            }
 
-            await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var msg = string.Join("; ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException(msg);
+            }
+
+            return new ProfileResponse
+            {
+                Id = user.Id,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName ?? string.Empty
+            };
         }
 
         private async Task SendConfirmationEmail(ApplicationUser user)

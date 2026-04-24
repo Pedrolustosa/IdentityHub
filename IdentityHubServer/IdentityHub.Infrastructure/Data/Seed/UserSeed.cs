@@ -38,7 +38,6 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Users.View,
                     AppPermissions.Users.Create,
                     AppPermissions.Users.Update,
-                    AppPermissions.Users.Delete,
                     AppPermissions.Users.UpdateRoles,
 
                     AppPermissions.Roles.View,
@@ -62,12 +61,19 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Roles.View,
                     AppPermissions.Roles.PermissionsView,
 
+                    AppPermissions.RoleClaims.View,
+
                     AppPermissions.Dashboard.View
                 },
 
                 ["User"] = new()
                 {
-                    AppPermissions.Users.View
+                    AppPermissions.Users.View,
+
+                    AppPermissions.Roles.View,
+                    AppPermissions.Roles.PermissionsView,
+
+                    AppPermissions.RoleClaims.View
                 }
             };
 
