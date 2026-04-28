@@ -1,9 +1,6 @@
-﻿using IdentityHub.Application.DTOs;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IdentityHub.Application.Services
 {
@@ -16,16 +13,14 @@ namespace IdentityHub.Application.Services
             _repository = repository;
         }
 
-        public async Task<DashboardResponse> GetAsync()
+        public async Task<DashboardResponse> GetAsync(CancellationToken cancellationToken = default)
         {
-            var totalUsers = await _repository.GetTotalUsersAsync();
-            var activeSessions = await _repository.GetActiveSessionsAsync();
-
-            var newUsersThisWeek = await _repository.GetNewUsersThisWeekAsync();
-            var newUsersLastWeek = await _repository.GetNewUsersLastWeekAsync();
-
-            var securityThisWeek = await _repository.GetSecurityEventsThisWeekAsync();
-            var securityLastWeek = await _repository.GetSecurityEventsLastWeekAsync();
+            var totalUsers = await _repository.GetTotalUsersAsync(cancellationToken);
+            var activeSessions = await _repository.GetActiveSessionsAsync(cancellationToken);
+            var newUsersThisWeek = await _repository.GetNewUsersThisWeekAsync(cancellationToken);
+            var newUsersLastWeek = await _repository.GetNewUsersLastWeekAsync(cancellationToken);
+            var securityThisWeek = await _repository.GetSecurityEventsThisWeekAsync(cancellationToken);
+            var securityLastWeek = await _repository.GetSecurityEventsLastWeekAsync(cancellationToken);
 
             return new DashboardResponse
             {
@@ -33,7 +28,6 @@ namespace IdentityHub.Application.Services
                 ActiveSessions = activeSessions,
                 NewUsers = newUsersThisWeek,
                 NewUsersGrowth = CalculateGrowth(newUsersLastWeek, newUsersThisWeek),
-
                 SecurityAlerts = securityThisWeek,
                 SecurityGrowth = CalculateGrowth(securityLastWeek, securityThisWeek)
             };
@@ -41,7 +35,8 @@ namespace IdentityHub.Application.Services
 
         private double CalculateGrowth(int previous, int current)
         {
-            if (previous == 0) return current > 0 ? 100 : 0;
+            if (previous == 0)
+                return current > 0 ? 100 : 0;
 
             return Math.Round(((double)(current - previous) / previous) * 100, 2);
         }

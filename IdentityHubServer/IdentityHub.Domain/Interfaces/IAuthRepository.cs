@@ -1,19 +1,16 @@
-﻿using IdentityHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using IdentityHub.Domain.Entities;
 
 namespace IdentityHub.Domain.Interfaces
 {
     public interface IAuthRepository
     {
-        Task SaveRefreshTokenAsync(RefreshToken token);
-        Task<RefreshToken?> GetRefreshTokenAsync(string token);
-        Task RevokeRefreshTokenAsync(RefreshToken token);
+        Task SaveRefreshTokenAsync(RefreshToken token, CancellationToken cancellationToken = default);
+        Task<RefreshToken?> GetRefreshTokenAsync(string token, CancellationToken cancellationToken = default);
+        Task RevokeRefreshTokenAsync(RefreshToken token, CancellationToken cancellationToken = default);
 
-        Task CreateSessionAsync(UserSession session);
-        Task<List<UserSession>> GetActiveSessionsAsync(string userId);
-        Task SaveChangesAsync();
-        Task<List<RefreshToken>> GetActiveRefreshTokensAsync(string userId);
+        Task CreateSessionAsync(UserSession session, CancellationToken cancellationToken = default);
+        Task<List<UserSession>> GetActiveSessionsAsync(string userId, CancellationToken cancellationToken = default);
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<List<RefreshToken>> GetActiveRefreshTokensAsync(string userId, CancellationToken cancellationToken = default);
     }
 }

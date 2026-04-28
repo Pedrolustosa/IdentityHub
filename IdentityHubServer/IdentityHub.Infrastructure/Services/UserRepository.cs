@@ -1,9 +1,7 @@
-﻿using IdentityHub.Domain.Entities;
+using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityHub.Infrastructure.Services
 {
@@ -18,41 +16,45 @@ namespace IdentityHub.Infrastructure.Services
             _roleManager = roleManager;
         }
 
-        public async Task<List<ApplicationUser>> GetAllAsync()
+        public Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return _userManager.Users.ToList();
+            return _userManager.Users.ToListAsync(cancellationToken);
         }
 
-        public async Task<ApplicationUser?> GetByIdAsync(string id)
+        public Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            return await _userManager.FindByIdAsync(id);
+            cancellationToken.ThrowIfCancellationRequested();
+            return _userManager.FindByIdAsync(id);
         }
 
-        public async Task<ApplicationUser?> GetByEmailAsync(string email)
+        public Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
-            return await _userManager.FindByEmailAsync(email);
+            cancellationToken.ThrowIfCancellationRequested();
+            return _userManager.FindByEmailAsync(email);
         }
 
-        public async Task CreateAsync(ApplicationUser user, string password)
+        public async Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await _userManager.CreateAsync(user, password);
-
             if (!result.Succeeded)
                 throw new Exception("Error creating user");
         }
 
-        public async Task UpdateAsync(ApplicationUser user)
+        public async Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user)
+        public async Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var roles = await _userManager.GetRolesAsync(user);
             return roles.ToList();
         }
 
-        public async Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames)
+        public async Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames, CancellationToken cancellationToken = default)
         {
             var normalized = roleNames
                 .Where(r => !string.IsNullOrWhiteSpace(r))
@@ -62,6 +64,7 @@ namespace IdentityHub.Infrastructure.Services
 
             foreach (var name in normalized)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!await _roleManager.RoleExistsAsync(name))
                     throw new Exception($"Role not found: {name}");
             }
@@ -69,6 +72,7 @@ namespace IdentityHub.Infrastructure.Services
             var current = (await _userManager.GetRolesAsync(user)).ToArray();
             if (current.Length > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var removeResult = await _userManager.RemoveFromRolesAsync(user, current);
                 if (!removeResult.Succeeded)
                     throw new Exception(string.Join(",", removeResult.Errors.Select(e => e.Description)));
@@ -76,6 +80,7 @@ namespace IdentityHub.Infrastructure.Services
 
             if (normalized.Count > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var addResult = await _userManager.AddToRolesAsync(user, normalized);
                 if (!addResult.Succeeded)
                     throw new Exception(string.Join(",", addResult.Errors.Select(e => e.Description)));

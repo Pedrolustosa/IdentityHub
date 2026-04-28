@@ -1,4 +1,4 @@
-﻿using IdentityHub.Domain.Entities;
+using IdentityHub.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -22,8 +22,11 @@ namespace IdentityHub.Application.Services
             ApplicationUser user,
             IList<string> roles,
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -35,47 +38,35 @@ namespace IdentityHub.Application.Services
 
             foreach (var role in roles)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
                 var roleEntity = await roleManager.FindByNameAsync(role);
-
                 if (roleEntity == null)
                     continue;
 
                 var roleClaims = await roleManager.GetClaimsAsync(roleEntity);
-
                 foreach (var claim in roleClaims)
                 {
                     if (claim.Type == "permission")
-                    {
                         permissions.Add(claim.Value.Trim());
-                    }
                 }
             }
 
             var userClaims = await userManager.GetClaimsAsync(user);
-
             foreach (var claim in userClaims)
             {
                 if (claim.Type == "permission")
-                {
                     permissions.Add(claim.Value.Trim());
-                }
             }
 
             foreach (var permission in permissions)
-            {
                 claims.Add(new Claim("permission", permission));
-            }
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expireMinutes = double.TryParse(
-                _configuration["Jwt:ExpireMinutes"],
-                out var minutes)
+            var expireMinutes = double.TryParse(_configuration["Jwt:ExpireMinutes"], out var minutes)
                 ? minutes
                 : 60;
 
@@ -93,12 +84,8 @@ namespace IdentityHub.Application.Services
         public string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
-
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-            }
-
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
     }

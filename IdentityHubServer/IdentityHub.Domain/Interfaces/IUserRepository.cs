@@ -1,19 +1,16 @@
-﻿using IdentityHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using IdentityHub.Domain.Entities;
 
 namespace IdentityHub.Domain.Interfaces
 {
     public interface IUserRepository
     {
-        Task<ApplicationUser?> GetByIdAsync(string id);
-        Task<ApplicationUser?> GetByEmailAsync(string email);
-        Task<List<ApplicationUser>> GetAllAsync();
-        Task CreateAsync(ApplicationUser user, string password);
-        Task UpdateAsync(ApplicationUser user);
+        Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
+        Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+        Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default);
+        Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken = default);
 
-        Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user);
-        Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames);
+        Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+        Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames, CancellationToken cancellationToken = default);
     }
 }

@@ -1,4 +1,4 @@
-﻿using IdentityHub.Application.DTOs;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
@@ -14,14 +14,15 @@ namespace IdentityHub.Application.Services
             _repository = repository;
         }
 
-        public async Task<List<UserResponse>> GetAllAsync()
+        public async Task<List<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var users = await _repository.GetAllAsync();
+            var users = await _repository.GetAllAsync(cancellationToken);
             var list = new List<UserResponse>();
 
             foreach (var u in users)
             {
-                var roles = await _repository.GetRolesAsync(u);
+                cancellationToken.ThrowIfCancellationRequested();
+                var roles = await _repository.GetRolesAsync(u, cancellationToken);
                 list.Add(new UserResponse
                 {
                     Id = u.Id,
@@ -35,14 +36,13 @@ namespace IdentityHub.Application.Services
             return list;
         }
 
-        public async Task<UserResponse?> GetByIdAsync(string id)
+        public async Task<UserResponse?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            var user = await _repository.GetByIdAsync(id);
+            var user = await _repository.GetByIdAsync(id, cancellationToken);
+            if (user == null)
+                return null;
 
-            if (user == null) return null;
-
-            var roles = await _repository.GetRolesAsync(user);
-
+            var roles = await _repository.GetRolesAsync(user, cancellationToken);
             return new UserResponse
             {
                 Id = user.Id,
@@ -53,26 +53,27 @@ namespace IdentityHub.Application.Services
             };
         }
 
-        public async Task CreateAsync(CreateUserRequest request)
+        public async Task CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(request.Email))
                 throw new Exception("Email is required");
 
+            var normalizedEmail = request.Email.Trim().ToLower();
             var user = new ApplicationUser
             {
-                Email = request.Email.Trim().ToLower(),
-                UserName = request.Email.Trim().ToLower(),
+                Email = normalizedEmail,
+                UserName = normalizedEmail,
                 FullName = request.FullName,
                 IsActive = true
             };
 
-            await _repository.CreateAsync(user, request.Password);
+            await _repository.CreateAsync(user, request.Password, cancellationToken);
         }
 
-        public async Task UpdateAsync(string id, UpdateUserRequest request, string? actingUserId)
+        public async Task UpdateAsync(string id, UpdateUserRequest request, string? actingUserId, CancellationToken cancellationToken = default)
         {
-            var user = await _repository.GetByIdAsync(id);
-
+            var user = await _repository.GetByIdAsync(id, cancellationToken);
             if (user == null)
                 throw new Exception("User not found");
 
@@ -83,26 +84,21 @@ namespace IdentityHub.Application.Services
                 string.Equals(id, actingUserId, StringComparison.Ordinal);
 
             if (isSelf && user.IsActive != request.IsActive)
-            {
                 throw new Exception("You cannot activate or deactivate your own account.");
-            }
 
             if (!isSelf)
-            {
                 user.IsActive = request.IsActive;
-            }
 
-            await _repository.UpdateAsync(user);
+            await _repository.UpdateAsync(user, cancellationToken);
         }
 
-        public async Task UpdateRolesAsync(string id, UpdateRolesRequest request)
+        public async Task UpdateRolesAsync(string id, UpdateRolesRequest request, CancellationToken cancellationToken = default)
         {
-            var user = await _repository.GetByIdAsync(id);
-
+            var user = await _repository.GetByIdAsync(id, cancellationToken);
             if (user == null)
                 throw new Exception("User not found");
 
-            await _repository.ReplaceUserRolesAsync(user, request.Roles ?? new List<string>());
+            await _repository.ReplaceUserRolesAsync(user, request.Roles ?? new List<string>(), cancellationToken);
         }
     }
 }

@@ -1,9 +1,7 @@
-﻿using IdentityHub.Domain.Interfaces;
+using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text;
 
 namespace IdentityHub.Infrastructure.Services
 {
@@ -16,46 +14,63 @@ namespace IdentityHub.Infrastructure.Services
             _roleManager = roleManager;
         }
 
-        public Task<List<IdentityRole>> GetAllAsync()
-            => Task.FromResult(_roleManager.Roles.ToList());
-
-        public async Task<IdentityRole?> GetByIdAsync(string id)
-            => await _roleManager.FindByIdAsync(id);
-
-        public async Task<IdentityRole?> GetByNameAsync(string name)
-            => await _roleManager.FindByNameAsync(name);
-
-        public async Task CreateAsync(IdentityRole role)
+        public Task<List<IdentityRole>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var result = await _roleManager.CreateAsync(role);
+            return _roleManager.Roles.ToListAsync(cancellationToken);
+        }
 
+        public Task<IdentityRole?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return _roleManager.FindByIdAsync(id);
+        }
+
+        public Task<IdentityRole?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return _roleManager.FindByNameAsync(name);
+        }
+
+        public async Task CreateAsync(IdentityRole role, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = await _roleManager.CreateAsync(role);
             if (!result.Succeeded)
                 throw new Exception("Error creating role");
         }
 
-        public async Task UpdateAsync(IdentityRole role)
+        public async Task UpdateAsync(IdentityRole role, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await _roleManager.UpdateAsync(role);
-
             if (!result.Succeeded)
                 throw new Exception("Error updating role");
         }
 
-        public async Task DeleteAsync(IdentityRole role)
+        public async Task DeleteAsync(IdentityRole role, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await _roleManager.DeleteAsync(role);
-
             if (!result.Succeeded)
                 throw new Exception("Error deleting role");
         }
 
-        public async Task<IList<Claim>> GetClaimsAsync(IdentityRole role)
-            => await _roleManager.GetClaimsAsync(role);
+        public async Task<IList<Claim>> GetClaimsAsync(IdentityRole role, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return await _roleManager.GetClaimsAsync(role);
+        }
 
-        public async Task AddClaimAsync(IdentityRole role, Claim claim)
-            => await _roleManager.AddClaimAsync(role, claim);
+        public async Task AddClaimAsync(IdentityRole role, Claim claim, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await _roleManager.AddClaimAsync(role, claim);
+        }
 
-        public async Task RemoveClaimAsync(IdentityRole role, Claim claim)
-            => await _roleManager.RemoveClaimAsync(role, claim);
+        public async Task RemoveClaimAsync(IdentityRole role, Claim claim, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await _roleManager.RemoveClaimAsync(role, claim);
+        }
     }
 }

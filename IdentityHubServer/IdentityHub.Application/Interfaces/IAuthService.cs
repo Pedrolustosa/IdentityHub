@@ -1,24 +1,21 @@
-﻿using IdentityHub.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using IdentityHub.Application.DTOs;
 
 namespace IdentityHub.Application.Interfaces
 {
     public interface IAuthService
     {
-        Task RegisterAsync(RegisterRequest request);
-        Task<AuthResponse> LoginAsync(LoginRequest request);
-        Task<AuthResponse> RefreshAsync(RefreshTokenRequest request);
-        Task LogoutAsync(RefreshTokenRequest request);
+        Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+        Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+        Task<AuthResponse> RefreshAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default);
+        Task LogoutAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default);
 
-        Task ForgotPasswordAsync(ForgotPasswordRequest request);
-        Task ResetPasswordAsync(ResetPasswordRequest request);
-        Task ChangePasswordAsync(string userId, ChangePasswordRequest request);
+        Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
+        Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+        Task ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken = default);
 
-        Task ConfirmEmailAsync(string email, string token);
-        Task ResendConfirmationAsync(string email);
+        Task ConfirmEmailAsync(string email, string token, CancellationToken cancellationToken = default);
+        Task ResendConfirmationAsync(string email, CancellationToken cancellationToken = default);
 
-        Task<ProfileResponse?> UpdateProfileAsync(string userId, UpdateProfileRequest request);
+        Task<ProfileResponse?> UpdateProfileAsync(string userId, UpdateProfileRequest request, CancellationToken cancellationToken = default);
     }
 }

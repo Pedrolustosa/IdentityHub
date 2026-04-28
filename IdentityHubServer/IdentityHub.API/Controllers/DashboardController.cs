@@ -1,4 +1,4 @@
-﻿using IdentityHub.Application.Interfaces;
+using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
-            => Ok(await _service.GetAsync());
+        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+            => Ok(await _service.GetAsync(cancellationToken));
     }
 }

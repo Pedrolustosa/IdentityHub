@@ -1,11 +1,8 @@
-﻿using IdentityHub.Application.DTOs;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 
 namespace IdentityHub.Application.Services
 {
@@ -18,10 +15,9 @@ namespace IdentityHub.Application.Services
             _repository = repository;
         }
 
-        public async Task<List<RoleResponse>> GetAllAsync()
+        public async Task<List<RoleResponse>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var roles = await _repository.GetAllAsync();
-
+            var roles = await _repository.GetAllAsync(cancellationToken);
             return roles.Select(r => new RoleResponse
             {
                 Id = r.Id,
@@ -29,11 +25,11 @@ namespace IdentityHub.Application.Services
             }).ToList();
         }
 
-        public async Task<RoleResponse?> GetByIdAsync(string id)
+        public async Task<RoleResponse?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            var role = await _repository.GetByIdAsync(id);
-
-            if (role == null) return null;
+            var role = await _repository.GetByIdAsync(id, cancellationToken);
+            if (role == null)
+                return null;
 
             return new RoleResponse
             {
@@ -42,76 +38,66 @@ namespace IdentityHub.Application.Services
             };
         }
 
-        public async Task CreateAsync(CreateRoleRequest request)
+        public async Task CreateAsync(CreateRoleRequest request, CancellationToken cancellationToken = default)
         {
-            var exists = await _repository.GetByNameAsync(request.Name);
-
+            var exists = await _repository.GetByNameAsync(request.Name, cancellationToken);
             if (exists != null)
                 throw new Exception("Role already exists");
 
-            await _repository.CreateAsync(new IdentityRole(request.Name));
+            await _repository.CreateAsync(new IdentityRole(request.Name), cancellationToken);
         }
 
-        public async Task UpdateAsync(string id, UpdateRoleRequest request)
+        public async Task UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
         {
-            var role = await _repository.GetByIdAsync(id);
-
+            var role = await _repository.GetByIdAsync(id, cancellationToken);
             if (role == null)
                 throw new Exception("Role not found");
 
             role.Name = request.Name;
-
-            await _repository.UpdateAsync(role);
+            await _repository.UpdateAsync(role, cancellationToken);
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
         {
-            var role = await _repository.GetByIdAsync(id);
-
+            var role = await _repository.GetByIdAsync(id, cancellationToken);
             if (role == null)
                 throw new Exception("Role not found");
 
-            await _repository.DeleteAsync(role);
+            await _repository.DeleteAsync(role, cancellationToken);
         }
 
-        public async Task<List<string>> GetPermissionsAsync(string roleId)
+        public async Task<List<string>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken = default)
         {
-            var role = await _repository.GetByIdAsync(roleId);
-
+            var role = await _repository.GetByIdAsync(roleId, cancellationToken);
             if (role == null)
                 throw new Exception("Role not found");
 
-            var claims = await _repository.GetClaimsAsync(role);
-
+            var claims = await _repository.GetClaimsAsync(role, cancellationToken);
             return claims
                 .Where(c => c.Type == "permission")
                 .Select(c => c.Value)
                 .ToList();
         }
 
-        public async Task UpdatePermissionsAsync(string roleId, List<string> permissions)
+        public async Task UpdatePermissionsAsync(string roleId, List<string> permissions, CancellationToken cancellationToken = default)
         {
-            var role = await _repository.GetByIdAsync(roleId);
-
+            var role = await _repository.GetByIdAsync(roleId, cancellationToken);
             if (role == null)
                 throw new Exception("Role not found");
 
-            var currentClaims = await _repository.GetClaimsAsync(role);
+            var currentClaims = await _repository.GetClaimsAsync(role, cancellationToken);
+            var currentPermissions = currentClaims.Where(c => c.Type == "permission").ToList();
 
-            var currentPermissions = currentClaims
-                .Where(c => c.Type == "permission")
-                .ToList();
-
-            // remove atuais
             foreach (var claim in currentPermissions)
-                await _repository.RemoveClaimAsync(role, claim);
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await _repository.RemoveClaimAsync(role, claim, cancellationToken);
+            }
 
-            // adiciona novas
             foreach (var permission in permissions)
             {
-                await _repository.AddClaimAsync(
-                    role,
-                    new Claim("permission", permission));
+                cancellationToken.ThrowIfCancellationRequested();
+                await _repository.AddClaimAsync(role, new Claim("permission", permission), cancellationToken);
             }
         }
     }

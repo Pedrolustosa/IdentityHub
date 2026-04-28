@@ -1,12 +1,9 @@
-﻿using IdentityHub.Application.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using IdentityHub.Application.DTOs;
 
 namespace IdentityHub.Application.Interfaces
 {
     public interface IDashboardService
     {
-        Task<DashboardResponse> GetAsync();
+        Task<DashboardResponse> GetAsync(CancellationToken cancellationToken = default);
     }
 }

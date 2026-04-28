@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace IdentityHub.Domain.Interfaces
 {
     public interface IDashboardRepository
     {
-        Task<int> GetTotalUsersAsync();
-        Task<int> GetActiveSessionsAsync();
-        Task<int> GetNewUsersThisWeekAsync();
-        Task<int> GetNewUsersLastWeekAsync();
+        Task<int> GetTotalUsersAsync(CancellationToken cancellationToken = default);
+        Task<int> GetActiveSessionsAsync(CancellationToken cancellationToken = default);
+        Task<int> GetNewUsersThisWeekAsync(CancellationToken cancellationToken = default);
+        Task<int> GetNewUsersLastWeekAsync(CancellationToken cancellationToken = default);
 
-        Task<int> GetSecurityEventsThisWeekAsync();
-        Task<int> GetSecurityEventsLastWeekAsync();
+        Task<int> GetSecurityEventsThisWeekAsync(CancellationToken cancellationToken = default);
+        Task<int> GetSecurityEventsLastWeekAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,9 +1,6 @@
-﻿using IdentityHub.Domain.Interfaces;
+using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IdentityHub.Infrastructure.Services
 {
@@ -16,45 +13,36 @@ namespace IdentityHub.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<int> GetTotalUsersAsync()
-            => await _context.Users.CountAsync();
+        public Task<int> GetTotalUsersAsync(CancellationToken cancellationToken = default)
+            => _context.Users.CountAsync(cancellationToken);
 
-        public async Task<int> GetActiveSessionsAsync()
-            => await _context.UserSessions
-                .CountAsync(x => x.IsActive);
+        public Task<int> GetActiveSessionsAsync(CancellationToken cancellationToken = default)
+            => _context.UserSessions.CountAsync(x => x.IsActive, cancellationToken);
 
-        public async Task<int> GetNewUsersThisWeekAsync()
+        public Task<int> GetNewUsersThisWeekAsync(CancellationToken cancellationToken = default)
         {
             var start = DateTime.UtcNow.AddDays(-7);
-
-            return await _context.Users
-                .CountAsync(x => x.CreatedAt >= start);
+            return _context.Users.CountAsync(x => x.CreatedAt >= start, cancellationToken);
         }
 
-        public async Task<int> GetNewUsersLastWeekAsync()
+        public Task<int> GetNewUsersLastWeekAsync(CancellationToken cancellationToken = default)
         {
             var start = DateTime.UtcNow.AddDays(-14);
             var end = DateTime.UtcNow.AddDays(-7);
-
-            return await _context.Users
-                .CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end);
+            return _context.Users.CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end, cancellationToken);
         }
 
-        public async Task<int> GetSecurityEventsThisWeekAsync()
+        public Task<int> GetSecurityEventsThisWeekAsync(CancellationToken cancellationToken = default)
         {
             var start = DateTime.UtcNow.AddDays(-7);
-
-            return await _context.SecurityEvents
-                .CountAsync(x => x.CreatedAt >= start);
+            return _context.SecurityEvents.CountAsync(x => x.CreatedAt >= start, cancellationToken);
         }
 
-        public async Task<int> GetSecurityEventsLastWeekAsync()
+        public Task<int> GetSecurityEventsLastWeekAsync(CancellationToken cancellationToken = default)
         {
             var start = DateTime.UtcNow.AddDays(-14);
             var end = DateTime.UtcNow.AddDays(-7);
-
-            return await _context.SecurityEvents
-                .CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end);
+            return _context.SecurityEvents.CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end, cancellationToken);
         }
     }
 }

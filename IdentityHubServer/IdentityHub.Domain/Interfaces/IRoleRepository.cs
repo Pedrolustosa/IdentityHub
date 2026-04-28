@@ -1,22 +1,19 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using System.Text;
 
 namespace IdentityHub.Domain.Interfaces
 {
     public interface IRoleRepository
     {
-        Task<List<IdentityRole>> GetAllAsync();
-        Task<IdentityRole?> GetByIdAsync(string id);
-        Task<IdentityRole?> GetByNameAsync(string name);
-        Task CreateAsync(IdentityRole role);
-        Task UpdateAsync(IdentityRole role);
-        Task DeleteAsync(IdentityRole role);
+        Task<List<IdentityRole>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<IdentityRole?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
+        Task<IdentityRole?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+        Task CreateAsync(IdentityRole role, CancellationToken cancellationToken = default);
+        Task UpdateAsync(IdentityRole role, CancellationToken cancellationToken = default);
+        Task DeleteAsync(IdentityRole role, CancellationToken cancellationToken = default);
 
-        Task<IList<Claim>> GetClaimsAsync(IdentityRole role);
-        Task AddClaimAsync(IdentityRole role, Claim claim);
-        Task RemoveClaimAsync(IdentityRole role, Claim claim);
+        Task<IList<Claim>> GetClaimsAsync(IdentityRole role, CancellationToken cancellationToken = default);
+        Task AddClaimAsync(IdentityRole role, Claim claim, CancellationToken cancellationToken = default);
+        Task RemoveClaimAsync(IdentityRole role, Claim claim, CancellationToken cancellationToken = default);
     }
 }

@@ -18,22 +18,22 @@ namespace IdentityHub.API.Controllers
 
         [HttpGet("{roleId}")]
         [Authorize(Policy = "RoleClaims.View")]
-        public async Task<IActionResult> GetPermissions(string roleId)
-            => Ok(await _service.GetPermissionsAsync(roleId));
+        public async Task<IActionResult> GetPermissions(string roleId, CancellationToken cancellationToken)
+            => Ok(await _service.GetPermissionsAsync(roleId, cancellationToken));
 
         [HttpPost("{roleId}")]
         [Authorize(Policy = "RoleClaims.Manage")]
-        public async Task<IActionResult> AddPermission(string roleId, [FromBody] string permission)
+        public async Task<IActionResult> AddPermission(string roleId, [FromBody] string permission, CancellationToken cancellationToken)
         {
-            await _service.AddPermissionAsync(roleId, permission);
+            await _service.AddPermissionAsync(roleId, permission, cancellationToken);
             return Ok();
         }
 
         [HttpDelete("{roleId}")]
         [Authorize(Policy = "RoleClaims.Manage")]
-        public async Task<IActionResult> RemovePermission(string roleId, [FromQuery] string permission)
+        public async Task<IActionResult> RemovePermission(string roleId, [FromQuery] string permission, CancellationToken cancellationToken)
         {
-            await _service.RemovePermissionAsync(roleId, permission);
+            await _service.RemovePermissionAsync(roleId, permission, cancellationToken);
             return Ok();
         }
 
@@ -41,9 +41,10 @@ namespace IdentityHub.API.Controllers
         [Authorize(Policy = "RoleClaims.Manage")]
         public async Task<IActionResult> ReplacePermissions(
             string roleId,
-            [FromBody] List<string> permissions)
+            [FromBody] List<string> permissions,
+            CancellationToken cancellationToken)
         {
-            await _service.ReplacePermissionsAsync(roleId, permissions);
+            await _service.ReplacePermissionsAsync(roleId, permissions, cancellationToken);
             return Ok();
         }
     }

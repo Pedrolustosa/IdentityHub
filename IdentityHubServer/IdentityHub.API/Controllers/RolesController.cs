@@ -18,13 +18,13 @@ namespace IdentityHub.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
-            => Ok(await _service.GetAllAsync());
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+            => Ok(await _service.GetAllAsync(cancellationToken));
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
         {
-            var role = await _service.GetByIdAsync(id);
+            var role = await _service.GetByIdAsync(id, cancellationToken);
 
             if (role == null)
                 return NotFound();
@@ -34,40 +34,41 @@ namespace IdentityHub.API.Controllers
 
         [HttpPost]
         [Authorize(Policy = "Roles.Create")]
-        public async Task<IActionResult> Create(CreateRoleRequest request)
+        public async Task<IActionResult> Create(CreateRoleRequest request, CancellationToken cancellationToken)
         {
-            await _service.CreateAsync(request);
+            await _service.CreateAsync(request, cancellationToken);
             return Ok();
         }
 
         [HttpPut("{id}")]
         [Authorize(Policy = "Roles.Update")]
-        public async Task<IActionResult> Update(string id, UpdateRoleRequest request)
+        public async Task<IActionResult> Update(string id, UpdateRoleRequest request, CancellationToken cancellationToken)
         {
-            await _service.UpdateAsync(id, request);
+            await _service.UpdateAsync(id, request, cancellationToken);
             return Ok();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Policy = "Roles.Delete")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
         {
-            await _service.DeleteAsync(id);
+            await _service.DeleteAsync(id, cancellationToken);
             return Ok();
         }
 
         [HttpGet("{id}/permissions")]
         [Authorize(Policy = "Roles.Permissions.View")]
-        public async Task<IActionResult> GetPermissions(string id)
-            => Ok(await _service.GetPermissionsAsync(id));
+        public async Task<IActionResult> GetPermissions(string id, CancellationToken cancellationToken)
+            => Ok(await _service.GetPermissionsAsync(id, cancellationToken));
 
         [HttpPut("{id}/permissions")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdatePermissions(
             string id,
-            UpdateRolePermissionsRequest request)
+            UpdateRolePermissionsRequest request,
+            CancellationToken cancellationToken)
         {
-            await _service.UpdatePermissionsAsync(id, request.Permissions);
+            await _service.UpdatePermissionsAsync(id, request.Permissions, cancellationToken);
             return Ok();
         }
     }
