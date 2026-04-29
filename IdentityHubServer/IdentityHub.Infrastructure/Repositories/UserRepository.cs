@@ -3,7 +3,7 @@ using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityHub.Infrastructure.Services
+namespace IdentityHub.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {

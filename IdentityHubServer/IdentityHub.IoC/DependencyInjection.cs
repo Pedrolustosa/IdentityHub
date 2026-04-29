@@ -3,8 +3,7 @@ using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
-using IdentityHub.Infrastructure.Services;
-using Microsoft.AspNetCore.Authorization;
+using IdentityHub.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +23,8 @@ namespace IdentityHub.IoC
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AuthService).Assembly));
 
             services.AddScoped<TokenService>();
 

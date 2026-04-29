@@ -2,7 +2,7 @@ using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityHub.Infrastructure.Services
+namespace IdentityHub.Infrastructure.Repositories
 {
     public class DashboardRepository : IDashboardRepository
     {
