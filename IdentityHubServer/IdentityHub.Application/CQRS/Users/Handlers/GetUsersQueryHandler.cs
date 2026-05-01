@@ -1,11 +1,12 @@
-﻿using IdentityHub.Application.CQRS.Users.Queries;
+﻿using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Users.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Users.Handlers;
 
-public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, List<UserResponse>>
+public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, Result<List<UserResponse>>>
 {
     private readonly IUserRepository _repository;
 
@@ -14,17 +15,19 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, List<U
         _repository = repository;
     }
 
-    public async Task<List<UserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<UserResponse>>> Handle(
+        GetUsersQuery request,
+        CancellationToken cancellationToken)
     {
         var users = await _repository.GetAllAsync(cancellationToken);
 
-        var result = new List<UserResponse>();
+        var response = new List<UserResponse>();
 
         foreach (var user in users)
         {
             var roles = await _repository.GetRolesAsync(user, cancellationToken);
 
-            result.Add(new UserResponse
+            response.Add(new UserResponse
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -34,6 +37,6 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, List<U
             });
         }
 
-        return result;
+        return Result<List<UserResponse>>.Success(response);
     }
 }

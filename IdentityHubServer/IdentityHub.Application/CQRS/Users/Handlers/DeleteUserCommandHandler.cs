@@ -1,10 +1,12 @@
-﻿using IdentityHub.Application.CQRS.Users.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Users.Handlers;
 
-public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
+public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Result>
 {
     private readonly IUserRepository _repository;
 
@@ -13,13 +15,18 @@ public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand
         _repository = repository;
     }
 
-    public async Task Handle(DeleteUserCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        DeleteUserCommand command,
+        CancellationToken cancellationToken)
     {
         var user = await _repository.GetByIdAsync(command.Id, cancellationToken);
 
         if (user is null)
-            throw new InvalidOperationException("User not found");
+            return Result.Failure(
+                Error.Create("User.NotFound", "User not found"));
 
         await _repository.DeleteAsync(user, cancellationToken);
+
+        return Result.Success();
     }
 }

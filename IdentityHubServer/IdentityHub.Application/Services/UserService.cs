@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Application.CQRS.Users.Queries;
 using IdentityHub.Application.DTOs;
@@ -15,21 +16,21 @@ public sealed class UserService : IUserService
         _sender = sender;
     }
 
-    public Task<List<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public Task<Result<List<UserResponse>>> GetAllAsync(CancellationToken cancellationToken)
         => _sender.Send(new GetUsersQuery(), cancellationToken);
 
-    public Task<UserResponse?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public Task<Result<UserResponse>> GetByIdAsync(string id, CancellationToken cancellationToken)
         => _sender.Send(new GetUserByIdQuery(id), cancellationToken);
 
-    public Task CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public Task<Result> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken)
         => _sender.Send(new CreateUserCommand(request), cancellationToken);
 
-    public Task UpdateAsync(string id, UpdateUserRequest request, CancellationToken cancellationToken = default)
+    public Task<Result> UpdateAsync(string id, UpdateUserRequest request, CancellationToken cancellationToken)
         => _sender.Send(new UpdateUserCommand(id, request), cancellationToken);
 
-    public Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    public Task<Result> DeleteAsync(string id, CancellationToken cancellationToken)
         => _sender.Send(new DeleteUserCommand(id), cancellationToken);
 
-    public Task UpdateRolesAsync(string id, UpdateRolesRequest request, CancellationToken cancellationToken = default)
+    public Task<Result> UpdateRolesAsync(string id, UpdateRolesRequest request, CancellationToken cancellationToken)
         => _sender.Send(new UpdateUserRolesCommand(id, request), cancellationToken);
 }

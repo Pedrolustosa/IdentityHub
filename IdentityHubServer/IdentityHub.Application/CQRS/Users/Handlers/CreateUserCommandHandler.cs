@@ -1,11 +1,13 @@
-﻿using IdentityHub.Application.CQRS.Users.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Users.Handlers;
 
-public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand>
+public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result>
 {
     private readonly IUserRepository _repository;
 
@@ -14,26 +16,40 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
         _repository = repository;
     }
 
-    public async Task Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        CreateUserCommand command,
+        CancellationToken cancellationToken)
     {
-        var request = command.Request;
-        var email = request.Email.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(command.Request.Email) ||
+            string.IsNullOrWhiteSpace(command.Request.Password))
+        {
+            return Result.Failure(
+                Error.Create("User.InvalidRequest", "Email and password are required"));
+        }
+
+        var email = command.Request.Email.Trim().ToLowerInvariant();
 
         var existingUser = await _repository.GetByEmailAsync(email, cancellationToken);
 
         if (existingUser is not null)
-            throw new InvalidOperationException("User already exists");
+            return Result.Failure(
+                Error.Create("User.AlreadyExists", "User already exists"));
 
         var user = new ApplicationUser
         {
             UserName = email,
             Email = email,
-            FullName = request.FullName?.Trim(),
+            FullName = command.Request.FullName?.Trim(),
             IsActive = true,
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow
         };
 
-        await _repository.CreateAsync(user, request.Password, cancellationToken);
+        await _repository.CreateAsync(
+            user,
+            command.Request.Password,
+            cancellationToken);
+
+        return Result.Success();
     }
 }

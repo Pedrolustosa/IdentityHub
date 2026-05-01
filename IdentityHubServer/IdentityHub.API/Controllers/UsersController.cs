@@ -1,3 +1,4 @@
+using IdentityHub.API.Extensions;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -15,18 +16,19 @@ public sealed class UsersController(IUserService service) : ControllerBase
     [HttpGet]
     [Authorize(Policy = "Users.View")]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        => Ok(await _service.GetAllAsync(cancellationToken));
+    {
+        var result = await _service.GetAllAsync(cancellationToken);
+        return result.ToActionResult();
+    }
 
     [HttpGet("{id}")]
     [Authorize(Policy = "Users.View")]
-    public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(
+        string id,
+        CancellationToken cancellationToken)
     {
-        var user = await _service.GetByIdAsync(id, cancellationToken);
-
-        if (user is null)
-            return NotFound();
-
-        return Ok(user);
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost]
@@ -35,8 +37,8 @@ public sealed class UsersController(IUserService service) : ControllerBase
         CreateUserRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.CreateAsync(request, cancellationToken);
-        return Ok();
+        var result = await _service.CreateAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPut("{id}")]
@@ -46,16 +48,18 @@ public sealed class UsersController(IUserService service) : ControllerBase
         UpdateUserRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.UpdateAsync(id, request, cancellationToken);
-        return Ok();
+        var result = await _service.UpdateAsync(id, request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "Users.Delete")]
-    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        string id,
+        CancellationToken cancellationToken)
     {
-        await _service.DeleteAsync(id, cancellationToken);
-        return Ok();
+        var result = await _service.DeleteAsync(id, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPut("{id}/roles")]
@@ -65,7 +69,7 @@ public sealed class UsersController(IUserService service) : ControllerBase
         UpdateRolesRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.UpdateRolesAsync(id, request, cancellationToken);
-        return Ok();
+        var result = await _service.UpdateRolesAsync(id, request, cancellationToken);
+        return result.ToActionResult();
     }
 }

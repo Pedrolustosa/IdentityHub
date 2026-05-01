@@ -1,11 +1,13 @@
-﻿using IdentityHub.Application.CQRS.Users.Queries;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Users.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Users.Handlers;
 
-public sealed class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserResponse?>
+public sealed class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Result<UserResponse>>
 {
     private readonly IUserRepository _repository;
 
@@ -14,22 +16,25 @@ public sealed class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, 
         _repository = repository;
     }
 
-    public async Task<UserResponse?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<UserResponse>> Handle(
+        GetUserByIdQuery request,
+        CancellationToken cancellationToken)
     {
         var user = await _repository.GetByIdAsync(request.Id, cancellationToken);
 
         if (user is null)
-            return null;
+            return Result<UserResponse>.Failure(
+                Error.Create("User.NotFound", "User not found"));
 
         var roles = await _repository.GetRolesAsync(user, cancellationToken);
 
-        return new UserResponse
+        return Result<UserResponse>.Success(new UserResponse
         {
             Id = user.Id,
             Email = user.Email,
             FullName = user.FullName,
             IsActive = user.IsActive,
             Roles = roles
-        };
+        });
     }
 }
