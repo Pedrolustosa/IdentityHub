@@ -1,16 +1,15 @@
 using IdentityHub.Domain.Entities;
 
-namespace IdentityHub.Domain.Interfaces
-{
-    public interface IUserRepository
-    {
-        Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
-        Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-        Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default);
-        Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+namespace IdentityHub.Domain.Interfaces;
 
-        Task<IReadOnlyList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default);
-        Task ReplaceUserRolesAsync(ApplicationUser user, IReadOnlyList<string> roleNames, CancellationToken cancellationToken = default);
-    }
+public interface IUserRepository
+{
+    Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
+    Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default);
+    Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task DeleteAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task UpdateRolesAsync(ApplicationUser user, IList<string> roles, CancellationToken cancellationToken = default);
 }
