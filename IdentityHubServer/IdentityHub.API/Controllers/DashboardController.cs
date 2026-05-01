@@ -2,22 +2,21 @@ using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IdentityHub.API.Controllers
+namespace IdentityHub.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Policy = "Dashboard.View")]
+public sealed class DashboardController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize(Policy = "Dashboard.View")]
-    public class DashboardController : ControllerBase
+    private readonly IDashboardService _service;
+
+    public DashboardController(IDashboardService service)
     {
-        private readonly IDashboardService _service;
-
-        public DashboardController(IDashboardService service)
-        {
-            _service = service;
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Get(CancellationToken cancellationToken)
-            => Ok(await _service.GetAsync(cancellationToken));
+        _service = service;
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        => Ok(await _service.GetAsync(cancellationToken));
 }
