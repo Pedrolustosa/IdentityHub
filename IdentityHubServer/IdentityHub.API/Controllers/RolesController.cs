@@ -1,4 +1,5 @@
-﻿using IdentityHub.Application.DTOs;
+﻿using IdentityHub.API.Extensions;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,18 +21,19 @@ public sealed class RolesController : ControllerBase
     [HttpGet]
     [Authorize(Policy = "Roles.View")]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        => Ok(await _service.GetAllAsync(cancellationToken));
+    {
+        var result = await _service.GetAllAsync(cancellationToken);
+        return result.ToActionResult();
+    }
 
     [HttpGet("{id}")]
     [Authorize(Policy = "Roles.View")]
-    public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(
+        string id,
+        CancellationToken cancellationToken)
     {
-        var role = await _service.GetByIdAsync(id, cancellationToken);
-
-        if (role is null)
-            return NotFound();
-
-        return Ok(role);
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost]
@@ -40,8 +42,8 @@ public sealed class RolesController : ControllerBase
         CreateRoleRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.CreateAsync(request, cancellationToken);
-        return Ok();
+        var result = await _service.CreateAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPut("{id}")]
@@ -51,22 +53,29 @@ public sealed class RolesController : ControllerBase
         UpdateRoleRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.UpdateAsync(id, request, cancellationToken);
-        return Ok();
+        var result = await _service.UpdateAsync(id, request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = "Roles.Delete")]
-    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        string id,
+        CancellationToken cancellationToken)
     {
-        await _service.DeleteAsync(id, cancellationToken);
-        return Ok();
+        var result = await _service.DeleteAsync(id, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpGet("{id}/permissions")]
     [Authorize(Policy = "Roles.Permissions.View")]
-    public async Task<IActionResult> GetPermissions(string id, CancellationToken cancellationToken)
-        => Ok(await _service.GetPermissionsAsync(id, cancellationToken));
+    public async Task<IActionResult> GetPermissions(
+        string id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _service.GetPermissionsAsync(id, cancellationToken);
+        return result.ToActionResult();
+    }
 
     [HttpPut("{id}/permissions")]
     [Authorize(Policy = "Roles.Permissions.Update")]
@@ -75,7 +84,11 @@ public sealed class RolesController : ControllerBase
         UpdateRolePermissionsRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.UpdatePermissionsAsync(id, request.Permissions, cancellationToken);
-        return Ok();
+        var result = await _service.UpdatePermissionsAsync(
+            id,
+            request.Permissions,
+            cancellationToken);
+
+        return result.ToActionResult();
     }
 }

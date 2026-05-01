@@ -1,11 +1,14 @@
-﻿using IdentityHub.Application.CQRS.Roles.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Roles.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 using System.Security.Claims;
 
 namespace IdentityHub.Application.CQRS.Roles.Handlers;
 
-public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePermissionsCommand>
+public sealed class UpdateRolePermissionsCommandHandler
+    : IRequestHandler<UpdateRolePermissionsCommand, Result>
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
@@ -15,14 +18,15 @@ public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<Update
         _repository = repository;
     }
 
-    public async Task Handle(
+    public async Task<Result> Handle(
         UpdateRolePermissionsCommand command,
         CancellationToken cancellationToken)
     {
         var role = await _repository.GetByIdAsync(command.RoleId, cancellationToken);
 
         if (role is null)
-            throw new InvalidOperationException("Role not found");
+            return Result.Failure(
+                Error.Create("Role.NotFound", "Role not found"));
 
         var permissions = command.Permissions
             .Where(p => !string.IsNullOrWhiteSpace(p))
@@ -46,5 +50,7 @@ public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<Update
                 new Claim(PermissionClaimType, permission),
                 cancellationToken);
         }
+
+        return Result.Success();
     }
 }

@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Roles.Commands;
 using IdentityHub.Application.CQRS.Roles.Queries;
 using IdentityHub.Application.DTOs;
@@ -15,27 +16,27 @@ public sealed class RoleService : IRoleService
         _sender = sender;
     }
 
-    public Task<List<RoleResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public Task<Result<List<RoleResponse>>> GetAllAsync(CancellationToken cancellationToken)
         => _sender.Send(new GetRolesQuery(), cancellationToken);
 
-    public Task<RoleResponse?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public Task<Result<RoleResponse>> GetByIdAsync(string id, CancellationToken cancellationToken)
         => _sender.Send(new GetRoleByIdQuery(id), cancellationToken);
 
-    public Task CreateAsync(CreateRoleRequest request, CancellationToken cancellationToken = default)
+    public Task<Result> CreateAsync(CreateRoleRequest request, CancellationToken cancellationToken)
         => _sender.Send(new CreateRoleCommand(request), cancellationToken);
 
-    public Task UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken = default)
+    public Task<Result> UpdateAsync(string id, UpdateRoleRequest request, CancellationToken cancellationToken)
         => _sender.Send(new UpdateRoleCommand(id, request), cancellationToken);
 
-    public Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    public Task<Result> DeleteAsync(string id, CancellationToken cancellationToken)
         => _sender.Send(new DeleteRoleCommand(id), cancellationToken);
 
-    public Task<List<string>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken = default)
+    public Task<Result<List<string>>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken)
         => _sender.Send(new GetRolePermissionsQuery(roleId), cancellationToken);
 
-    public Task UpdatePermissionsAsync(
+    public Task<Result> UpdatePermissionsAsync(
         string roleId,
         List<string> permissions,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => _sender.Send(new UpdateRolePermissionsCommand(roleId, permissions), cancellationToken);
 }

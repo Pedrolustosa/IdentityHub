@@ -1,10 +1,13 @@
-﻿using IdentityHub.Application.CQRS.Roles.Queries;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Roles.Queries;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Roles.Handlers;
 
-public sealed class GetRolePermissionsQueryHandler : IRequestHandler<GetRolePermissionsQuery, List<string>>
+public sealed class GetRolePermissionsQueryHandler
+    : IRequestHandler<GetRolePermissionsQuery, Result<List<string>>>
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
@@ -14,22 +17,25 @@ public sealed class GetRolePermissionsQueryHandler : IRequestHandler<GetRolePerm
         _repository = repository;
     }
 
-    public async Task<List<string>> Handle(
+    public async Task<Result<List<string>>> Handle(
         GetRolePermissionsQuery request,
         CancellationToken cancellationToken)
     {
         var role = await _repository.GetByIdAsync(request.RoleId, cancellationToken);
 
         if (role is null)
-            throw new InvalidOperationException("Role not found");
+            return Result<List<string>>.Failure(
+                Error.Create("Role.NotFound", "Role not found"));
 
         var claims = await _repository.GetClaimsAsync(role, cancellationToken);
 
-        return claims
+        var permissions = claims
             .Where(c => c.Type == PermissionClaimType)
             .Select(c => c.Value)
-            .Distinct()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x)
             .ToList();
+
+        return Result<List<string>>.Success(permissions);
     }
 }

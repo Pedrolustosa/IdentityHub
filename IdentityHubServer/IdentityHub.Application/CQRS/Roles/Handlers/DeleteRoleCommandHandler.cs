@@ -1,10 +1,12 @@
-﻿using IdentityHub.Application.CQRS.Roles.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Roles.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Roles.Handlers;
 
-public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand>
+public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, Result>
 {
     private readonly IRoleRepository _repository;
 
@@ -13,18 +15,22 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
         _repository = repository;
     }
 
-    public async Task Handle(
+    public async Task<Result> Handle(
         DeleteRoleCommand command,
         CancellationToken cancellationToken)
     {
         var role = await _repository.GetByIdAsync(command.Id, cancellationToken);
 
         if (role is null)
-            throw new InvalidOperationException("Role not found");
+            return Result.Failure(
+                Error.Create("Role.NotFound", "Role not found"));
 
-        if (role.Name is "Admin")
-            throw new InvalidOperationException("Admin role cannot be deleted");
+        if (string.Equals(role.Name, "Admin", StringComparison.OrdinalIgnoreCase))
+            return Result.Failure(
+                Error.Create("Role.AdminCannotBeDeleted", "Admin role cannot be deleted"));
 
         await _repository.DeleteAsync(role, cancellationToken);
+
+        return Result.Success();
     }
 }
