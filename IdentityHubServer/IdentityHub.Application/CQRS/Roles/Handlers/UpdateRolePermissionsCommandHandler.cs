@@ -1,0 +1,50 @@
+﻿using IdentityHub.Application.CQRS.Roles.Commands;
+using IdentityHub.Domain.Interfaces;
+using MediatR;
+using System.Security.Claims;
+
+namespace IdentityHub.Application.CQRS.Roles.Handlers;
+
+public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePermissionsCommand>
+{
+    private const string PermissionClaimType = "permission";
+    private readonly IRoleRepository _repository;
+
+    public UpdateRolePermissionsCommandHandler(IRoleRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task Handle(
+        UpdateRolePermissionsCommand command,
+        CancellationToken cancellationToken)
+    {
+        var role = await _repository.GetByIdAsync(command.RoleId, cancellationToken);
+
+        if (role is null)
+            throw new InvalidOperationException("Role not found");
+
+        var permissions = command.Permissions
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => p.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var currentClaims = await _repository.GetClaimsAsync(role, cancellationToken);
+
+        var currentPermissionClaims = currentClaims
+            .Where(c => c.Type == PermissionClaimType)
+            .ToList();
+
+        foreach (var claim in currentPermissionClaims)
+            await _repository.RemoveClaimAsync(role, claim, cancellationToken);
+
+        foreach (var permission in permissions)
+        {
+            await _repository.AddClaimAsync(
+                role,
+                new Claim(PermissionClaimType, permission),
+                cancellationToken);
+        }
+    }
+}
