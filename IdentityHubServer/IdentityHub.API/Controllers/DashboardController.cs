@@ -1,3 +1,4 @@
+using IdentityHub.API.Extensions;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,5 +19,8 @@ public sealed class DashboardController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
-        => Ok(await _service.GetAsync(cancellationToken));
+    {
+        var result = await _service.GetAsync(cancellationToken);
+        return result.ToActionResult();
+    }
 }

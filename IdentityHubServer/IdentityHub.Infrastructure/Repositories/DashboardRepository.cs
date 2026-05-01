@@ -14,31 +14,39 @@ public sealed class DashboardRepository : IDashboardRepository
     }
 
     public Task<int> GetTotalUsersAsync(CancellationToken cancellationToken = default)
-        => _context.Users.CountAsync(cancellationToken);
+    {
+        return _context.Users.CountAsync(cancellationToken);
+    }
 
     public Task<int> GetActiveSessionsAsync(CancellationToken cancellationToken = default)
-        => _context.UserSessions.CountAsync(x => x.IsActive, cancellationToken);
+    {
+        return _context.UserSessions
+            .CountAsync(x => x.IsActive, cancellationToken);
+    }
 
     public Task<int> GetNewUsersThisWeekAsync(CancellationToken cancellationToken = default)
     {
         var start = DateTime.UtcNow.AddDays(-7);
-        return _context.Users.CountAsync(x => x.CreatedAt >= start, cancellationToken);
+
+        return _context.Users
+            .CountAsync(x => x.CreatedAt >= start, cancellationToken);
     }
 
     public Task<int> GetSecurityEventsThisWeekAsync(CancellationToken cancellationToken = default)
     {
         var start = DateTime.UtcNow.AddDays(-7);
-        return _context.SecurityEvents.CountAsync(x => x.CreatedAt >= start, cancellationToken);
+
+        return _context.SecurityEvents
+            .CountAsync(x => x.CreatedAt >= start, cancellationToken);
     }
 
-    public Task<int> GetUsersLastWeekAsync(CancellationToken cancellationToken = default)
+    public Task<int> GetNewUsersLastWeekAsync(CancellationToken cancellationToken = default)
     {
         var start = DateTime.UtcNow.AddDays(-14);
         var end = DateTime.UtcNow.AddDays(-7);
 
-        return _context.Users.CountAsync(x =>
-            x.CreatedAt >= start && x.CreatedAt < end,
-            cancellationToken);
+        return _context.Users
+            .CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end, cancellationToken);
     }
 
     public Task<int> GetSessionsLastWeekAsync(CancellationToken cancellationToken = default)
@@ -46,9 +54,8 @@ public sealed class DashboardRepository : IDashboardRepository
         var start = DateTime.UtcNow.AddDays(-14);
         var end = DateTime.UtcNow.AddDays(-7);
 
-        return _context.UserSessions.CountAsync(x =>
-            x.CreatedAt >= start && x.CreatedAt < end,
-            cancellationToken);
+        return _context.UserSessions
+            .CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end, cancellationToken);
     }
 
     public Task<int> GetSecurityEventsLastWeekAsync(CancellationToken cancellationToken = default)
@@ -56,8 +63,7 @@ public sealed class DashboardRepository : IDashboardRepository
         var start = DateTime.UtcNow.AddDays(-14);
         var end = DateTime.UtcNow.AddDays(-7);
 
-        return _context.SecurityEvents.CountAsync(x =>
-            x.CreatedAt >= start && x.CreatedAt < end,
-            cancellationToken);
+        return _context.SecurityEvents
+            .CountAsync(x => x.CreatedAt >= start && x.CreatedAt < end, cancellationToken);
     }
 }

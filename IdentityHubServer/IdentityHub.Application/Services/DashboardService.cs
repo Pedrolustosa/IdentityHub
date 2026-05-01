@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Dashboard.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
@@ -14,6 +15,6 @@ public sealed class DashboardService : IDashboardService
         _sender = sender;
     }
 
-    public Task<DashboardResponse> GetAsync(CancellationToken cancellationToken = default)
+    public Task<Result<DashboardResponse>> GetAsync(CancellationToken cancellationToken)
         => _sender.Send(new GetDashboardQuery(), cancellationToken);
 }

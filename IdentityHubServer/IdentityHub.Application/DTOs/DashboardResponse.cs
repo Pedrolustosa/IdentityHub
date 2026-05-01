@@ -1,6 +1,6 @@
 ﻿namespace IdentityHub.Application.DTOs;
 
-public class DashboardResponse
+public sealed class DashboardResponse
 {
     public int TotalUsers { get; set; }
     public int ActiveSessions { get; set; }

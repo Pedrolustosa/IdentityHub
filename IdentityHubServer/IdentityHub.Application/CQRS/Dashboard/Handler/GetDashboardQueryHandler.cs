@@ -1,4 +1,5 @@
-﻿using IdentityHub.Application.CQRS.Dashboard.Queries;
+﻿using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Dashboard.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -6,7 +7,7 @@ using MediatR;
 namespace IdentityHub.Application.CQRS.Dashboard.Handlers;
 
 public sealed class GetDashboardQueryHandler
-    : IRequestHandler<GetDashboardQuery, DashboardResponse>
+    : IRequestHandler<GetDashboardQuery, Result<DashboardResponse>>
 {
     private readonly IDashboardRepository _repository;
 
@@ -15,7 +16,7 @@ public sealed class GetDashboardQueryHandler
         _repository = repository;
     }
 
-    public async Task<DashboardResponse> Handle(
+    public async Task<Result<DashboardResponse>> Handle(
         GetDashboardQuery request,
         CancellationToken cancellationToken)
     {
@@ -24,21 +25,22 @@ public sealed class GetDashboardQueryHandler
         var newUsers = await _repository.GetNewUsersThisWeekAsync(cancellationToken);
         var securityEvents = await _repository.GetSecurityEventsThisWeekAsync(cancellationToken);
 
-        var lastUsers = await _repository.GetUsersLastWeekAsync(cancellationToken);
-        var lastSessions = await _repository.GetSessionsLastWeekAsync(cancellationToken);
-        var lastSecurity = await _repository.GetSecurityEventsLastWeekAsync(cancellationToken);
+        var lastWeekUsers = await _repository.GetNewUsersLastWeekAsync(cancellationToken);
+        var lastWeekSessions = await _repository.GetSessionsLastWeekAsync(cancellationToken);
+        var lastWeekSecurityEvents = await _repository.GetSecurityEventsLastWeekAsync(cancellationToken);
 
-        return new DashboardResponse
+        var response = new DashboardResponse
         {
             TotalUsers = totalUsers,
             ActiveSessions = activeSessions,
             NewUsers = newUsers,
             SecurityEvents = securityEvents,
-
-            UsersGrowth = CalculateGrowth(lastUsers, newUsers),
-            SessionsGrowth = CalculateGrowth(lastSessions, activeSessions),
-            SecurityGrowth = CalculateGrowth(lastSecurity, securityEvents)
+            UsersGrowth = CalculateGrowth(lastWeekUsers, newUsers),
+            SessionsGrowth = CalculateGrowth(lastWeekSessions, activeSessions),
+            SecurityGrowth = CalculateGrowth(lastWeekSecurityEvents, securityEvents)
         };
+
+        return Result<DashboardResponse>.Success(response);
     }
 
     private static double CalculateGrowth(int previous, int current)
