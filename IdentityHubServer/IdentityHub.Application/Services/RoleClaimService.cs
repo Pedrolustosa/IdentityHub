@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.RoleClaims.Commands;
 using IdentityHub.Application.CQRS.RoleClaims.Queries;
 using IdentityHub.Application.Interfaces;
@@ -14,26 +15,26 @@ public sealed class RoleClaimService : IRoleClaimService
         _sender = sender;
     }
 
-    public Task<List<string>> GetPermissionsAsync(
+    public Task<Result<List<string>>> GetPermissionsAsync(
         string roleId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => _sender.Send(new GetRoleClaimPermissionsQuery(roleId), cancellationToken);
 
-    public Task AddPermissionAsync(
+    public Task<Result> AddPermissionAsync(
         string roleId,
         string permission,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => _sender.Send(new AddRoleClaimPermissionCommand(roleId, permission), cancellationToken);
 
-    public Task RemovePermissionAsync(
+    public Task<Result> RemovePermissionAsync(
         string roleId,
         string permission,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => _sender.Send(new RemoveRoleClaimPermissionCommand(roleId, permission), cancellationToken);
 
-    public Task ReplacePermissionsAsync(
+    public Task<Result> ReplacePermissionsAsync(
         string roleId,
         List<string> permissions,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => _sender.Send(new ReplaceRoleClaimPermissionsCommand(roleId, permissions), cancellationToken);
 }

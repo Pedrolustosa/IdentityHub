@@ -1,4 +1,6 @@
-﻿using IdentityHub.Application.CQRS.RoleClaims.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.RoleClaims.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 using System.Security.Claims;
@@ -6,7 +8,7 @@ using System.Security.Claims;
 namespace IdentityHub.Application.CQRS.RoleClaims.Handlers;
 
 public sealed class AddRoleClaimPermissionCommandHandler
-    : IRequestHandler<AddRoleClaimPermissionCommand>
+    : IRequestHandler<AddRoleClaimPermissionCommand, Result>
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
@@ -16,17 +18,19 @@ public sealed class AddRoleClaimPermissionCommandHandler
         _repository = repository;
     }
 
-    public async Task Handle(
+    public async Task<Result> Handle(
         AddRoleClaimPermissionCommand request,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Permission))
-            throw new InvalidOperationException("Permission is required");
+            return Result.Failure(
+                Error.Create("RoleClaim.PermissionRequired", "Permission is required"));
 
         var role = await _repository.GetByIdAsync(request.RoleId, cancellationToken);
 
         if (role is null)
-            throw new InvalidOperationException("Role not found");
+            return Result.Failure(
+                Error.Create("Role.NotFound", "Role not found"));
 
         var permission = request.Permission.Trim();
 
@@ -37,11 +41,14 @@ public sealed class AddRoleClaimPermissionCommandHandler
             string.Equals(c.Value, permission, StringComparison.OrdinalIgnoreCase));
 
         if (exists)
-            throw new InvalidOperationException("Permission already exists");
+            return Result.Failure(
+                Error.Create("RoleClaim.AlreadyExists", "Permission already exists"));
 
         await _repository.AddClaimAsync(
             role,
             new Claim(PermissionClaimType, permission),
             cancellationToken);
+
+        return Result.Success();
     }
 }

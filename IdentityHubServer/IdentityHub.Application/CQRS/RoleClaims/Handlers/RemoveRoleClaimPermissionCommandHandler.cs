@@ -1,11 +1,13 @@
-﻿using IdentityHub.Application.CQRS.RoleClaims.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.RoleClaims.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.RoleClaims.Handlers;
 
 public sealed class RemoveRoleClaimPermissionCommandHandler
-    : IRequestHandler<RemoveRoleClaimPermissionCommand>
+    : IRequestHandler<RemoveRoleClaimPermissionCommand, Result>
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
@@ -15,17 +17,19 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
         _repository = repository;
     }
 
-    public async Task Handle(
+    public async Task<Result> Handle(
         RemoveRoleClaimPermissionCommand request,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Permission))
-            throw new InvalidOperationException("Permission is required");
+            return Result.Failure(
+                Error.Create("RoleClaim.PermissionRequired", "Permission is required"));
 
         var role = await _repository.GetByIdAsync(request.RoleId, cancellationToken);
 
         if (role is null)
-            throw new InvalidOperationException("Role not found");
+            return Result.Failure(
+                Error.Create("Role.NotFound", "Role not found"));
 
         var permission = request.Permission.Trim();
 
@@ -36,8 +40,10 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
             string.Equals(c.Value, permission, StringComparison.OrdinalIgnoreCase));
 
         if (claim is null)
-            return;
+            return Result.Success();
 
         await _repository.RemoveClaimAsync(role, claim, cancellationToken);
+
+        return Result.Success();
     }
 }

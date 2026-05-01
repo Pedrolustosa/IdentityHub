@@ -1,9 +1,11 @@
+using IdentityHub.Application.Common.Results;
+
 namespace IdentityHub.Application.Interfaces;
 
 public interface IRoleClaimService
 {
-    Task<List<string>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken = default);
-    Task AddPermissionAsync(string roleId, string permission, CancellationToken cancellationToken = default);
-    Task RemovePermissionAsync(string roleId, string permission, CancellationToken cancellationToken = default);
-    Task ReplacePermissionsAsync(string roleId, List<string> permissions, CancellationToken cancellationToken = default);
+    Task<Result<List<string>>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken);
+    Task<Result> AddPermissionAsync(string roleId, string permission, CancellationToken cancellationToken);
+    Task<Result> RemovePermissionAsync(string roleId, string permission, CancellationToken cancellationToken);
+    Task<Result> ReplacePermissionsAsync(string roleId, List<string> permissions, CancellationToken cancellationToken);
 }

@@ -1,4 +1,5 @@
-﻿using IdentityHub.Application.Interfaces;
+﻿using IdentityHub.API.Extensions;
+using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +23,8 @@ public sealed class RoleClaimsController : ControllerBase
         string roleId,
         CancellationToken cancellationToken)
     {
-        return Ok(await _service.GetPermissionsAsync(roleId, cancellationToken));
+        var result = await _service.GetPermissionsAsync(roleId, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("{roleId}")]
@@ -32,8 +34,8 @@ public sealed class RoleClaimsController : ControllerBase
         [FromBody] string permission,
         CancellationToken cancellationToken)
     {
-        await _service.AddPermissionAsync(roleId, permission, cancellationToken);
-        return Ok();
+        var result = await _service.AddPermissionAsync(roleId, permission, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpDelete("{roleId}")]
@@ -43,8 +45,8 @@ public sealed class RoleClaimsController : ControllerBase
         [FromQuery] string permission,
         CancellationToken cancellationToken)
     {
-        await _service.RemovePermissionAsync(roleId, permission, cancellationToken);
-        return Ok();
+        var result = await _service.RemovePermissionAsync(roleId, permission, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPut("{roleId}")]
@@ -54,7 +56,11 @@ public sealed class RoleClaimsController : ControllerBase
         [FromBody] List<string> permissions,
         CancellationToken cancellationToken)
     {
-        await _service.ReplacePermissionsAsync(roleId, permissions, cancellationToken);
-        return Ok();
+        var result = await _service.ReplacePermissionsAsync(
+            roleId,
+            permissions,
+            cancellationToken);
+
+        return result.ToActionResult();
     }
 }

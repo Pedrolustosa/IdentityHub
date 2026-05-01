@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using IdentityHub.Application.Common.Results;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,5 +8,5 @@ namespace IdentityHub.Application.CQRS.RoleClaims.Commands
 {
     public sealed record RemoveRoleClaimPermissionCommand(
         string RoleId,
-        string Permission) : IRequest;
+        string Permission) : IRequest<Result>;
 }
