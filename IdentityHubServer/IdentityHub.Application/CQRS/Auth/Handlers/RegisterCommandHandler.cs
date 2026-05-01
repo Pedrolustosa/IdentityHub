@@ -1,77 +1,64 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
+using System.Text;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand>
+public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result>
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IEmailService _emailService;
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
 
     public RegisterCommandHandler(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager,
         IEmailService emailService,
-        IConfiguration configuration)
+        IConfiguration config)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
         _emailService = emailService;
-        _configuration = configuration;
+        _config = config;
     }
 
-    public async Task Handle(RegisterCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(RegisterCommand command, CancellationToken ct)
     {
-        var request = command.Request;
+        var email = command.Request.Email.Trim().ToLowerInvariant();
 
-        var email = request.Email.Trim().ToLowerInvariant();
-
-        var existingUser = await _userManager.FindByEmailAsync(email);
-
-        if (existingUser is not null)
-            throw new InvalidOperationException("User already exists");
+        var exists = await _userManager.FindByEmailAsync(email);
+        if (exists != null)
+            return Result.Failure(Error.Create("User.Exists", "User already exists"));
 
         var user = new ApplicationUser
         {
-            UserName = email,
             Email = email,
-            FullName = request.FullName?.Trim(),
-            IsActive = true,
+            UserName = email,
+            FullName = command.Request.FullName,
             CreatedAt = DateTime.UtcNow,
+            IsActive = true,
             EmailConfirmed = false
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var result = await _userManager.CreateAsync(user, command.Request.Password);
 
         if (!result.Succeeded)
-            throw new InvalidOperationException(
-                string.Join("; ", result.Errors.Select(e => e.Description)));
-
-        if (await _roleManager.RoleExistsAsync("User"))
-            await _userManager.AddToRoleAsync(user, "User");
+            return Result.Failure(Error.Create("User.CreateFailed",
+                string.Join(", ", result.Errors.Select(e => e.Description))));
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
-        var link = BuildFrontendLink("confirm-email", email, token);
+        var baseUrl = (_config["Frontend:BaseUrl"] ?? "").TrimEnd('/');
+        var link = $"{baseUrl}/confirm-email?email={email}&token={encoded}";
 
-        await _emailService.SendAsync(
-            email,
-            "Confirm your account",
-            $"Click here: <a href='{link}'>Confirm Email</a>");
-    }
+        await _emailService.SendAsync(email, "Confirm Email", $"<a href='{link}'>Confirm</a>");
 
-    private string BuildFrontendLink(string path, string email, string token)
-    {
-        var frontendBase = (_configuration["Frontend:BaseUrl"] ?? "http://localhost:4200")
-            .Trim()
-            .TrimEnd('/');
-
-        return $"{frontendBase}/{path}?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+        return Result.Success();
     }
 }

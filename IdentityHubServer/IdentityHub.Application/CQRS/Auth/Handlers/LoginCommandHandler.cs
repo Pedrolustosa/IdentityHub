@@ -1,4 +1,6 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
@@ -8,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
+public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponse>>
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
@@ -27,7 +29,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
         _authRepository = authRepository;
     }
 
-    public async Task<AuthResponse> Handle(
+    public async Task<Result<AuthResponse>> Handle(
         LoginCommand command,
         CancellationToken cancellationToken)
     {
@@ -35,18 +37,21 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null || !user.IsActive)
-            throw new UnauthorizedAccessException("Invalid credentials");
+        if (user is null || !user.IsActive)
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
 
         var passwordValid = await _userManager.CheckPasswordAsync(
             user,
             command.Request.Password);
 
         if (!passwordValid)
-            throw new UnauthorizedAccessException("Invalid credentials");
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
 
         if (!user.EmailConfirmed)
-            throw new UnauthorizedAccessException("Email not confirmed");
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.EmailNotConfirmed", "Email not confirmed"));
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -78,10 +83,10 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
 
         await _authRepository.SaveChangesAsync(cancellationToken);
 
-        return new AuthResponse
+        return Result<AuthResponse>.Success(new AuthResponse
         {
             Token = accessToken,
             RefreshToken = refreshToken
-        };
+        });
     }
 }

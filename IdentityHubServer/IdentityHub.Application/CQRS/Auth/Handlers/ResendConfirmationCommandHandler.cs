@@ -1,13 +1,17 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
+using System.Text;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendConfirmationCommand>
+public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendConfirmationCommand, Result>
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEmailService _emailService;
@@ -23,31 +27,37 @@ public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendCon
         _configuration = configuration;
     }
 
-    public async Task Handle(ResendConfirmationCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        ResendConfirmationCommand command,
+        CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(command.Email))
+            return Result.Failure(Error.Create("Email.Required", "Email is required"));
+
         var email = command.Email.Trim().ToLowerInvariant();
 
         var user = await _userManager.FindByEmailAsync(email);
 
         if (user is null || user.EmailConfirmed)
-            return;
+            return Result.Success();
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var link = BuildFrontendLink("confirm-email", email, token);
+        var encodedToken = WebEncoders.Base64UrlEncode(
+            Encoding.UTF8.GetBytes(token));
 
-        await _emailService.SendAsync(
-            email,
-            "Confirm your account",
-            $"Click here: <a href='{link}'>Confirm Email</a>");
-    }
-
-    private string BuildFrontendLink(string path, string email, string token)
-    {
         var frontendBase = (_configuration["Frontend:BaseUrl"] ?? "http://localhost:4200")
             .Trim()
             .TrimEnd('/');
 
-        return $"{frontendBase}/{path}?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+        var confirmationLink =
+            $"{frontendBase}/confirm-email?email={Uri.EscapeDataString(email)}&token={encodedToken}";
+
+        await _emailService.SendAsync(
+            email,
+            "Confirm your account",
+            $"Click here: <a href='{confirmationLink}'>Confirm Email</a>");
+
+        return Result.Success();
     }
 }

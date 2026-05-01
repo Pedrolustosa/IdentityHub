@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
@@ -14,62 +15,33 @@ public sealed class AuthService : IAuthService
         _sender = sender;
     }
 
-    public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new RegisterCommand(request), cancellationToken);
-    }
+    public Task<Result> RegisterAsync(RegisterRequest r, CancellationToken ct)
+        => _sender.Send(new RegisterCommand(r), ct);
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
-    {
-        return await _sender.Send(new LoginCommand(request), cancellationToken);
-    }
+    public Task<Result<AuthResponse>> LoginAsync(LoginRequest r, CancellationToken ct)
+        => _sender.Send(new LoginCommand(r), ct);
 
-    public async Task<AuthResponse> RefreshAsync(RefreshTokenRequest request, CancellationToken cancellationToken)
-    {
-        return await _sender.Send(new RefreshCommand(request), cancellationToken);
-    }
+    public Task<Result<AuthResponse>> RefreshAsync(RefreshTokenRequest r, CancellationToken ct)
+        => _sender.Send(new RefreshCommand(r), ct);
 
-    public async Task LogoutAsync(RefreshTokenRequest request, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new LogoutCommand(request), cancellationToken);
-    }
+    public Task<Result> LogoutAsync(RefreshTokenRequest r, CancellationToken ct)
+        => _sender.Send(new LogoutCommand(r), ct);
 
-    public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new ForgotPasswordCommand(request), cancellationToken);
-    }
+    public Task<Result> ForgotPasswordAsync(ForgotPasswordRequest r, CancellationToken ct)
+        => _sender.Send(new ForgotPasswordCommand(r), ct);
 
-    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new ResetPasswordCommand(request), cancellationToken);
-    }
+    public Task<Result> ResetPasswordAsync(ResetPasswordRequest r, CancellationToken ct)
+        => _sender.Send(new ResetPasswordCommand(r), ct);
 
-    public async Task ChangePasswordAsync(
-        string userId,
-        ChangePasswordRequest request,
-        CancellationToken cancellationToken)
-    {
-        await _sender.Send(new ChangePasswordCommand(userId, request), cancellationToken);
-    }
+    public Task<Result> ChangePasswordAsync(string u, ChangePasswordRequest r, CancellationToken ct)
+        => _sender.Send(new ChangePasswordCommand(u, r), ct);
 
-    public async Task ConfirmEmailAsync(
-        string email,
-        string token,
-        CancellationToken cancellationToken)
-    {
-        await _sender.Send(new ConfirmEmailCommand(email, token), cancellationToken);
-    }
+    public Task<Result> ConfirmEmailAsync(string e, string t, CancellationToken ct)
+        => _sender.Send(new ConfirmEmailCommand(e, t), ct);
 
-    public async Task ResendConfirmationAsync(string email, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new ResendConfirmationCommand(email), cancellationToken);
-    }
+    public Task<Result> ResendConfirmationAsync(string e, CancellationToken ct)
+        => _sender.Send(new ResendConfirmationCommand(e), ct);
 
-    public async Task UpdateProfileAsync(
-        string userId,
-        UpdateProfileRequest request,
-        CancellationToken cancellationToken)
-    {
-        await _sender.Send(new UpdateProfileCommand(userId, request), cancellationToken);
-    }
+    public Task<Result> UpdateProfileAsync(string u, UpdateProfileRequest r, CancellationToken ct)
+        => _sender.Send(new UpdateProfileCommand(u, r), ct);
 }

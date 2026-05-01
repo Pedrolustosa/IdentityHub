@@ -1,4 +1,6 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -6,50 +8,36 @@ using Microsoft.AspNetCore.Identity;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand>
+public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, Result>
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IAuthRepository _authRepository;
+    private readonly IAuthRepository _repo;
 
     public ChangePasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
-        IAuthRepository authRepository)
+        IAuthRepository repo)
     {
         _userManager = userManager;
-        _authRepository = authRepository;
+        _repo = repo;
     }
 
-    public async Task Handle(ChangePasswordCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ChangePasswordCommand cmd, CancellationToken ct)
     {
-        var user = await _userManager.FindByIdAsync(command.UserId);
-
-        if (user is null)
-            throw new UnauthorizedAccessException();
+        var user = await _userManager.FindByIdAsync(cmd.UserId);
 
         var result = await _userManager.ChangePasswordAsync(
             user,
-            command.Request.CurrentPassword,
-            command.Request.NewPassword);
+            cmd.Request.CurrentPassword,
+            cmd.Request.NewPassword);
 
         if (!result.Succeeded)
-            throw new InvalidOperationException(
-                string.Join("; ", result.Errors.Select(e => e.Description)));
+            return Result.Failure(Error.Create("Password.ChangeFailed", "Invalid password"));
 
-        await RevokeUserAccess(user.Id, cancellationToken);
-    }
+        var sessions = await _repo.GetActiveSessionsAsync(user.Id, ct);
+        foreach (var s in sessions) s.IsActive = false;
 
-    private async Task RevokeUserAccess(string userId, CancellationToken cancellationToken)
-    {
-        var sessions = await _authRepository.GetActiveSessionsAsync(userId, cancellationToken);
+        await _repo.SaveChangesAsync(ct);
 
-        foreach (var session in sessions)
-            await _authRepository.RevokeSessionAsync(session, cancellationToken);
-
-        var tokens = await _authRepository.GetActiveRefreshTokensAsync(userId, cancellationToken);
-
-        foreach (var token in tokens)
-            await _authRepository.RevokeRefreshTokenAsync(token, cancellationToken);
-
-        await _authRepository.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

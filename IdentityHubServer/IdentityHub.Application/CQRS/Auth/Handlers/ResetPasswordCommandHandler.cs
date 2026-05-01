@@ -1,61 +1,51 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
-using IdentityHub.Domain.Interfaces;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Domain.Entities;
+using IdentityHub.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand>
+public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Result>
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IAuthRepository _authRepository;
+    private readonly IAuthRepository _repo;
 
     public ResetPasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
-        IAuthRepository authRepository)
+        IAuthRepository repo)
     {
         _userManager = userManager;
-        _authRepository = authRepository;
+        _repo = repo;
     }
 
-    public async Task Handle(ResetPasswordCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ResetPasswordCommand cmd, CancellationToken ct)
     {
-        var request = command.Request;
+        var user = await _userManager.FindByEmailAsync(cmd.Request.Email);
 
-        var email = request.Email.Trim().ToLowerInvariant();
+        if (user == null)
+            return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
-        var user = await _userManager.FindByEmailAsync(email);
+        var token = Encoding.UTF8.GetString(
+            WebEncoders.Base64UrlDecode(cmd.Request.Token));
 
-        if (user is null)
-            throw new InvalidOperationException("Invalid request");
-
-        var decodedToken = Uri.UnescapeDataString(request.Token);
-
-        var result = await _userManager.ResetPasswordAsync(
-            user,
-            decodedToken,
-            request.NewPassword);
+        var result = await _userManager.ResetPasswordAsync(user, token, cmd.Request.NewPassword);
 
         if (!result.Succeeded)
-            throw new InvalidOperationException(
-                string.Join("; ", result.Errors.Select(e => e.Description)));
+            return Result.Failure(Error.Create("Password.ResetFailed", "Invalid token"));
 
-        await RevokeUserAccess(user.Id, cancellationToken);
-    }
+        var sessions = await _repo.GetActiveSessionsAsync(user.Id, ct);
+        foreach (var s in sessions) s.IsActive = false;
 
-    private async Task RevokeUserAccess(string userId, CancellationToken cancellationToken)
-    {
-        var sessions = await _authRepository.GetActiveSessionsAsync(userId, cancellationToken);
+        var tokens = await _repo.GetActiveRefreshTokensAsync(user.Id, ct);
+        foreach (var t in tokens) t.IsRevoked = true;
 
-        foreach (var session in sessions)
-            await _authRepository.RevokeSessionAsync(session, cancellationToken);
+        await _repo.SaveChangesAsync(ct);
 
-        var tokens = await _authRepository.GetActiveRefreshTokensAsync(userId, cancellationToken);
-
-        foreach (var token in tokens)
-            await _authRepository.RevokeRefreshTokenAsync(token, cancellationToken);
-
-        await _authRepository.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

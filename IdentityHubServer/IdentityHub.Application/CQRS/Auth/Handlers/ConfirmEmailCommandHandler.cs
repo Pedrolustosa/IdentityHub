@@ -1,11 +1,15 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCommand>
+public sealed class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCommand, Result>
 {
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -14,20 +18,21 @@ public sealed class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCom
         _userManager = userManager;
     }
 
-    public async Task Handle(ConfirmEmailCommand command, CancellationToken cancellationToken)
+    public async Task<Result> Handle(ConfirmEmailCommand cmd, CancellationToken ct)
     {
-        var email = command.Email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(cmd.Email);
 
-        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
-        if (user is null)
-            throw new InvalidOperationException("Invalid token");
+        var token = Encoding.UTF8.GetString(
+            WebEncoders.Base64UrlDecode(cmd.Token));
 
-        var decodedToken = Uri.UnescapeDataString(command.Token);
-
-        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+        var result = await _userManager.ConfirmEmailAsync(user, token);
 
         if (!result.Succeeded)
-            throw new InvalidOperationException("Invalid or expired token");
+            return Result.Failure(Error.Create("Email.Invalid", "Invalid token"));
+
+        return Result.Success();
     }
 }

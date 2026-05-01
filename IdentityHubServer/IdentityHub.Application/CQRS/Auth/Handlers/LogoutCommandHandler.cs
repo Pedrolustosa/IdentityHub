@@ -1,38 +1,28 @@
-﻿using IdentityHub.Application.CQRS.Auth.Commands;
+﻿using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand>
+public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result>
 {
-    private readonly IAuthRepository _authRepository;
+    private readonly IAuthRepository _repo;
 
-    public LogoutCommandHandler(IAuthRepository authRepository)
+    public LogoutCommandHandler(IAuthRepository repo)
     {
-        _authRepository = authRepository;
+        _repo = repo;
     }
 
-    public async Task Handle(
-        LogoutCommand command,
-        CancellationToken cancellationToken)
+    public async Task<Result> Handle(LogoutCommand cmd, CancellationToken ct)
     {
-        var token = await _authRepository.GetRefreshTokenAsync(
-            command.Request.RefreshToken,
-            cancellationToken);
+        var token = await _repo.GetRefreshTokenAsync(cmd.Request.RefreshToken, ct);
 
-        if (token == null)
-            return;
+        if (token != null)
+            await _repo.RevokeRefreshTokenAsync(token, ct);
 
-        await _authRepository.RevokeRefreshTokenAsync(token, cancellationToken);
+        await _repo.SaveChangesAsync(ct);
 
-        var sessions = await _authRepository.GetActiveSessionsAsync(
-            token.UserId,
-            cancellationToken);
-
-        foreach (var session in sessions)
-            await _authRepository.RevokeSessionAsync(session, cancellationToken);
-
-        await _authRepository.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

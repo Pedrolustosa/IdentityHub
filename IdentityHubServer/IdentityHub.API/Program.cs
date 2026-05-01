@@ -105,6 +105,8 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+app.UseGlobalExceptionHandler();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
