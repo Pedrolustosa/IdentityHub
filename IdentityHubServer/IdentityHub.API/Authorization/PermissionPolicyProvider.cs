@@ -10,13 +10,13 @@ namespace IdentityHub.API.Authorization
         {
         }
 
-        public override Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
+        public override Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
         {
             var policy = new AuthorizationPolicyBuilder()
                 .AddRequirements(new PermissionRequirement(policyName))
                 .Build();
 
-            return Task.FromResult(policy);
+            return Task.FromResult<AuthorizationPolicy?>(policy);
         }
     }
 }

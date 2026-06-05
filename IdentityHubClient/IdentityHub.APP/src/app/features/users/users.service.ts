@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UserListItem {
   id: string;
@@ -27,7 +28,7 @@ export interface UpdateRolesRequest {
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
-  private readonly usersApiUrl = 'https://localhost:7039/api/users';
+  private readonly usersApiUrl = `${environment.apiUrl}/users`;
 
   constructor(private readonly http: HttpClient) {}
 

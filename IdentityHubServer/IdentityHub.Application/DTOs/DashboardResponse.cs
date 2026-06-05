@@ -1,4 +1,4 @@
-﻿namespace IdentityHub.Application.DTOs;
+namespace IdentityHub.Application.DTOs;
 
 public sealed class DashboardResponse
 {

@@ -1,7 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { SessionTokensService } from '../services/session-tokens.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+  const tokens = inject(SessionTokensService);
+  const token = tokens.getAccessToken();
 
   if (!token) {
     return next(req);

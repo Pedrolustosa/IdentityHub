@@ -2,14 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
-/** Shape returned by GET /api/Dashboard (ASP.NET camelCase serialization of DashboardResponse). */
+/** Shape returned by GET /api/Dashboard (camelCase serialization of `DashboardResponse`). */
 interface DashboardApiDto {
   totalUsers: number;
   activeSessions: number;
   newUsers: number;
-  newUsersGrowth: number;
-  securityAlerts: number;
+  securityEvents: number;
+  usersGrowth: number;
+  sessionsGrowth: number;
   securityGrowth: number;
 }
 
@@ -25,7 +27,7 @@ export interface DashboardSummary {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly dashboardApiUrl = 'https://localhost:7039/api/Dashboard';
+  private readonly dashboardApiUrl = `${environment.apiUrl}/Dashboard`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -35,10 +37,10 @@ export class DashboardService {
         totalUsers: dto.totalUsers,
         activeSessions: dto.activeSessions,
         newUsersThisWeek: dto.newUsers,
-        securityAlerts: dto.securityAlerts,
-        usersGrowthPercent: dto.newUsersGrowth,
+        securityAlerts: dto.securityEvents,
+        usersGrowthPercent: dto.usersGrowth,
         alertsGrowthPercent: dto.securityGrowth,
-        sessionsGrowthPercent: 0
+        sessionsGrowthPercent: dto.sessionsGrowth
       }))
     );
   }

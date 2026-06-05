@@ -89,7 +89,7 @@ public sealed class AuthController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Policy = "Users.ChangePassword")]
+    [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(
         ChangePasswordRequest request,

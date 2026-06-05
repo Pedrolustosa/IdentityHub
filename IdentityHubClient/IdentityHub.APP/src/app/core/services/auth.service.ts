@@ -3,6 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { SessionTokensService } from './session-tokens.service';
 
 export interface LoginRequest {
   email: string;
@@ -48,11 +50,12 @@ export interface ProfileResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiBaseUrl = 'https://localhost:7039/api/auth';
+  private readonly apiBaseUrl = `${environment.apiUrl}/auth`;
 
   constructor(
     private readonly http: HttpClient,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly sessionTokens: SessionTokensService
   ) {}
 
   login(payload: LoginRequest): Observable<AuthResponse> {
@@ -102,7 +105,7 @@ export class AuthService {
   }
 
   getProfileSnapshotFromToken(): { email: string; fullName: string } | null {
-    const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+    const token = this.sessionTokens.getAccessToken();
     if (!token) {
       return null;
     }
@@ -124,14 +127,14 @@ export class AuthService {
   }
 
   refreshSession(): Observable<AuthResponse> {
-    const refreshToken = this.getStoredRefreshToken();
+    const refreshToken = this.sessionTokens.getRefreshToken();
     if (!refreshToken) {
       return throwError(() => new Error('No refresh token'));
     }
 
     return this.http
       .post<AuthResponse>(`${this.apiBaseUrl}/refresh`, { refreshToken })
-      .pipe(tap((res) => this.persistTokens(res)));
+      .pipe(tap((res) => this.sessionTokens.updateTokens(res.token, res.refreshToken)));
   }
 
   isAuthenticated(): boolean {
@@ -139,7 +142,7 @@ export class AuthService {
       return false;
     }
 
-    const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+    const token = this.sessionTokens.getAccessToken();
     if (!token) {
       return false;
     }
@@ -148,7 +151,7 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshToken = this.getStoredRefreshToken();
+    const refreshToken = this.sessionTokens.getRefreshToken();
 
     if (!refreshToken) {
       this.clearClientSessionAndNavigateToLogin();
@@ -164,30 +167,8 @@ export class AuthService {
   }
 
   clearClientSessionAndNavigateToLogin(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      sessionStorage.removeItem('accessToken');
-      sessionStorage.removeItem('refreshToken');
-    }
+    this.sessionTokens.clearAll();
     void this.router.navigate(['/login']);
-  }
-
-  private getStoredRefreshToken(): string | null {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    return localStorage.getItem('refreshToken') ?? sessionStorage.getItem('refreshToken');
-  }
-
-  private persistTokens(res: AuthResponse): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const storage =
-      localStorage.getItem('refreshToken') !== null ? localStorage : sessionStorage;
-    storage.setItem('accessToken', res.token);
-    storage.setItem('refreshToken', res.refreshToken);
   }
 
   /** Identity role names from the JWT (e.g. Admin, Manager, User). */
@@ -195,7 +176,7 @@ export class AuthService {
     if (typeof window === 'undefined') {
       return [];
     }
-    const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+    const token = this.sessionTokens.getAccessToken();
     if (!token) {
       return [];
     }
@@ -234,7 +215,7 @@ export class AuthService {
     if (typeof window === 'undefined') {
       return null;
     }
-    const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+    const token = this.sessionTokens.getAccessToken();
     if (!token) {
       return null;
     }
@@ -248,7 +229,7 @@ export class AuthService {
   }
 
   getCurrentUserDisplayName(): string {
-    const token = localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
+    const token = this.sessionTokens.getAccessToken();
     if (!token) {
       return 'User';
     }
