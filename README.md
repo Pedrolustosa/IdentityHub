@@ -13,6 +13,12 @@ User management platform with an admin panel: accounts, roles, per-role permissi
 
 ---
 
+## Functional documentation
+
+- System objective and flow documentation: **`docs/system-objective-and-flows.md`**
+
+---
+
 ## Quick start (local)
 
 **Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download), Node.js + npm (compatible with Angular 18).
@@ -72,6 +78,15 @@ User management platform with an admin panel: accounts, roles, per-role permissi
 | **`Smtp`** | Outbound email (account confirmation, password reset, etc.) when configured. |
 
 For non-local environments, **do not** commit real secrets; use [User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets), environment variables, or a secret store.
+
+Recommended local setup for secrets (from `IdentityHubServer/IdentityHub.API`):
+
+```bash
+dotnet user-secrets set "Jwt:Key" "your-long-random-jwt-key"
+dotnet user-secrets set "Smtp:Username" "your-smtp-user"
+dotnet user-secrets set "Smtp:Password" "your-smtp-password"
+dotnet user-secrets set "Smtp:From" "no-reply@your-domain.com"
+```
 
 ### Authentication and authorization
 

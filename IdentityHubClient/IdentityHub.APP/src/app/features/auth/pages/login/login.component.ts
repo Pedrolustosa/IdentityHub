@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, take } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SessionTokensService } from '../../../../core/services/session-tokens.service';
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
 import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
+    private readonly sessionTokens: SessionTokensService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly toastr: ToastrService
@@ -75,13 +77,7 @@ export class LoginComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (response) => {
-          const storage = formValue.rememberMe ? localStorage : sessionStorage;
-          const otherStorage = formValue.rememberMe ? sessionStorage : localStorage;
-
-          otherStorage.removeItem('accessToken');
-          otherStorage.removeItem('refreshToken');
-          storage.setItem('accessToken', response.token);
-          storage.setItem('refreshToken', response.refreshToken);
+          this.sessionTokens.saveTokens(response.token, response.refreshToken, formValue.rememberMe);
 
           this.successMessage = 'Login successful.';
           this.toastr.success('You are now signed in.', 'Success');
