@@ -48,6 +48,16 @@ export interface ProfileResponse {
   fullName: string | null;
 }
 
+export interface MeResponse {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  isActive: boolean;
+  emailConfirmed: boolean;
+  roles: string[];
+  permissions: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiBaseUrl = `${environment.apiUrl}/auth`;
@@ -102,6 +112,10 @@ export class AuthService {
 
   updateProfile(payload: UpdateProfileRequest): Observable<ProfileResponse> {
     return this.http.put<ProfileResponse>(`${this.apiBaseUrl}/profile`, payload);
+  }
+
+  getMe(): Observable<MeResponse> {
+    return this.http.get<MeResponse>(`${this.apiBaseUrl}/me`);
   }
 
   getProfileSnapshotFromToken(): { email: string; fullName: string } | null {

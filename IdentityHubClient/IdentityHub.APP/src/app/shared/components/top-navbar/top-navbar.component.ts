@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -10,13 +10,24 @@ import { CommonModule } from '@angular/common';
   templateUrl: './top-navbar.component.html',
   styleUrl: './top-navbar.component.css'
 })
-export class TopNavbarComponent {
+export class TopNavbarComponent implements OnInit {
   @Output() sidebarToggle = new EventEmitter<void>();
   isUserMenuOpen = false;
-  readonly displayName: string;
+  displayName = 'User';
 
   constructor(private readonly authService: AuthService) {
     this.displayName = this.authService.getCurrentUserDisplayName();
+  }
+
+  ngOnInit(): void {
+    this.authService.getMe().subscribe({
+      next: (me) => {
+        const name = (me.fullName ?? '').trim();
+        if (name) {
+          this.displayName = name;
+        }
+      }
+    });
   }
 
   toggleUserMenu(): void {

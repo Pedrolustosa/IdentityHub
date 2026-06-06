@@ -259,6 +259,19 @@ export class ProfileComponent implements OnInit {
       });
       this.initialEmail = snapshot.email.trim().toLowerCase();
     }
+
+    this.authService.getMe().subscribe({
+      next: (me) => {
+        this.form.patchValue(
+          {
+            fullName: me.fullName ?? '',
+            email: me.email ?? ''
+          },
+          { emitEvent: false }
+        );
+        this.initialEmail = (me.email ?? '').trim().toLowerCase();
+      }
+    });
   }
 
   submit(): void {

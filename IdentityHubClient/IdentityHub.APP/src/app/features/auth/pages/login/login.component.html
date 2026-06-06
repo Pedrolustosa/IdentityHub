@@ -46,19 +46,6 @@
         <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
       </div>
 
-      @if (requestError) {
-        <app-load-error-banner [error]="requestError" (retry)="submit()" />
-        @if (emailNotConfirmed) {
-          <a
-            routerLink="/resend-confirmation"
-            [queryParams]="{ email: loginForm.get('email')?.value }"
-            class="inline-block text-sm font-medium text-blue-700 hover:text-blue-600"
-          >
-            Resend confirmation email
-          </a>
-        }
-      }
-
       @if (successMessage.length > 0) {
         <p class="rounded-lg border border-green-200 bg-green-50 text-green-700 px-3 py-2 text-sm">{{ successMessage }}</p>
       }
