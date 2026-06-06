@@ -1,3 +1,4 @@
+using IdentityHub.API.Extensions;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -22,8 +23,8 @@ public sealed class AuthController : ControllerBase
         RegisterRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.RegisterAsync(request, cancellationToken);
-        return Ok();
+        var result = await _service.RegisterAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpGet("confirm-email")]
@@ -32,8 +33,8 @@ public sealed class AuthController : ControllerBase
         string token,
         CancellationToken cancellationToken)
     {
-        await _service.ConfirmEmailAsync(email, token, cancellationToken);
-        return Ok();
+        var result = await _service.ConfirmEmailAsync(email, token, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("resend-confirmation")]
@@ -41,8 +42,8 @@ public sealed class AuthController : ControllerBase
         ForgotPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.ResendConfirmationAsync(request.Email, cancellationToken);
-        return Ok();
+        var result = await _service.ResendConfirmationAsync(request.Email, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("login")]
@@ -50,7 +51,8 @@ public sealed class AuthController : ControllerBase
         LoginRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await _service.LoginAsync(request, cancellationToken));
+        var result = await _service.LoginAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("refresh")]
@@ -58,7 +60,8 @@ public sealed class AuthController : ControllerBase
         RefreshTokenRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await _service.RefreshAsync(request, cancellationToken));
+        var result = await _service.RefreshAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [Authorize]
@@ -67,8 +70,13 @@ public sealed class AuthController : ControllerBase
         RefreshTokenRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.LogoutAsync(request, cancellationToken);
-        return Ok();
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        var result = await _service.LogoutAsync(userId, request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("forgot-password")]
@@ -76,8 +84,8 @@ public sealed class AuthController : ControllerBase
         ForgotPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.ForgotPasswordAsync(request, cancellationToken);
-        return Ok();
+        var result = await _service.ForgotPasswordAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [HttpPost("reset-password")]
@@ -85,8 +93,8 @@ public sealed class AuthController : ControllerBase
         ResetPasswordRequest request,
         CancellationToken cancellationToken)
     {
-        await _service.ResetPasswordAsync(request, cancellationToken);
-        return Ok();
+        var result = await _service.ResetPasswordAsync(request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [Authorize]
@@ -100,8 +108,8 @@ public sealed class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId))
             return Unauthorized();
 
-        await _service.ChangePasswordAsync(userId, request, cancellationToken);
-        return Ok();
+        var result = await _service.ChangePasswordAsync(userId, request, cancellationToken);
+        return result.ToActionResult();
     }
 
     [Authorize]
@@ -115,7 +123,7 @@ public sealed class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId))
             return Unauthorized();
 
-        await _service.UpdateProfileAsync(userId, request, cancellationToken);
-        return Ok();
+        var result = await _service.UpdateProfileAsync(userId, request, cancellationToken);
+        return result.ToActionResult();
     }
 }

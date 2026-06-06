@@ -1,4 +1,6 @@
-﻿using IdentityHub.Application.Common.Results;
+﻿using System;
+using IdentityHub.Application.Common.Errors;
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -19,7 +21,12 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result
         var token = await _repo.GetRefreshTokenAsync(cmd.Request.RefreshToken, ct);
 
         if (token != null)
+        {
+            if (!string.Equals(token.UserId, cmd.UserId, StringComparison.Ordinal))
+                return Result.Failure(Error.Create("Auth.Forbidden", "Refresh token does not belong to the authenticated user"));
+
             await _repo.RevokeRefreshTokenAsync(token, ct);
+        }
 
         await _repo.SaveChangesAsync(ct);
 

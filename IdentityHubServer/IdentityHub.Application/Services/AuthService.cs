@@ -24,8 +24,8 @@ public sealed class AuthService : IAuthService
     public Task<Result<AuthResponse>> RefreshAsync(RefreshTokenRequest r, CancellationToken ct)
         => _sender.Send(new RefreshCommand(r), ct);
 
-    public Task<Result> LogoutAsync(RefreshTokenRequest r, CancellationToken ct)
-        => _sender.Send(new LogoutCommand(r), ct);
+    public Task<Result> LogoutAsync(string u, RefreshTokenRequest r, CancellationToken ct)
+        => _sender.Send(new LogoutCommand(u, r), ct);
 
     public Task<Result> ForgotPasswordAsync(ForgotPasswordRequest r, CancellationToken ct)
         => _sender.Send(new ForgotPasswordCommand(r), ct);

@@ -4,4 +4,4 @@ using MediatR;
 
 namespace IdentityHub.Application.CQRS.Auth.Commands;
 
-public sealed record LogoutCommand(RefreshTokenRequest Request) : IRequest<Result>;
+public sealed record LogoutCommand(string UserId, RefreshTokenRequest Request) : IRequest<Result>;
