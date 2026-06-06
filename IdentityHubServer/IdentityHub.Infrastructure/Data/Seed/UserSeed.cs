@@ -38,6 +38,7 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Users.View,
                     AppPermissions.Users.Create,
                     AppPermissions.Users.Update,
+                    AppPermissions.Users.Delete,
                     AppPermissions.Users.UpdateRoles,
 
                     AppPermissions.Roles.View,

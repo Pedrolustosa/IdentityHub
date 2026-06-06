@@ -30,8 +30,17 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
         if (user == null)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
-        var token = Encoding.UTF8.GetString(
-            WebEncoders.Base64UrlDecode(cmd.Request.Token));
+        string token;
+
+        try
+        {
+            token = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(cmd.Request.Token));
+        }
+        catch (FormatException)
+        {
+            return Result.Failure(Error.Create("Password.InvalidTokenFormat", "Invalid token format"));
+        }
 
         var result = await _userManager.ResetPasswordAsync(user, token, cmd.Request.NewPassword);
 

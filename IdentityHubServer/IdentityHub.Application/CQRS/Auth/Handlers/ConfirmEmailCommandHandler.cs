@@ -25,8 +25,17 @@ public sealed class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCom
         if (user == null)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
-        var token = Encoding.UTF8.GetString(
-            WebEncoders.Base64UrlDecode(cmd.Token));
+        string token;
+
+        try
+        {
+            token = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(cmd.Token));
+        }
+        catch (FormatException)
+        {
+            return Result.Failure(Error.Create("Email.InvalidTokenFormat", "Invalid token format"));
+        }
 
         var result = await _userManager.ConfirmEmailAsync(user, token);
 
