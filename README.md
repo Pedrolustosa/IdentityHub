@@ -16,6 +16,7 @@ User management platform with an admin panel: accounts, roles, per-role permissi
 ## Functional documentation
 
 - System objective and flow documentation: **`docs/system-objective-and-flows.md`**
+- Project flows and screens catalog: **`docs/project-flows-and-screens.md`**
 
 ---
 

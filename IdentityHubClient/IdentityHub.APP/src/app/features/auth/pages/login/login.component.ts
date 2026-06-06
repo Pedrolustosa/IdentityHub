@@ -7,21 +7,17 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { SessionTokensService } from '../../../../core/services/session-tokens.service';
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
-import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
   isLoading = false;
-  requestError: UiLoadError | null = null;
   successMessage = '';
-  emailNotConfirmed = false;
 
   readonly loginForm: FormGroup;
 
@@ -63,9 +59,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.requestError = null;
     this.successMessage = '';
-    this.emailNotConfirmed = false;
     this.isLoading = true;
 
     const formValue = this.loginForm.getRawValue();
@@ -83,13 +77,11 @@ export class LoginComponent implements OnInit {
           this.toastr.success('You are now signed in.', 'Success');
           void this.router.navigate(['/app/dashboard']);
         },
-        error: (error: unknown) => {
-          const mapped = mapHttpToUiLoadError(error, { authForm401AsInvalid: true });
-          this.requestError = mapped;
-          const hint =
-            mapped.kind === 'unknown' ? (mapped.message ?? '').toLowerCase() : '';
-          this.emailNotConfirmed = hint.includes('email not confirmed');
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Login failed');
+        error: () => {
+          this.toastr.warning(
+            'Nao foi possivel entrar. Verifique seu e-mail e senha e tente novamente.',
+            'Falha no acesso'
+          );
         }
       });
   }

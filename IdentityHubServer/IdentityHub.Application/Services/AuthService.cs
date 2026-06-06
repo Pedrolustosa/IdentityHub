@@ -1,5 +1,6 @@
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
+using IdentityHub.Application.CQRS.Auth.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using MediatR;
@@ -23,6 +24,9 @@ public sealed class AuthService : IAuthService
 
     public Task<Result<AuthResponse>> RefreshAsync(RefreshTokenRequest r, CancellationToken ct)
         => _sender.Send(new RefreshCommand(r), ct);
+
+    public Task<Result<MeResponse>> GetMeAsync(string u, CancellationToken ct)
+        => _sender.Send(new GetMeQuery(u), ct);
 
     public Task<Result> LogoutAsync(string u, RefreshTokenRequest r, CancellationToken ct)
         => _sender.Send(new LogoutCommand(u, r), ct);
