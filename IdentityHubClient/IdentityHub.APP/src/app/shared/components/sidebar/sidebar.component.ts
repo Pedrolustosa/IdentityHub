@@ -15,6 +15,6 @@ export class SidebarComponent {
   readonly menuItems = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
     { label: 'Users', route: '/app/users', icon: 'users' },
-    { label: 'Role claims', route: '/app/role-claims', icon: 'roleClaims' }
+    { label: 'Role Claims', route: '/app/role-claims', icon: 'roleClaims' }
   ];
 }

@@ -342,13 +342,13 @@ export class ProfileComponent implements OnInit {
       .pipe(finalize(() => (this.isPasswordLoading = false)))
       .subscribe({
         next: () => {
-          this.toastr.success('Password changed. Please sign in again.', 'Password');
+          this.toastr.success('Password changed. Please sign in again.', 'Password Change');
           this.authService.clearClientSessionAndNavigateToLogin();
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
           this.passwordSubmitError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Password');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Password Change');
         }
       });
   }

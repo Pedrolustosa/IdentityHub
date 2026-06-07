@@ -74,13 +74,13 @@ export class LoginComponent implements OnInit {
           this.sessionTokens.saveTokens(response.token, response.refreshToken, formValue.rememberMe);
 
           this.successMessage = 'Login successful.';
-          this.toastr.success('You are now signed in.', 'Success');
+          this.toastr.success('You are now signed in.', 'Authentication');
           void this.router.navigate(['/app/dashboard']);
         },
         error: () => {
           this.toastr.warning(
-            'Nao foi possivel entrar. Verifique seu e-mail e senha e tente novamente.',
-            'Falha no acesso'
+            'We could not sign you in. Please check your email and password and try again.',
+            'Authentication'
           );
         }
       });
