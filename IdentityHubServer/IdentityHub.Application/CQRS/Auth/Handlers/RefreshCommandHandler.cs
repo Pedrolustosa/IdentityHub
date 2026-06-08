@@ -31,7 +31,8 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
 
     public async Task<Result<AuthResponse>> Handle(RefreshCommand cmd, CancellationToken ct)
     {
-        var token = await _repo.GetRefreshTokenAsync(cmd.Request.RefreshToken, ct);
+        var refreshTokenHash = _tokenService.ComputeRefreshTokenHash(cmd.Request.RefreshToken);
+        var token = await _repo.GetRefreshTokenAsync(refreshTokenHash, ct);
 
         if (token is null || token.IsRevoked || token.Expires < DateTime.UtcNow)
             return Result<AuthResponse>.Failure(
@@ -46,12 +47,13 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
         token.IsRevoked = true;
 
         var newRefresh = _tokenService.GenerateRefreshToken();
+        var newRefreshHash = _tokenService.ComputeRefreshTokenHash(newRefresh);
 
         await _repo.AddRefreshTokenAsync(new RefreshToken
         {
             Id = Guid.NewGuid(),
             SessionId = token.SessionId,
-            Token = newRefresh,
+            TokenHash = newRefreshHash,
             UserId = user.Id,
             Created = DateTime.UtcNow,
             Expires = DateTime.UtcNow.AddDays(7)

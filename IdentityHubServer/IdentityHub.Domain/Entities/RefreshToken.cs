@@ -10,7 +10,7 @@ namespace IdentityHub.Domain.Entities
 
         public Guid SessionId { get; set; }
 
-        public string Token { get; set; } = string.Empty;
+        public string TokenHash { get; set; } = string.Empty;
 
         public DateTime Expires { get; set; }
 

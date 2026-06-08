@@ -90,5 +90,12 @@ namespace IdentityHub.Application.Services
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+
+        public string ComputeRefreshTokenHash(string refreshToken)
+        {
+            var bytes = Encoding.UTF8.GetBytes(refreshToken);
+            var hash = SHA256.HashData(bytes);
+            return Convert.ToHexString(hash);
+        }
     }
 }

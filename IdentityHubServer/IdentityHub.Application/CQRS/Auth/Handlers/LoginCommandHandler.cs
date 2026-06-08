@@ -68,13 +68,14 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             _roleManager);
 
         var refreshToken = _tokenService.GenerateRefreshToken();
+        var refreshTokenHash = _tokenService.ComputeRefreshTokenHash(refreshToken);
         var (ipAddress, browser, operatingSystem) = _clientDeviceInfoProvider.GetCurrent();
 
         await _authRepository.AddRefreshTokenAsync(new RefreshToken
         {
             Id = Guid.NewGuid(),
             SessionId = sessionId,
-            Token = refreshToken,
+            TokenHash = refreshTokenHash,
             UserId = user.Id,
             Created = DateTime.UtcNow,
             Expires = DateTime.UtcNow.AddDays(7),
