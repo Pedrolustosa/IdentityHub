@@ -239,5 +239,62 @@
         </form>
       </div>
     </div>
+
+    <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
+        <h2 class="text-sm font-semibold text-slate-800">Active sessions</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Review where you are signed in and revoke one session at a time.</p>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-4">
+        @if (sessionsLoadError) {
+          <app-load-error-banner [error]="sessionsLoadError" (retry)="loadSessions()" />
+        }
+
+        @if (isSessionsLoading) {
+          <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+            Loading active sessions...
+          </div>
+        } @else if (sessions.length === 0) {
+          <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-sm text-slate-500">
+            No active sessions were found for this account.
+          </div>
+        } @else {
+          <div class="space-y-3">
+            @for (session of sessions; track session.id) {
+              <article class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0 space-y-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="text-sm font-semibold text-slate-900">Session {{ session.id.slice(0, 8) }}</h3>
+                    @if (session.isCurrent) {
+                      <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                        Current device
+                      </span>
+                    }
+                  </div>
+                  <p class="text-sm text-slate-600">Started {{ session.createdAt | date:'medium' }}</p>
+                  <p class="text-xs text-slate-500">
+                    @if (session.isCurrent) {
+                      Revoking this session signs you out on this device immediately.
+                    } @else {
+                      Revoking this session blocks the linked refresh token from being used again.
+                    }
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  [disabled]="!!revokingSessionId"
+                  (click)="revokeSession(session)"
+                  class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition-colors duration-150 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {{ isRevokingSession(session.id) ? 'Revoking...' : (session.isCurrent ? 'Sign out this device' : 'Revoke session') }}
+                </button>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
   </div>
 </div>

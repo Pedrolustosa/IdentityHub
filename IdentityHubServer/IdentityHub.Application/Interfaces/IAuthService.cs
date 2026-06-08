@@ -9,7 +9,9 @@ public interface IAuthService
     Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken);
     Task<Result<AuthResponse>> RefreshAsync(RefreshTokenRequest request, CancellationToken cancellationToken);
     Task<Result<MeResponse>> GetMeAsync(string userId, CancellationToken cancellationToken);
+    Task<Result<IReadOnlyList<UserSessionResponse>>> GetActiveSessionsAsync(string userId, Guid? currentSessionId, CancellationToken cancellationToken);
     Task<Result> LogoutAsync(string userId, RefreshTokenRequest request, CancellationToken cancellationToken);
+    Task<Result> RevokeSessionAsync(string userId, Guid sessionId, CancellationToken cancellationToken);
     Task<Result> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken);
     Task<Result> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken);
     Task<Result> ChangePasswordAsync(string userId, ChangePasswordRequest request, CancellationToken cancellationToken);

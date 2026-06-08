@@ -3,6 +3,7 @@ using IdentityHub.API.Middlewares;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Domain.Entities;
+using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.Infrastructure.Repositories;
 using IdentityHub.Infrastructure.Security;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -103,6 +105,25 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
+        OnTokenValidated = async context =>
+        {
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var rawSessionId = context.Principal?.FindFirst("sid")?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId) || !Guid.TryParse(rawSessionId, out var sessionId))
+            {
+                context.Fail("Session information is missing from the token.");
+                return;
+            }
+
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var isSessionActive = await dbContext.UserSessions
+                .AsNoTracking()
+                .AnyAsync(session => session.Id == sessionId && session.UserId == userId && session.IsActive);
+
+            if (!isSessionActive)
+                context.Fail("Session is no longer active.");
+        },
         OnAuthenticationFailed = context =>
         {
             Console.WriteLine($"Invalid token: {context.Exception.Message}");

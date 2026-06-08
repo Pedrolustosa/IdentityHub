@@ -39,6 +39,15 @@ namespace IdentityHub.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public Task<List<RefreshToken>> GetActiveRefreshTokensBySessionAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.RefreshTokens
+                .Where(x => x.SessionId == sessionId && !x.IsRevoked)
+                .ToListAsync(cancellationToken);
+        }
+
         public Task RevokeRefreshTokenAsync(
             RefreshToken token,
             CancellationToken cancellationToken = default)
@@ -64,6 +73,14 @@ namespace IdentityHub.Infrastructure.Repositories
             return _context.UserSessions
                 .Where(x => x.UserId == userId && x.IsActive)
                 .ToListAsync(cancellationToken);
+        }
+
+        public Task<UserSession?> GetSessionByIdAsync(
+            Guid sessionId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.UserSessions
+                .FirstOrDefaultAsync(x => x.Id == sessionId, cancellationToken);
         }
 
         public Task RevokeSessionAsync(

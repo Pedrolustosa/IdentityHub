@@ -26,6 +26,10 @@ public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result
                 return Result.Failure(Error.Create("Auth.Forbidden", "Refresh token does not belong to the authenticated user"));
 
             await _repo.RevokeRefreshTokenAsync(token, ct);
+
+            var session = await _repo.GetSessionByIdAsync(token.SessionId, ct);
+            if (session != null && session.IsActive)
+                await _repo.RevokeSessionAsync(session, ct);
         }
 
         await _repo.SaveChangesAsync(ct);
