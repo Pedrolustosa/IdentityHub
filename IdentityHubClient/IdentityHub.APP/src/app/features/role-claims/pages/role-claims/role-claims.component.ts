@@ -71,7 +71,7 @@ export class RoleClaimsComponent implements OnInit {
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
           this.loadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Role claims');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Role Claims');
         }
       });
   }

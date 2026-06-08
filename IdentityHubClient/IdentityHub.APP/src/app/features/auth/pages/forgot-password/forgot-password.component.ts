@@ -8,6 +8,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
 import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 
 @Component({
   selector: 'app-forgot-password',
@@ -52,15 +53,16 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (message) => {
           this.submitted = true;
-          const msg =
-            message?.trim() ||
-            'If an account exists for this email, you will receive password reset instructions.';
-          this.toastr.success(msg, 'Password reset');
+          const msg = normalizeToastMessage(
+            message,
+            'If an account exists for this email, you will receive password reset instructions.'
+          );
+          this.toastr.success(msg, 'Password Recovery');
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
           this.requestError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Password reset');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Password Recovery');
         }
       });
   }

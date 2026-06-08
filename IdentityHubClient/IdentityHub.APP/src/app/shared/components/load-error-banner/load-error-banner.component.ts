@@ -16,7 +16,7 @@ export class LoadErrorBannerComponent {
 
   /** Optional link when `error.kind === 'not_found'` (e.g. back to list). */
   @Input() notFoundBackLink: string | any[] | null = null;
-  @Input() notFoundBackLabel = 'Return';
+  @Input() notFoundBackLabel = 'Go Back';
 
   showRetry(): boolean {
     return uiLoadErrorShowsRetry(this.error);

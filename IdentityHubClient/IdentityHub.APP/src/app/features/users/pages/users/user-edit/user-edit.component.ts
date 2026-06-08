@@ -154,14 +154,14 @@ export class UserEditComponent implements OnInit {
                 finish();
               },
               error: () => {
-                this.toastr.warning('Profile saved, but roles could not be updated.', 'Users');
+                this.toastr.warning('User profile updated, but roles could not be updated.', 'Users');
                 void this.router.navigate(['/app/users', this.userId]);
                 finish();
               }
             });
           } else {
             if (this.rolesChanged() && (this.rolesLoadFailed || this.availableRoles.length === 0)) {
-              this.toastr.warning('Profile saved. Roles were not changed (roles list unavailable).', 'Users');
+              this.toastr.warning('User profile updated. Roles were not changed because the roles list is unavailable.', 'Users');
             } else {
               this.toastr.success('User updated.', 'Users');
             }

@@ -63,7 +63,7 @@ export class ConfirmEmailComponent {
         this.status = 'error';
         const mapped = mapHttpToUiLoadError(err);
         this.loadError = mapped;
-        this.toastr.error(toastMessageForUiLoadError(mapped), 'Confirm email');
+        this.toastr.error(toastMessageForUiLoadError(mapped), 'Email Confirmation');
       }
     });
   }

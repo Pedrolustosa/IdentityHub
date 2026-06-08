@@ -123,7 +123,7 @@ export class RegisterComponent {
           const registeredEmail = formValue.email.trim().toLowerCase();
           this.successMessage =
             'Account created. Check your inbox to confirm your email before signing in. Redirecting to sign in…';
-          this.toastr.success('We sent a confirmation link to your email.', 'Account created');
+          this.toastr.success('We sent a confirmation link to your email.', 'Registration');
           this.registerForm.reset({
             fullName: '',
             email: '',
@@ -142,7 +142,7 @@ export class RegisterComponent {
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err, { authForm401AsInvalid: true });
           this.requestError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Registration failed');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Registration');
         }
       });
   }

@@ -13,13 +13,6 @@ User management platform with an admin panel: accounts, roles, per-role permissi
 
 ---
 
-## Functional documentation
-
-- System objective and flow documentation: **`docs/system-objective-and-flows.md`**
-- Project flows and screens catalog: **`docs/project-flows-and-screens.md`**
-
----
-
 ## Quick start (local)
 
 **Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download), Node.js + npm (compatible with Angular 18).

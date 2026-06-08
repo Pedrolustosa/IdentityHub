@@ -63,16 +63,16 @@ export function uiLoadErrorShowsRetry(error: UiLoadError): boolean {
 export function toastMessageForUiLoadError(error: UiLoadError): string {
   switch (error.kind) {
     case 'forbidden':
-      return 'Access denied. See on-screen message.';
+      return 'You do not have permission to perform this action. Check the page details for more information.';
     case 'unauthorized':
-      return 'Session expired. Sign in again.';
+      return 'Your session has expired. Please sign in again.';
     case 'not_found':
-      return 'Not found. See on-screen message.';
+      return 'The requested resource was not found. Check the page details for more information.';
     case 'network':
-      return 'Cannot reach the server. Check your connection.';
+      return 'Cannot reach the server. Please check your connection and try again.';
     case 'server':
-      return `Server error (${error.status}). Try again or contact support.`;
+      return `A server error occurred (${error.status}). Please try again or contact support.`;
     default:
-      return 'Request failed. See on-screen message.';
+      return 'We could not complete your request. Check the page details for more information.';
   }
 }

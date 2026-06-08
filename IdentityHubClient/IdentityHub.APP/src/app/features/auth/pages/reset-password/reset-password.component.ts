@@ -71,7 +71,7 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     if (!this.passwordsMatch()) {
-      this.toastr.error('Passwords do not match.', 'Reset password');
+      this.toastr.error('Passwords do not match.', 'Password Reset');
       return;
     }
 
@@ -86,13 +86,13 @@ export class ResetPasswordComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: () => {
-          this.toastr.success('Password updated. You can sign in with your new password.', 'Reset password');
+          this.toastr.success('Password updated. You can sign in with your new password.', 'Password Reset');
           void this.router.navigate(['/login']);
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
           this.requestError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Reset password');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Password Reset');
         }
       });
   }
