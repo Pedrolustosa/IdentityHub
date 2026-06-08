@@ -11,10 +11,14 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public RemoveRoleClaimPermissionCommandHandler(IRoleRepository repository)
+    public RemoveRoleClaimPermissionCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -43,6 +47,11 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
             return Result.Success();
 
         await _repository.RemoveClaimAsync(role, claim, cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.RoleClaim.Removed",
+            $"Role claim removed: roleId={role.Id}, roleName={role.Name}, permission={permission}",
+            cancellationToken);
 
         return Result.Success();
     }

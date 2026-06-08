@@ -9,6 +9,7 @@ import { UserEditComponent } from './features/users/pages/users/user-edit/user-e
 import { RoleClaimsComponent } from './features/role-claims/pages/role-claims/role-claims.component';
 import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component';
 import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
+import { AuditLogsComponent } from './features/audit-logs/pages/audit-logs/audit-logs.component';
 import { authGuard } from './core/guards/auth.guard';
 import { authLayoutChildRoutes } from './features/auth/auth.routes';
 
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: 'change-password', redirectTo: 'profile', pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'audit-logs', component: AuditLogsComponent },
       { path: 'role-claims/:roleId/edit', component: RoleClaimsEditComponent },
       { path: 'role-claims/:roleId', component: RoleClaimsDetailComponent },
       { path: 'role-claims', component: RoleClaimsComponent },

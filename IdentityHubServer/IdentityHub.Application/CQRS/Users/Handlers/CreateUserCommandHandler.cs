@@ -10,10 +10,14 @@ namespace IdentityHub.Application.CQRS.Users.Handlers;
 public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result>
 {
     private readonly IUserRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public CreateUserCommandHandler(IUserRepository repository)
+    public CreateUserCommandHandler(
+        IUserRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -48,6 +52,11 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
         await _repository.CreateAsync(
             user,
             command.Request.Password,
+            cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.User.Created",
+            $"User created: id={user.Id}, email={email}",
             cancellationToken);
 
         return Result.Success();

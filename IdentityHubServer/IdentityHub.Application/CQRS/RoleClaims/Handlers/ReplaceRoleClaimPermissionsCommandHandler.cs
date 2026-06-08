@@ -12,10 +12,14 @@ public sealed class ReplaceRoleClaimPermissionsCommandHandler
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public ReplaceRoleClaimPermissionsCommandHandler(IRoleRepository repository)
+    public ReplaceRoleClaimPermissionsCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -52,6 +56,11 @@ public sealed class ReplaceRoleClaimPermissionsCommandHandler
                 new Claim(PermissionClaimType, permission),
                 cancellationToken);
         }
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.RoleClaim.Replaced",
+            $"Role claims replaced: roleId={role.Id}, roleName={role.Name}, count={permissions.Count}",
+            cancellationToken);
 
         return Result.Success();
     }

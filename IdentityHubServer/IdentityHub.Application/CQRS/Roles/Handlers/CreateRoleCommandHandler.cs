@@ -10,10 +10,14 @@ namespace IdentityHub.Application.CQRS.Roles.Handlers;
 public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, Result>
 {
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public CreateRoleCommandHandler(IRoleRepository repository)
+    public CreateRoleCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -32,7 +36,14 @@ public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand
             return Result.Failure(
                 Error.Create("Role.AlreadyExists", "Role already exists"));
 
-        await _repository.CreateAsync(new IdentityRole(name), cancellationToken);
+        var role = new IdentityRole(name);
+
+        await _repository.CreateAsync(role, cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.Role.Created",
+            $"Role created: id={role.Id}, name={role.Name}",
+            cancellationToken);
 
         return Result.Success();
     }

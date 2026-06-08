@@ -105,6 +105,13 @@ Typical local base: **`https://localhost:7039`**. Common prefix: **`/api/...`**.
 - **SQLite** + migrations under **`IdentityHub.Infrastructure/Migrations`**.
 - **Seed** (`UserSeed`): roles `Admin`, `Manager`, `User` and development accounts (**change or disable** for production):
 
+#### EF Core migration commands (Package Manager Console)
+
+```powershell
+Add-Migration InitialCreate -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
+Update-Database -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
+```
+
 | Email | Password | Role |
 |-------|----------|------|
 | `admin@identityhub.com` | `Admin@123` | Admin |

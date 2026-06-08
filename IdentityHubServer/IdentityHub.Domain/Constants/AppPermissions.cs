@@ -31,5 +31,10 @@
         {
             public const string View = "Dashboard.View";
         }
+
+        public static class Audit
+        {
+            public const string View = "Audit.View";
+        }
     }
 }
