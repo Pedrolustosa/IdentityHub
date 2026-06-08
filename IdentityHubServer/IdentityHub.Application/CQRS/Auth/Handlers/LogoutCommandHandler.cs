@@ -2,6 +2,7 @@
 using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
+using IdentityHub.Application.Services;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
@@ -10,15 +11,18 @@ namespace IdentityHub.Application.CQRS.Auth.Handlers;
 public sealed class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result>
 {
     private readonly IAuthRepository _repo;
+    private readonly TokenService _tokenService;
 
-    public LogoutCommandHandler(IAuthRepository repo)
+    public LogoutCommandHandler(IAuthRepository repo, TokenService tokenService)
     {
         _repo = repo;
+        _tokenService = tokenService;
     }
 
     public async Task<Result> Handle(LogoutCommand cmd, CancellationToken ct)
     {
-        var token = await _repo.GetRefreshTokenAsync(cmd.Request.RefreshToken, ct);
+        var refreshTokenHash = _tokenService.ComputeRefreshTokenHash(cmd.Request.RefreshToken);
+        var token = await _repo.GetRefreshTokenAsync(refreshTokenHash, ct);
 
         if (token != null)
         {

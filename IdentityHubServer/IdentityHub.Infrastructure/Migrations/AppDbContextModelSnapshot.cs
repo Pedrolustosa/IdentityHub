@@ -134,7 +134,7 @@ namespace IdentityHub.Infrastructure.Migrations
                     b.Property<Guid>("SessionId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

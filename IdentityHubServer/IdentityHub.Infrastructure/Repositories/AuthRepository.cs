@@ -22,12 +22,12 @@ namespace IdentityHub.Infrastructure.Repositories
         }
 
         public Task<RefreshToken?> GetRefreshTokenAsync(
-            string token,
+            string tokenHash,
             CancellationToken cancellationToken = default)
         {
             return _context.RefreshTokens
                 .Include(x => x.User)
-                .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
+                .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
         }
 
         public Task<List<RefreshToken>> GetActiveRefreshTokensAsync(

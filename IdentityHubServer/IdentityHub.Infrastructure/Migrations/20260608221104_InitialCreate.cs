@@ -213,7 +213,7 @@ namespace IdentityHub.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     SessionId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Token = table.Column<string>(type: "TEXT", nullable: false),
+                    TokenHash = table.Column<string>(type: "TEXT", nullable: false),
                     Expires = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IsRevoked = table.Column<bool>(type: "INTEGER", nullable: false),

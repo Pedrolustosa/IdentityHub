@@ -5,7 +5,7 @@ namespace IdentityHub.Domain.Interfaces
     public interface IAuthRepository
     {
         Task AddRefreshTokenAsync(RefreshToken token, CancellationToken cancellationToken = default);
-        Task<RefreshToken?> GetRefreshTokenAsync(string token, CancellationToken cancellationToken = default);
+        Task<RefreshToken?> GetRefreshTokenAsync(string tokenHash, CancellationToken cancellationToken = default);
         Task<List<RefreshToken>> GetActiveRefreshTokensAsync(string userId, CancellationToken cancellationToken = default);
         Task<List<RefreshToken>> GetActiveRefreshTokensBySessionAsync(Guid sessionId, CancellationToken cancellationToken = default);
         Task RevokeRefreshTokenAsync(RefreshToken token, CancellationToken cancellationToken = default);
