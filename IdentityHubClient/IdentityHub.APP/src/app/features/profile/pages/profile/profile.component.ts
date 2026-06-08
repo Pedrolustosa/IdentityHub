@@ -15,7 +15,7 @@ import { LoadErrorBannerComponent } from '../../../../shared/components/load-err
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService, ProfileResponse } from '../../../../core/services/auth.service';
+import { AuthService, ProfileResponse, UserSessionResponse } from '../../../../core/services/auth.service';
 
 function profileUpdateErrorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) {
@@ -94,8 +94,12 @@ export class ProfileComponent implements OnInit {
 
   isLoading = false;
   isPasswordLoading = false;
+  isSessionsLoading = false;
   profileSubmitError: UiLoadError | null = null;
   passwordSubmitError: UiLoadError | null = null;
+  sessionsLoadError: UiLoadError | null = null;
+  sessions: UserSessionResponse[] = [];
+  revokingSessionId: string | null = null;
 
   /** Sign-in email from the session; sent on profile save and not editable in the UI. */
   initialEmail = '';
@@ -272,6 +276,61 @@ export class ProfileComponent implements OnInit {
         this.initialEmail = (me.email ?? '').trim().toLowerCase();
       }
     });
+
+    this.loadSessions();
+  }
+
+  loadSessions(): void {
+    this.isSessionsLoading = true;
+    this.sessionsLoadError = null;
+
+    this.authService
+      .getSessions()
+      .pipe(finalize(() => (this.isSessionsLoading = false)))
+      .subscribe({
+        next: (sessions) => {
+          this.sessions = sessions;
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.sessionsLoadError = mapped;
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
+        }
+      });
+  }
+
+  revokeSession(session: UserSessionResponse): void {
+    if (this.revokingSessionId) {
+      return;
+    }
+
+    this.revokingSessionId = session.id;
+    this.sessionsLoadError = null;
+
+    this.authService
+      .revokeSession(session.id)
+      .pipe(finalize(() => (this.revokingSessionId = null)))
+      .subscribe({
+        next: () => {
+          if (session.isCurrent) {
+            this.toastr.success('Session revoked. Please sign in again.', 'Sessions');
+            this.authService.clearClientSessionAndNavigateToLogin();
+            return;
+          }
+
+          this.sessions = this.sessions.filter((entry) => entry.id !== session.id);
+          this.toastr.success('Session revoked.', 'Sessions');
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.sessionsLoadError = mapped;
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
+        }
+      });
+  }
+
+  isRevokingSession(sessionId: string): boolean {
+    return this.revokingSessionId === sessionId;
   }
 
   submit(): void {

@@ -41,7 +41,7 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        var access = await _tokenService.GenerateToken(user, roles, _userManager, _roleManager);
+        var access = await _tokenService.GenerateToken(user, token.SessionId, roles, _userManager, _roleManager, ct);
 
         token.IsRevoked = true;
 
@@ -50,6 +50,7 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
         await _repo.AddRefreshTokenAsync(new RefreshToken
         {
             Id = Guid.NewGuid(),
+            SessionId = token.SessionId,
             Token = newRefresh,
             UserId = user.Id,
             Created = DateTime.UtcNow,

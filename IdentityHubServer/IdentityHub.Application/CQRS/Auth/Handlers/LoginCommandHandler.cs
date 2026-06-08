@@ -55,8 +55,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
 
         var roles = await _userManager.GetRolesAsync(user);
 
+        var sessionId = Guid.NewGuid();
+
         var accessToken = await _tokenService.GenerateToken(
             user,
+            sessionId,
             roles,
             _userManager,
             _roleManager);
@@ -66,6 +69,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         await _authRepository.AddRefreshTokenAsync(new RefreshToken
         {
             Id = Guid.NewGuid(),
+            SessionId = sessionId,
             Token = refreshToken,
             UserId = user.Id,
             Created = DateTime.UtcNow,
@@ -75,7 +79,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
 
         await _authRepository.AddSessionAsync(new UserSession
         {
-            Id = Guid.NewGuid(),
+            Id = sessionId,
             UserId = user.Id,
             CreatedAt = DateTime.UtcNow,
             IsActive = true

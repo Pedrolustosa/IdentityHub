@@ -28,8 +28,14 @@ public sealed class AuthService : IAuthService
     public Task<Result<MeResponse>> GetMeAsync(string u, CancellationToken ct)
         => _sender.Send(new GetMeQuery(u), ct);
 
+    public Task<Result<IReadOnlyList<UserSessionResponse>>> GetActiveSessionsAsync(string u, Guid? s, CancellationToken ct)
+        => _sender.Send(new GetActiveSessionsQuery(u, s), ct);
+
     public Task<Result> LogoutAsync(string u, RefreshTokenRequest r, CancellationToken ct)
         => _sender.Send(new LogoutCommand(u, r), ct);
+
+    public Task<Result> RevokeSessionAsync(string u, Guid s, CancellationToken ct)
+        => _sender.Send(new RevokeSessionCommand(u, s), ct);
 
     public Task<Result> ForgotPasswordAsync(ForgotPasswordRequest r, CancellationToken ct)
         => _sender.Send(new ForgotPasswordCommand(r), ct);

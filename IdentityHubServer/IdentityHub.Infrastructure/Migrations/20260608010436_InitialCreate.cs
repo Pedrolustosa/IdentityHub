@@ -209,6 +209,7 @@ namespace IdentityHub.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SessionId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Token = table.Column<string>(type: "TEXT", nullable: false),
                     Expires = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),

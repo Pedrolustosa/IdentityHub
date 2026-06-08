@@ -78,6 +78,39 @@ public sealed class AuthController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("sessions")]
+    public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        Guid? currentSessionId = null;
+        var sidValue = User.FindFirst("sid")?.Value;
+        if (Guid.TryParse(sidValue, out var parsedSessionId))
+            currentSessionId = parsedSessionId;
+
+        var result = await _service.GetActiveSessionsAsync(userId, currentSessionId, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
+    [HttpDelete("sessions/{sessionId:guid}")]
+    public async Task<IActionResult> RevokeSession(
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        var result = await _service.RevokeSessionAsync(userId, sessionId, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(
         RefreshTokenRequest request,

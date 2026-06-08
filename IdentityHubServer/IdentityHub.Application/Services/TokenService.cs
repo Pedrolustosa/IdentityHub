@@ -20,6 +20,7 @@ namespace IdentityHub.Application.Services
 
         public async Task<string> GenerateToken(
             ApplicationUser user,
+            Guid sessionId,
             IList<string> roles,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -31,6 +32,7 @@ namespace IdentityHub.Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim("sid", sessionId.ToString()),
                 new Claim("fullName", user.FullName ?? user.UserName ?? string.Empty),
             };
 

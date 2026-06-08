@@ -94,6 +94,87 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
     }
 
     [Fact]
+    public async Task GetSessions_ShouldReturnOnlyCurrentUsersActiveSessions()
+    {
+        var firstAdminLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        var secondAdminLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        await LoginAsync("manager@identityhub.com", "Manager@123");
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", secondAdminLogin.Token);
+
+        var response = await _client.GetAsync("/api/auth/sessions");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var sessions = await response.Content.ReadFromJsonAsync<List<UserSessionDto>>();
+
+        Assert.NotNull(sessions);
+        var expectedSessionIds = new[]
+        {
+            ExtractSessionId(firstAdminLogin.Token),
+            ExtractSessionId(secondAdminLogin.Token)
+        };
+        Assert.True(expectedSessionIds.All(id => sessions!.Any(x => x.Id == id)));
+        Assert.Single(sessions!.Where(x => x.IsCurrent));
+        Assert.Equal(ExtractSessionId(secondAdminLogin.Token), sessions.Single(x => x.IsCurrent).Id);
+        Assert.DoesNotContain(sessions, x => x.Id == Guid.Empty);
+        Assert.True(sessions.SequenceEqual(sessions.OrderByDescending(x => x.CreatedAt)));
+    }
+
+    [Fact]
+    public async Task RevokeSession_ShouldRemoveSpecificSessionAndInvalidateRefreshToken()
+    {
+        var currentLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        var otherLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        var currentSessionId = ExtractSessionId(currentLogin.Token);
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", currentLogin.Token);
+
+        var sessionsResponse = await _client.GetAsync("/api/auth/sessions");
+        sessionsResponse.EnsureSuccessStatusCode();
+
+        var sessions = await sessionsResponse.Content.ReadFromJsonAsync<List<UserSessionDto>>();
+
+        Assert.NotNull(sessions);
+
+        var otherSessionId = ExtractSessionId(otherLogin.Token);
+        var target = sessions!.Single(x => x.Id == otherSessionId);
+        Assert.False(target.IsCurrent);
+
+        var revokeResponse = await _client.DeleteAsync($"/api/auth/sessions/{target.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, revokeResponse.StatusCode);
+
+        var refreshed = await _client.PostAsJsonAsync("/api/auth/refresh", new
+        {
+            refreshToken = otherLogin.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshed.StatusCode);
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", otherLogin.Token);
+
+        var revokedSessionMeResponse = await _client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedSessionMeResponse.StatusCode);
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", currentLogin.Token);
+
+        var remainingSessionsResponse = await _client.GetAsync("/api/auth/sessions");
+        remainingSessionsResponse.EnsureSuccessStatusCode();
+
+        var remainingSessions = await remainingSessionsResponse.Content.ReadFromJsonAsync<List<UserSessionDto>>();
+
+        Assert.NotNull(remainingSessions);
+        Assert.DoesNotContain(remainingSessions!, x => x.Id == otherSessionId);
+        Assert.Contains(remainingSessions!, x => x.Id == currentSessionId && x.IsCurrent);
+    }
+
+    [Fact]
     public async Task ResetPassword_WithInvalidTokenFormat_ShouldReturnBadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/reset-password", new
@@ -166,9 +247,24 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
         return payload!;
     }
 
+    private static Guid ExtractSessionId(string jwt)
+    {
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(jwt);
+        var sid = token.Claims.Single(x => x.Type == "sid").Value;
+        return Guid.Parse(sid);
+    }
+
     private sealed class AuthResponseDto
     {
         public string Token { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
+    }
+
+    private sealed class UserSessionDto
+    {
+        public Guid Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsCurrent { get; set; }
     }
 }

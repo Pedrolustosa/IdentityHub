@@ -58,6 +58,12 @@ export interface MeResponse {
   permissions: string[];
 }
 
+export interface UserSessionResponse {
+  id: string;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiBaseUrl = `${environment.apiUrl}/auth`;
@@ -116,6 +122,16 @@ export class AuthService {
 
   getMe(): Observable<MeResponse> {
     return this.http.get<MeResponse>(`${this.apiBaseUrl}/me`);
+  }
+
+  getSessions(): Observable<UserSessionResponse[]> {
+    return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions`);
+  }
+
+  revokeSession(sessionId: string): Observable<string> {
+    return this.http.delete(`${this.apiBaseUrl}/sessions/${sessionId}`, {
+      responseType: 'text'
+    });
   }
 
   getProfileSnapshotFromToken(): { email: string; fullName: string } | null {
@@ -281,6 +297,25 @@ export class AuthService {
     }
     const nameIdKey = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier';
     const raw = payload['sub'] ?? payload[nameIdKey];
+    return typeof raw === 'string' && raw.length > 0 ? raw : null;
+  }
+
+  getCurrentSessionId(): string | null {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const token = this.sessionTokens.getAccessToken();
+    if (!token) {
+      return null;
+    }
+
+    const payload = this.decodeTokenPayload(token);
+    if (!payload) {
+      return null;
+    }
+
+    const raw = payload['sid'];
     return typeof raw === 'string' && raw.length > 0 ? raw : null;
   }
 
