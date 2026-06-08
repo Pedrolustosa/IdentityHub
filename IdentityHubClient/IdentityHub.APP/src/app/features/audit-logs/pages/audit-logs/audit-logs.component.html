@@ -1,16 +1,33 @@
 <section class="space-y-5">
-  <header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-900">Audit Logs</h1>
-      <p class="text-slate-500">Review administrative activity across users, roles, and claims.</p>
-    </div>
-    <div class="text-sm text-slate-500">
-      Total entries: <span class="font-medium text-slate-700">{{ totalCount }}</span>
+  <header class="audit-header rounded-2xl border border-slate-200/80 px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Audit Logs</h1>
+        <p class="text-slate-600">Review administrative activity across users, roles, and claims.</p>
+      </div>
+      <div class="grid grid-cols-4 gap-2 sm:gap-3">
+        <div class="audit-kpi">
+          <span class="audit-kpi-label">Total</span>
+          <span class="audit-kpi-value">{{ totalCount }}</span>
+        </div>
+        <div class="audit-kpi">
+          <span class="audit-kpi-label">Page</span>
+          <span class="audit-kpi-value">{{ page }}</span>
+        </div>
+        <div class="audit-kpi">
+          <span class="audit-kpi-label">Visible</span>
+          <span class="audit-kpi-value">{{ items.length }}</span>
+        </div>
+        <div class="audit-kpi">
+          <span class="audit-kpi-label">Filters</span>
+          <span class="audit-kpi-value">{{ activeFiltersCount() }}</span>
+        </div>
+      </div>
     </div>
   </header>
 
-  <div class="bg-white rounded-xl border shadow-sm p-4 md:p-5">
-    <section class="mb-5 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5 md:p-5">
+    <section class="audit-filters mb-5 rounded-xl border border-slate-200 p-4">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <label class="space-y-1 text-sm text-slate-600">
           <span class="font-medium text-slate-700">Event type</span>
@@ -117,7 +134,7 @@
       </div>
     } @else {
       <div class="hidden lg:block overflow-x-auto">
-        <table class="w-full min-w-[980px] text-sm">
+        <table class="w-full min-w-[980px] text-sm audit-table">
           <thead>
             <tr class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
               <th class="text-left py-3 px-3 font-semibold">Event Type</th>

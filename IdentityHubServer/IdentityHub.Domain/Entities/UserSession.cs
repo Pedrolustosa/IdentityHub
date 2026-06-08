@@ -8,6 +8,9 @@ namespace IdentityHub.Domain.Entities
     {
         public Guid Id { get; set; }
         public string UserId { get; set; } = string.Empty;
+        public string IpAddress { get; set; } = string.Empty;
+        public string Browser { get; set; } = string.Empty;
+        public string OperatingSystem { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? RevokedAt { get; set; }
         public bool IsActive { get; set; }

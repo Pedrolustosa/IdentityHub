@@ -89,6 +89,9 @@ namespace IdentityHub.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    IpAddress = table.Column<string>(type: "TEXT", nullable: false),
+                    Browser = table.Column<string>(type: "TEXT", nullable: false),
+                    OperatingSystem = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     RevokedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false)

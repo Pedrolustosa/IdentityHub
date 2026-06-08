@@ -1,0 +1,38 @@
+:host {
+	display: block;
+}
+
+.role-claims-header {
+	background:
+		radial-gradient(circle at 82% 17%, rgba(59, 130, 246, 0.11), transparent 41%),
+		linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0.75));
+}
+
+.role-claims-kpi {
+	display: inline-flex;
+	flex-direction: column;
+	border: 1px solid rgba(148, 163, 184, 0.28);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.86);
+	padding: 0.35rem 0.65rem;
+	min-width: 4.75rem;
+}
+
+.role-claims-kpi-label {
+	font-size: 0.66rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: rgb(100 116 139);
+}
+
+.role-claims-kpi-value {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: rgb(15 23 42);
+	line-height: 1.2;
+}
+
+.role-claims-table tbody tr {
+	transition: background-color 140ms ease;
+}

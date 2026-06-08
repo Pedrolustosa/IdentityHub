@@ -60,6 +60,9 @@ export interface MeResponse {
 
 export interface UserSessionResponse {
   id: string;
+  ipAddress: string;
+  browser: string;
+  operatingSystem: string;
   createdAt: string;
   isCurrent: boolean;
 }

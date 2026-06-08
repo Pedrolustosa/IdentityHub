@@ -75,4 +75,12 @@ export class RoleClaimsComponent implements OnInit {
         }
       });
   }
+
+  rolesWithPermissionsLoadedCount(): number {
+    return this.rows.filter((row) => row.permissionCount !== null).length;
+  }
+
+  rolesWithoutPermissionsLoadedCount(): number {
+    return this.rows.filter((row) => row.permissionCount === null).length;
+  }
 }
