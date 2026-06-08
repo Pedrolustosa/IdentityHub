@@ -219,9 +219,51 @@ export class AuthService {
     return this.getApplicationRoles().some((r) => r === roleName);
   }
 
+  getApplicationPermissions(): string[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    const token = this.sessionTokens.getAccessToken();
+    if (!token) {
+      return [];
+    }
+
+    const payload = this.decodeTokenPayload(token);
+    if (!payload) {
+      return [];
+    }
+
+    const out = new Set<string>();
+
+    for (const [key, value] of Object.entries(payload)) {
+      if (key === 'permission') {
+        if (Array.isArray(value)) {
+          for (const entry of value) {
+            if (typeof entry === 'string' && entry.trim()) {
+              out.add(entry.trim());
+            }
+          }
+        } else if (typeof value === 'string' && value.trim()) {
+          out.add(value.trim());
+        }
+      }
+    }
+
+    return [...out];
+  }
+
+  hasPermission(permission: string): boolean {
+    return this.getApplicationPermissions().some((entry) => entry === permission);
+  }
+
   /** Only the Admin role may change role permission assignments (hierarchy: Admin > Manager > User). */
   canAssignRolePermissions(): boolean {
     return this.hasApplicationRole('Admin');
+  }
+
+  canViewAuditLogs(): boolean {
+    return this.hasPermission('Audit.View');
   }
 
   /** User id from JWT (`NameIdentifier` / `sub`). */

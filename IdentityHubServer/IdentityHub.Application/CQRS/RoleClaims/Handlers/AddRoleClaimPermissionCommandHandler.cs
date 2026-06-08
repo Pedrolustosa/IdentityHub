@@ -12,10 +12,14 @@ public sealed class AddRoleClaimPermissionCommandHandler
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public AddRoleClaimPermissionCommandHandler(IRoleRepository repository)
+    public AddRoleClaimPermissionCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -47,6 +51,11 @@ public sealed class AddRoleClaimPermissionCommandHandler
         await _repository.AddClaimAsync(
             role,
             new Claim(PermissionClaimType, permission),
+            cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.RoleClaim.Added",
+            $"Role claim added: roleId={role.Id}, roleName={role.Name}, permission={permission}",
             cancellationToken);
 
         return Result.Success();

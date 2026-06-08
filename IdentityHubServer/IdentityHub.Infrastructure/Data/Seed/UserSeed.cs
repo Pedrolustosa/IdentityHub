@@ -51,7 +51,8 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.RoleClaims.View,
                     AppPermissions.RoleClaims.Manage,
 
-                    AppPermissions.Dashboard.View
+                    AppPermissions.Dashboard.View,
+                    AppPermissions.Audit.View
                 },
 
                 ["Manager"] = new()

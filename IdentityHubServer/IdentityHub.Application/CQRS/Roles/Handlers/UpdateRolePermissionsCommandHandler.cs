@@ -12,10 +12,14 @@ public sealed class UpdateRolePermissionsCommandHandler
 {
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public UpdateRolePermissionsCommandHandler(IRoleRepository repository)
+    public UpdateRolePermissionsCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -50,6 +54,11 @@ public sealed class UpdateRolePermissionsCommandHandler
                 new Claim(PermissionClaimType, permission),
                 cancellationToken);
         }
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.Role.PermissionsUpdated",
+            $"Role permissions updated: roleId={role.Id}, roleName={role.Name}, count={permissions.Count}",
+            cancellationToken);
 
         return Result.Success();
     }

@@ -54,6 +54,21 @@ namespace IdentityHub.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AuditLogEntries",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ActorUserId = table.Column<string>(type: "TEXT", nullable: false),
+                    Type = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuditLogEntries", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SecurityEvents",
                 columns: table => new
                 {
@@ -271,6 +286,9 @@ namespace IdentityHub.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "AuditLogEntries");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");

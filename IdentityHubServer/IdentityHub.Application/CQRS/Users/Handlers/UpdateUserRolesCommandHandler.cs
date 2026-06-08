@@ -9,10 +9,14 @@ namespace IdentityHub.Application.CQRS.Users.Handlers;
 public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRolesCommand, Result>
 {
     private readonly IUserRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public UpdateUserRolesCommandHandler(IUserRepository repository)
+    public UpdateUserRolesCommandHandler(
+        IUserRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -32,6 +36,13 @@ public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRo
         await _repository.UpdateRolesAsync(
             user,
             command.Request.Roles,
+            cancellationToken);
+
+        var assignedRoles = string.Join(",", command.Request.Roles.Select(r => r.Trim()));
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.User.RolesUpdated",
+            $"User roles updated: id={user.Id}, email={user.Email}, roles=[{assignedRoles}]",
             cancellationToken);
 
         return Result.Success();

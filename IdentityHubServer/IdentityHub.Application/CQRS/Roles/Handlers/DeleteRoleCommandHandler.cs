@@ -9,10 +9,14 @@ namespace IdentityHub.Application.CQRS.Roles.Handlers;
 public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand, Result>
 {
     private readonly IRoleRepository _repository;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public DeleteRoleCommandHandler(IRoleRepository repository)
+    public DeleteRoleCommandHandler(
+        IRoleRepository repository,
+        IAuditLogRepository auditLogRepository)
     {
         _repository = repository;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(
@@ -29,7 +33,15 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
             return Result.Failure(
                 Error.Create("Role.AdminCannotBeDeleted", "Admin role cannot be deleted"));
 
+        var roleId = role.Id;
+        var roleName = role.Name ?? string.Empty;
+
         await _repository.DeleteAsync(role, cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.Role.Deleted",
+            $"Role deleted: id={roleId}, name={roleName}",
+            cancellationToken);
 
         return Result.Success();
     }

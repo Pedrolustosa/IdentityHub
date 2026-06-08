@@ -17,5 +17,6 @@ export const PERMISSION_CATALOG: readonly string[] = [
   'Roles.Permissions.Update',
   'RoleClaims.View',
   'RoleClaims.Manage',
-  'Dashboard.View'
+  'Dashboard.View',
+  'Audit.View'
 ];
