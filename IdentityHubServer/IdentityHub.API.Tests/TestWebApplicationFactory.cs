@@ -13,9 +13,25 @@ namespace IdentityHub.API.Tests;
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private DbConnection? _connection;
+    private readonly IReadOnlyDictionary<string, string?> _additionalConfiguration;
 
     public TestWebApplicationFactory()
+        : this(new Dictionary<string, string?>
+        {
+            ["RateLimiting:Auth:Login:PermitLimit"] = "1000",
+            ["RateLimiting:Auth:Login:WindowSeconds"] = "60",
+            ["RateLimiting:Auth:ForgotPassword:PermitLimit"] = "1000",
+            ["RateLimiting:Auth:ForgotPassword:WindowSeconds"] = "300",
+            ["RateLimiting:Auth:ResendConfirmation:PermitLimit"] = "1000",
+            ["RateLimiting:Auth:ResendConfirmation:WindowSeconds"] = "300"
+        })
     {
+    }
+
+    internal TestWebApplicationFactory(IReadOnlyDictionary<string, string?>? additionalConfiguration = null)
+    {
+        _additionalConfiguration = additionalConfiguration ?? new Dictionary<string, string?>();
+
         Environment.SetEnvironmentVariable("Jwt__Key", "integration-tests-jwt-key-with-at-least-32-bytes");
         Environment.SetEnvironmentVariable("Jwt__Issuer", "IdentityHub");
         Environment.SetEnvironmentVariable("Jwt__Audience", "IdentityHubUsers");
@@ -26,14 +42,19 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureAppConfiguration((_, config) =>
         {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
+            var settings = new Dictionary<string, string?>
             {
                 ["Jwt:Key"] = "integration-tests-jwt-key-with-at-least-32-bytes",
                 ["Jwt:Issuer"] = "IdentityHub",
                 ["Jwt:Audience"] = "IdentityHubUsers",
                 ["Jwt:ExpireMinutes"] = "60",
                 ["Frontend:BaseUrl"] = "http://localhost:4200"
-            });
+            };
+
+            foreach (var item in _additionalConfiguration)
+                settings[item.Key] = item.Value;
+
+            config.AddInMemoryCollection(settings);
         });
 
         builder.ConfigureServices(services =>

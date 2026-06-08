@@ -11,15 +11,20 @@ using IdentityHub.IoC;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
 const string FrontendCorsPolicy = "FrontendPolicy";
+const string AuthLoginRateLimitPolicy = "AuthLoginRateLimitPolicy";
+const string AuthForgotPasswordRateLimitPolicy = "AuthForgotPasswordRateLimitPolicy";
+const string AuthResendConfirmationRateLimitPolicy = "AuthResendConfirmationRateLimitPolicy";
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -69,6 +74,74 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod();
+    });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy(AuthLoginRateLimitPolicy, context =>
+    {
+        var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+        var permitLimit = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:Login:PermitLimit") ?? 10);
+        var windowSeconds = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:Login:WindowSeconds") ?? 60);
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    options.AddPolicy(AuthForgotPasswordRateLimitPolicy, context =>
+    {
+        var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+        var permitLimit = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:ForgotPassword:PermitLimit") ?? 5);
+        var windowSeconds = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:ForgotPassword:WindowSeconds") ?? 300);
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    options.AddPolicy(AuthResendConfirmationRateLimitPolicy, context =>
+    {
+        var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+        var permitLimit = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:ResendConfirmation:PermitLimit") ?? 5);
+        var windowSeconds = Math.Max(
+            1,
+            configuration.GetValue<int?>("RateLimiting:Auth:ResendConfirmation:WindowSeconds") ?? 300);
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
     });
 });
 
@@ -146,6 +219,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors(FrontendCorsPolicy);
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
