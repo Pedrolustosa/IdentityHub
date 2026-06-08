@@ -24,6 +24,9 @@ public sealed class GetActiveSessionsQueryHandler : IRequestHandler<GetActiveSes
             .Select(x => new UserSessionResponse
             {
                 Id = x.Id,
+                IpAddress = x.IpAddress,
+                Browser = x.Browser,
+                OperatingSystem = x.OperatingSystem,
                 CreatedAt = x.CreatedAt,
                 IsCurrent = query.CurrentSessionId.HasValue && x.Id == query.CurrentSessionId.Value
             })

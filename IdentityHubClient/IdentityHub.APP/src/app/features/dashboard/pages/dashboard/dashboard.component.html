@@ -1,7 +1,25 @@
 <section class="space-y-6">
-  <header class="space-y-1">
-    <h1 class="text-2xl font-semibold text-slate-900">Dashboard</h1>
-    <p class="text-slate-500">Totals and weekly trends (last 7 days vs previous 7 days).</p>
+  <header class="dashboard-header rounded-2xl border border-slate-200/80 px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
+        <p class="text-slate-600">Totals and weekly trends (last 7 days vs previous 7 days).</p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
+        <div class="dashboard-kpi">
+          <span class="dashboard-kpi-label">Users</span>
+          <span class="dashboard-kpi-value">{{ summary ? formatNumber(summary.totalUsers) : '--' }}</span>
+        </div>
+        <div class="dashboard-kpi">
+          <span class="dashboard-kpi-label">Sessions</span>
+          <span class="dashboard-kpi-value">{{ summary ? formatNumber(summary.activeSessions) : '--' }}</span>
+        </div>
+        <div class="dashboard-kpi">
+          <span class="dashboard-kpi-label">Alerts</span>
+          <span class="dashboard-kpi-value">{{ summary ? formatNumber(summary.securityAlerts) : '--' }}</span>
+        </div>
+      </div>
+    </div>
   </header>
 
   @if (isLoading) {

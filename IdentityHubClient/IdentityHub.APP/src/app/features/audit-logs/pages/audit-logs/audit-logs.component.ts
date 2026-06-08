@@ -130,4 +130,26 @@ export class AuditLogsComponent implements OnInit {
   trackById(_: number, item: AuditLogItem): string {
     return item.id;
   }
+
+  activeFiltersCount(): number {
+    let count = 0;
+
+    if (this.filters.type.trim()) {
+      count++;
+    }
+    if (this.filters.actorUserId.trim()) {
+      count++;
+    }
+    if (this.filters.description.trim()) {
+      count++;
+    }
+    if (this.filters.fromDate.trim()) {
+      count++;
+    }
+    if (this.filters.toDate.trim()) {
+      count++;
+    }
+
+    return count;
+  }
 }

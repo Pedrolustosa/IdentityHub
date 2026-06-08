@@ -16,17 +16,20 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly TokenService _tokenService;
     private readonly IAuthRepository _authRepository;
+    private readonly IClientDeviceInfoProvider _clientDeviceInfoProvider;
 
     public LoginCommandHandler(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         TokenService tokenService,
-        IAuthRepository authRepository)
+        IAuthRepository authRepository,
+        IClientDeviceInfoProvider clientDeviceInfoProvider)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _tokenService = tokenService;
         _authRepository = authRepository;
+        _clientDeviceInfoProvider = clientDeviceInfoProvider;
     }
 
     public async Task<Result<AuthResponse>> Handle(
@@ -65,6 +68,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             _roleManager);
 
         var refreshToken = _tokenService.GenerateRefreshToken();
+        var (ipAddress, browser, operatingSystem) = _clientDeviceInfoProvider.GetCurrent();
 
         await _authRepository.AddRefreshTokenAsync(new RefreshToken
         {
@@ -81,6 +85,9 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         {
             Id = sessionId,
             UserId = user.Id,
+            IpAddress = ipAddress,
+            Browser = browser,
+            OperatingSystem = operatingSystem,
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         }, cancellationToken);

@@ -120,6 +120,14 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
         Assert.Equal(ExtractSessionId(secondAdminLogin.Token), sessions.Single(x => x.IsCurrent).Id);
         Assert.DoesNotContain(sessions, x => x.Id == Guid.Empty);
         Assert.True(sessions.SequenceEqual(sessions.OrderByDescending(x => x.CreatedAt)));
+
+        foreach (var expectedSessionId in expectedSessionIds)
+        {
+            var session = sessions.Single(x => x.Id == expectedSessionId);
+            Assert.False(string.IsNullOrWhiteSpace(session.IpAddress));
+            Assert.False(string.IsNullOrWhiteSpace(session.Browser));
+            Assert.False(string.IsNullOrWhiteSpace(session.OperatingSystem));
+        }
     }
 
     [Fact]
@@ -264,6 +272,9 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
     private sealed class UserSessionDto
     {
         public Guid Id { get; set; }
+        public string IpAddress { get; set; } = string.Empty;
+        public string Browser { get; set; } = string.Empty;
+        public string OperatingSystem { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public bool IsCurrent { get; set; }
     }

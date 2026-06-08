@@ -1,10 +1,28 @@
 <section class="space-y-5">
-  <header>
-    <h1 class="text-2xl font-semibold text-slate-900">Users</h1>
-    <p class="text-slate-500">Manage system users and permissions</p>
+  <header class="users-header rounded-2xl border border-slate-200/80 px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Users</h1>
+        <p class="text-slate-600">Manage system users and permissions.</p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
+        <div class="users-kpi">
+          <span class="users-kpi-label">Total</span>
+          <span class="users-kpi-value">{{ users.length }}</span>
+        </div>
+        <div class="users-kpi">
+          <span class="users-kpi-label">Active</span>
+          <span class="users-kpi-value">{{ activeUsersCount() }}</span>
+        </div>
+        <div class="users-kpi">
+          <span class="users-kpi-label">Inactive</span>
+          <span class="users-kpi-value">{{ inactiveUsersCount() }}</span>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <div class="bg-white rounded-xl border shadow-sm p-4 md:p-5">
+  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5 md:p-5">
     @if (isLoading) {
       <div class="space-y-3">
         @for (_ of [1,2,3,4,5]; track $index) {
@@ -31,7 +49,7 @@
       </div>
     } @else {
       <div class="hidden md:block overflow-x-auto">
-        <table class="w-full min-w-[860px] text-sm">
+        <table class="w-full min-w-[860px] text-sm users-table">
           <thead>
             <tr class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
               <th class="text-left py-3 px-3 font-semibold">Email</th>

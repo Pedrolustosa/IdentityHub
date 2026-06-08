@@ -1,3 +1,43 @@
 :host {
   display: block;
 }
+
+.audit-header {
+  background:
+    radial-gradient(circle at 82% 16%, rgba(16, 185, 129, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0.75));
+}
+
+.audit-kpi {
+  display: inline-flex;
+  flex-direction: column;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.35rem 0.65rem;
+  min-width: 4.75rem;
+}
+
+.audit-kpi-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgb(100 116 139);
+}
+
+.audit-kpi-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgb(15 23 42);
+  line-height: 1.2;
+}
+
+.audit-filters {
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.8), rgba(248, 250, 252, 0.58));
+}
+
+.audit-table tbody tr {
+  transition: background-color 140ms ease;
+}

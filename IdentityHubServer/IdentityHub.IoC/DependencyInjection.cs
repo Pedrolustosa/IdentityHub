@@ -44,6 +44,7 @@ namespace IdentityHub.IoC
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+            services.AddScoped<IClientDeviceInfoProvider, ClientDeviceInfoProvider>();
 
             services.AddScoped<IEmailService, EmailService>();
 

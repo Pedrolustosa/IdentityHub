@@ -55,4 +55,12 @@ export class UsersComponent implements OnInit {
     const list = roles ?? [];
     return Math.max(0, list.length - 2);
   }
+
+  activeUsersCount(): number {
+    return this.users.filter((user) => user.isActive).length;
+  }
+
+  inactiveUsersCount(): number {
+    return this.users.filter((user) => !user.isActive).length;
+  }
 }

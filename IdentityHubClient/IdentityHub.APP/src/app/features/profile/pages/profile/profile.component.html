@@ -241,9 +241,23 @@
     </div>
 
     <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
-      <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
-        <h2 class="text-sm font-semibold text-slate-800">Active sessions</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Review where you are signed in and revoke one session at a time.</p>
+      <div class="sessions-header border-b border-slate-100 px-5 py-4 sm:px-6">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-800">Active sessions</h2>
+            <p class="text-xs text-slate-600 mt-1">Review where you are signed in and revoke one session at a time.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2 sm:w-auto">
+            <div class="session-kpi">
+              <span class="session-kpi-label">Total</span>
+              <span class="session-kpi-value">{{ sessions.length }}</span>
+            </div>
+            <div class="session-kpi">
+              <span class="session-kpi-label">Current</span>
+              <span class="session-kpi-value">{{ currentSessionsCount() }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="p-5 sm:p-6 space-y-4">
@@ -262,18 +276,38 @@
         } @else {
           <div class="space-y-3">
             @for (session of sessions; track session.id) {
-              <article class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="min-w-0 space-y-1">
+              <article class="session-card relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 sm:px-5 sm:py-5 sm:flex-row sm:items-start sm:justify-between">
+                @if (session.isCurrent) {
+                  <div class="session-current-glow" aria-hidden="true"></div>
+                }
+
+                <div class="min-w-0 space-y-2.5">
                   <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-sm font-semibold text-slate-900">Session {{ session.id.slice(0, 8) }}</h3>
+                    <h3 class="text-sm font-semibold tracking-tight text-slate-900">Session {{ session.id.slice(0, 8) }}</h3>
                     @if (session.isCurrent) {
                       <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
                         Current device
                       </span>
                     }
                   </div>
-                  <p class="text-sm text-slate-600">Started {{ session.createdAt | date:'medium' }}</p>
-                  <p class="text-xs text-slate-500">
+
+                  <div class="session-meta-grid">
+                    <p class="session-meta-item">
+                      <span class="session-meta-label">Started</span>
+                      <span class="session-meta-value">{{ session.createdAt | date:'medium' }}</span>
+                    </p>
+                    <p class="session-meta-item">
+                      <span class="session-meta-label">IP</span>
+                      <span class="session-meta-value">{{ session.ipAddress }}</span>
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                    <span class="session-pill session-pill-browser">Browser: {{ session.browser }}</span>
+                    <span class="session-pill session-pill-os">OS: {{ session.operatingSystem }}</span>
+                  </div>
+
+                  <p class="text-xs text-slate-500 leading-relaxed">
                     @if (session.isCurrent) {
                       Revoking this session signs you out on this device immediately.
                     } @else {
@@ -286,7 +320,7 @@
                   type="button"
                   [disabled]="!!revokingSessionId"
                   (click)="revokeSession(session)"
-                  class="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition-colors duration-150 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="session-revoke-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition-colors duration-150 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {{ isRevokingSession(session.id) ? 'Revoking...' : (session.isCurrent ? 'Sign out this device' : 'Revoke session') }}
                 </button>

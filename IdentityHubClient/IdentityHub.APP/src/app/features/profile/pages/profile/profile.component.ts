@@ -333,6 +333,10 @@ export class ProfileComponent implements OnInit {
     return this.revokingSessionId === sessionId;
   }
 
+  currentSessionsCount(): number {
+    return this.sessions.filter((session) => session.isCurrent).length;
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
