@@ -3,6 +3,7 @@ using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace IdentityHub.API.Controllers;
@@ -38,6 +39,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("resend-confirmation")]
+    [EnableRateLimiting("AuthResendConfirmationRateLimitPolicy")]
     public async Task<IActionResult> ResendConfirmation(
         ForgotPasswordRequest request,
         CancellationToken cancellationToken)
@@ -47,6 +49,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("AuthLoginRateLimitPolicy")]
     public async Task<IActionResult> Login(
         LoginRequest request,
         CancellationToken cancellationToken)
@@ -126,6 +129,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [EnableRateLimiting("AuthForgotPasswordRateLimitPolicy")]
     public async Task<IActionResult> ForgotPassword(
         ForgotPasswordRequest request,
         CancellationToken cancellationToken)
