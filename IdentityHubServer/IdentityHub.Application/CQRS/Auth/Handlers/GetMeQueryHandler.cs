@@ -31,7 +31,7 @@ public sealed class GetMeQueryHandler : IRequestHandler<GetMeQuery, Result<MeRes
 
         var user = await _userManager.FindByIdAsync(query.UserId);
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return Result<MeResponse>.Failure(
                 Error.Create("User.NotFound", "User not found"));
 

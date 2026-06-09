@@ -26,6 +26,7 @@ namespace IdentityHub.Infrastructure.Repositories
             CancellationToken cancellationToken = default)
         {
             return _context.RefreshTokens
+                .IgnoreQueryFilters()
                 .Include(x => x.User)
                 .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
         }

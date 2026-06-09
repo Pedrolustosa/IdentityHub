@@ -38,7 +38,7 @@ public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendCon
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user is null || user.EmailConfirmed)
+        if (user is null || user.IsDeleted || user.EmailConfirmed)
             return Result.Success();
 
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);

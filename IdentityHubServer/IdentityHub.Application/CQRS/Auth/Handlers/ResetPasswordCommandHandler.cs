@@ -27,7 +27,7 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
     {
         var user = await _userManager.FindByEmailAsync(cmd.Request.Email);
 
-        if (user == null)
+        if (user is null || user.IsDeleted)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
         string token;

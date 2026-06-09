@@ -22,7 +22,7 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
     {
         var user = await _userManager.FindByIdAsync(cmd.UserId);
 
-        if (user == null)
+        if (user is null || user.IsDeleted)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
         user.FullName = cmd.Request.FullName?.Trim();

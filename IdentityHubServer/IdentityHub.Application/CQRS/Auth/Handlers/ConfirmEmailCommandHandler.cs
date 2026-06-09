@@ -22,7 +22,7 @@ public sealed class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCom
     {
         var user = await _userManager.FindByEmailAsync(cmd.Email);
 
-        if (user == null)
+        if (user is null || user.IsDeleted)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
         string token;

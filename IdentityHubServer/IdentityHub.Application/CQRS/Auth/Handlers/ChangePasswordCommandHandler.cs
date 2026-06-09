@@ -25,7 +25,7 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
     {
         var user = await _userManager.FindByIdAsync(cmd.UserId);
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
         var result = await _userManager.ChangePasswordAsync(

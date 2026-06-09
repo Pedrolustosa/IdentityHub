@@ -28,13 +28,19 @@ public sealed class UserRepository : IUserRepository
     public async Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await _userManager.FindByIdAsync(id);
+        return await _userManager.Users
+            .FirstOrDefaultAsync(user => user.Id == id && !user.IsDeleted, cancellationToken);
     }
 
     public async Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await _userManager.FindByEmailAsync(email);
+
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+
+        return await _userManager.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail, cancellationToken);
     }
 
     public async Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default)
@@ -63,11 +69,16 @@ public sealed class UserRepository : IUserRepository
             throw new InvalidOperationException(string.Join("; ", result.Errors.Select(e => e.Description)));
     }
 
-    public async Task DeleteAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(ApplicationUser user, string? deletedBy, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await _userManager.DeleteAsync(user);
+        user.IsDeleted = true;
+        user.IsActive = false;
+        user.DeletedAt = DateTime.UtcNow;
+        user.DeletedBy = string.IsNullOrWhiteSpace(deletedBy) ? null : deletedBy.Trim();
+
+        var result = await _userManager.UpdateAsync(user);
 
         if (!result.Succeeded)
             throw new InvalidOperationException(string.Join("; ", result.Errors.Select(e => e.Description)));
