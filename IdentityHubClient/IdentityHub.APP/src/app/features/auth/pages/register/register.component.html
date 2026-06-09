@@ -33,7 +33,7 @@
           id="password"
           type="password"
           formControlName="password"
-          placeholder="At least 8 characters"
+          placeholder="At least 7 characters"
           class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
         />
         <div class="h-2 w-full rounded bg-slate-200 overflow-hidden">
@@ -41,7 +41,7 @@
         </div>
         <small class="text-slate-500">Strength: {{ strengthLabel }}</small>
         <ul class="text-xs space-y-1 text-slate-500">
-          <li [ngClass]="{ 'text-green-600': hasMinLength }">Use at least 8 characters</li>
+          <li [ngClass]="{ 'text-green-600': hasMinLength }">Use at least 7 characters</li>
           <li [ngClass]="{ 'text-green-600': hasUppercase }">Include 1 uppercase letter</li>
           <li [ngClass]="{ 'text-green-600': hasNumber }">Include 1 number</li>
         </ul>

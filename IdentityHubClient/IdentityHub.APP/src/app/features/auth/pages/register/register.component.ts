@@ -31,7 +31,7 @@ export class RegisterComponent {
     this.registerForm = this.formBuilder.nonNullable.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Z])(?=.*\d).+$/)]],
+      password: ['', [Validators.required, Validators.minLength(7), Validators.pattern(/^(?=.*[A-Z])(?=.*\d).+$/)]],
       confirmPassword: ['', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
     }, {
@@ -58,7 +58,7 @@ export class RegisterComponent {
   get strengthPercentage(): number {
     const password = this.passwordControl?.value ?? '';
     let score = 0;
-    if (password.length >= 8) score += 25;
+    if (password.length >= 7) score += 25;
     if (/[A-Z]/.test(password)) score += 25;
     if (/\d/.test(password)) score += 25;
     if (/[^A-Za-z0-9]/.test(password)) score += 25;
@@ -75,7 +75,7 @@ export class RegisterComponent {
 
   get hasMinLength(): boolean {
     const password = this.passwordControl?.value ?? '';
-    return password.length >= 8;
+    return password.length >= 7;
   }
 
   get hasUppercase(): boolean {
