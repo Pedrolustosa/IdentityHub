@@ -7,17 +7,21 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { SessionTokensService } from '../../../../core/services/session-tokens.service';
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
+import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
+import { mapHttpToUiLoadError, toastMessageForUiLoadError } from '../../../../shared/http/ui-load-error';
+import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, LoadErrorBannerComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
   isLoading = false;
   successMessage = '';
+  requestError: ReturnType<typeof mapHttpToUiLoadError> | null = null;
 
   readonly loginForm: FormGroup;
 
@@ -31,7 +35,7 @@ export class LoginComponent implements OnInit {
   ) {
     this.loginForm = this.formBuilder.nonNullable.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(7)]],
       rememberMe: [true]
     });
   }
@@ -60,6 +64,7 @@ export class LoginComponent implements OnInit {
     }
 
     this.successMessage = '';
+    this.requestError = null;
     this.isLoading = true;
 
     const formValue = this.loginForm.getRawValue();
@@ -77,9 +82,14 @@ export class LoginComponent implements OnInit {
           this.toastr.success('You are now signed in.', 'Authentication');
           void this.router.navigate(['/app/dashboard']);
         },
-        error: () => {
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err, { authForm401AsInvalid: true });
+          this.requestError = mapped;
           this.toastr.warning(
-            'We could not sign you in. Please check your email and password and try again.',
+            normalizeToastMessage(
+              toastMessageForUiLoadError(mapped),
+              'We could not sign you in. Please check your email and password and try again.'
+            ),
             'Authentication'
           );
         }

@@ -1,10 +1,13 @@
-﻿using IdentityHub.Application.Interfaces;
+﻿using FluentValidation;
+using IdentityHub.Application.Common.Behaviors;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Repositories;
 using IdentityHub.Infrastructure.Security;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +28,13 @@ namespace IdentityHub.IoC
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AuthService).Assembly));
+            services.AddValidatorsFromAssembly(typeof(AuthService).Assembly);
+
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(AuthService).Assembly);
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
             services.AddHttpContextAccessor();
 
             services.AddScoped<TokenService>();
