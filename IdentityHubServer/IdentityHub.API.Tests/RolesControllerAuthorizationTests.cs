@@ -12,6 +12,7 @@ public sealed class RolesControllerAuthorizationTests
     [InlineData("Create", "Roles.Create")]
     [InlineData("Update", "Roles.Update")]
     [InlineData("Delete", "Roles.Delete")]
+    [InlineData("GetPermissionCatalog", "Roles.Permissions.View")]
     [InlineData("GetPermissions", "Roles.Permissions.View")]
     [InlineData("UpdatePermissions", "Roles.Permissions.Update")]
     public void Action_ShouldDeclareExpectedPolicy(string methodName, string expectedPolicy)

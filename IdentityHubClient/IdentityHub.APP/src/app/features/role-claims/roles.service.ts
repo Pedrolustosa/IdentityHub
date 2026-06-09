@@ -22,6 +22,10 @@ export class RolesService {
     return this.http.get<RoleListItem>(`${this.rolesApiUrl}/${encodeURIComponent(id)}`);
   }
 
+  getPermissionCatalog(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.rolesApiUrl}/permissions/catalog`);
+  }
+
   getRolePermissions(id: string): Observable<string[]> {
     return this.http.get<string[]>(`${this.rolesApiUrl}/${encodeURIComponent(id)}/permissions`);
   }
