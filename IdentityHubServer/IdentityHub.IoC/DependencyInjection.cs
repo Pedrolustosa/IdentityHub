@@ -33,6 +33,7 @@ namespace IdentityHub.IoC
             services.AddMediatR(cfg =>
             {
                 cfg.RegisterServicesFromAssembly(typeof(AuthService).Assembly);
+                cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
                 cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
             services.AddHttpContextAccessor();

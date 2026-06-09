@@ -48,8 +48,7 @@ function extractValidationDetails(detail: string | undefined): string[] | undefi
     return undefined;
   }
 
-  const distinct = Array.from(new Set(parts));
-  return distinct.length > 1 ? distinct : undefined;
+  return Array.from(new Set(parts));
 }
 
 function httpErrorDetail(err: HttpErrorResponse): string | undefined {

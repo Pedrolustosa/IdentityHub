@@ -8,7 +8,7 @@ import { SessionTokensService } from '../../../../core/services/session-tokens.s
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
 import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
-import { mapHttpToUiLoadError, toastMessageForUiLoadError } from '../../../../shared/http/ui-load-error';
+import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 
 @Component({
@@ -21,7 +21,7 @@ import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 export class LoginComponent implements OnInit {
   isLoading = false;
   successMessage = '';
-  requestError: ReturnType<typeof mapHttpToUiLoadError> | null = null;
+  requestError: UiLoadError | null = null;
 
   readonly loginForm: FormGroup;
 
