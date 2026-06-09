@@ -32,7 +32,7 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null)
+        if (user is null || user.IsDeleted)
             return Result.Success();
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);

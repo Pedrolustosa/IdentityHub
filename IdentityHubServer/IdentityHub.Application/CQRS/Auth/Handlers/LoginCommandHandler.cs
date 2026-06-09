@@ -40,7 +40,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user is null || !user.IsActive)
+        if (user is null || !user.IsActive || user.IsDeleted)
             return Result<AuthResponse>.Failure(
                 Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
 

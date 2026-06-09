@@ -10,6 +10,6 @@ public interface IUserRepository
     Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken = default);
     Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default);
     Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken = default);
-    Task DeleteAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task DeleteAsync(ApplicationUser user, string? deletedBy, CancellationToken cancellationToken = default);
     Task UpdateRolesAsync(ApplicationUser user, IList<string> roles, CancellationToken cancellationToken = default);
 }

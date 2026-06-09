@@ -40,6 +40,15 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
 
         var user = token.User;
 
+        if (user is null || user.IsDeleted || !user.IsActive)
+        {
+            token.IsRevoked = true;
+            await _repo.SaveChangesAsync(ct);
+
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.InvalidRefresh", "Invalid refresh token"));
+        }
+
         var roles = await _userManager.GetRolesAsync(user);
 
         var access = await _tokenService.GenerateToken(user, token.SessionId, roles, _userManager, _roleManager, ct);

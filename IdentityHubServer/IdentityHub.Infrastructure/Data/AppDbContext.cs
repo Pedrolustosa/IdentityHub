@@ -10,5 +10,13 @@ namespace IdentityHub.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
         public DbSet<SecurityEvent> SecurityEvents { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUser>()
+                .HasQueryFilter(user => !user.IsDeleted);
+        }
     }
 }
