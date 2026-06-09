@@ -11,6 +11,7 @@ import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-cla
 import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
 import { AuditLogsComponent } from './features/audit-logs/pages/audit-logs/audit-logs.component';
 import { authGuard } from './core/guards/auth.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 import { authLayoutChildRoutes } from './features/auth/auth.routes';
 
 export const routes: Routes = [
@@ -25,17 +26,32 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-      { path: 'dashboard', component: DashboardComponent },
+      { path: 'dashboard', component: DashboardComponent, canActivate: [permissionGuard], data: { permission: 'Dashboard.View' } },
       { path: 'change-password', redirectTo: 'profile', pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'audit-logs', component: AuditLogsComponent },
-      { path: 'role-claims/:roleId/edit', component: RoleClaimsEditComponent },
-      { path: 'role-claims/:roleId', component: RoleClaimsDetailComponent },
-      { path: 'role-claims', component: RoleClaimsComponent },
-      { path: 'users/:id/edit', component: UserEditComponent },
-      { path: 'users/:id', component: UserDetailComponent },
-      { path: 'users', component: UsersComponent }
+      { path: 'audit-logs', component: AuditLogsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
+      {
+        path: 'role-claims/:roleId/edit',
+        component: RoleClaimsEditComponent,
+        canActivate: [permissionGuard],
+        data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
+      },
+      {
+        path: 'role-claims/:roleId',
+        component: RoleClaimsDetailComponent,
+        canActivate: [permissionGuard],
+        data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
+      },
+      {
+        path: 'role-claims',
+        component: RoleClaimsComponent,
+        canActivate: [permissionGuard],
+        data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
+      },
+      { path: 'users/:id/edit', component: UserEditComponent, canActivate: [permissionGuard], data: { permission: 'Users.Update' } },
+      { path: 'users/:id', component: UserDetailComponent, canActivate: [permissionGuard], data: { permission: 'Users.View' } },
+      { path: 'users', component: UsersComponent, canActivate: [permissionGuard], data: { permission: 'Users.View' } }
     ]
   },
   { path: '**', redirectTo: 'login' }
