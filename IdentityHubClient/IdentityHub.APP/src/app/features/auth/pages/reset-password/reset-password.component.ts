@@ -26,7 +26,7 @@ export class ResetPasswordComponent implements OnInit {
   tokenFromQuery = '';
 
   readonly form = this.formBuilder.nonNullable.group({
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    newPassword: ['', [Validators.required, Validators.minLength(7)]],
     confirmPassword: ['', [Validators.required]]
   });
 

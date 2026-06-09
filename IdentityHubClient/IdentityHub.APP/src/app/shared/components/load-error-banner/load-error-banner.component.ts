@@ -19,10 +19,22 @@ export class LoadErrorBannerComponent {
   @Input() notFoundBackLabel = 'Go Back';
 
   showRetry(): boolean {
+    if (this.error.kind === 'unknown' && this.error.code === 'Validation.Failed') {
+      return false;
+    }
+
     return uiLoadErrorShowsRetry(this.error);
   }
 
   emitRetry(): void {
     this.retry.emit();
+  }
+
+  validationDetails(): string[] {
+    if (this.error.kind !== 'unknown') {
+      return [];
+    }
+
+    return this.error.details ?? [];
   }
 }

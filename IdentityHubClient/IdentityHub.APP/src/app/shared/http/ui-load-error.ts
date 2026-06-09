@@ -8,6 +8,50 @@ export type MapHttpToUiLoadErrorOptions = {
   authForm401AsInvalid?: boolean;
 };
 
+type ApiErrorPayload = {
+  error?: string;
+  detail?: string;
+  title?: string;
+  message?: string;
+};
+
+function readApiPayload(err: HttpErrorResponse): ApiErrorPayload | null {
+  if (typeof err.error === 'object' && err.error !== null) {
+    return err.error as ApiErrorPayload;
+  }
+
+  return null;
+}
+
+function httpErrorCode(err: HttpErrorResponse): string | undefined {
+  const payload = readApiPayload(err);
+  const code = payload?.error;
+
+  if (typeof code === 'string' && code.trim()) {
+    return code.trim();
+  }
+
+  return undefined;
+}
+
+function extractValidationDetails(detail: string | undefined): string[] | undefined {
+  if (!detail?.trim()) {
+    return undefined;
+  }
+
+  const parts = detail
+    .split('|')
+    .map((part) => part.replace(/\s+/g, ' ').trim())
+    .filter((part) => part.length > 0);
+
+  if (!parts.length) {
+    return undefined;
+  }
+
+  const distinct = Array.from(new Set(parts));
+  return distinct.length > 1 ? distinct : undefined;
+}
+
 function httpErrorDetail(err: HttpErrorResponse): string | undefined {
   if (typeof err.error === 'string' && err.error.trim()) {
     return err.error.trim();
@@ -28,7 +72,7 @@ export type UiLoadError =
   | { kind: 'not_found' }
   | { kind: 'server'; status: number }
   | { kind: 'network' }
-  | { kind: 'unknown'; message?: string };
+  | { kind: 'unknown'; message?: string; code?: string; details?: string[] };
 
 export function mapHttpToUiLoadError(err: unknown, options?: MapHttpToUiLoadErrorOptions): UiLoadError {
   if (err instanceof HttpErrorResponse) {
@@ -50,9 +94,18 @@ export function mapHttpToUiLoadError(err: unknown, options?: MapHttpToUiLoadErro
     if (err.status >= 500) {
       return { kind: 'server', status: err.status };
     }
+
     const detail = httpErrorDetail(err);
-    return { kind: 'unknown', message: detail ?? (typeof err.error === 'string' ? err.error : err.message) };
+    const code = httpErrorCode(err);
+
+    return {
+      kind: 'unknown',
+      code,
+      message: detail ?? (typeof err.error === 'string' ? err.error : err.message),
+      details: code === 'Validation.Failed' ? extractValidationDetails(detail) : undefined
+    };
   }
+
   return { kind: 'unknown', message: err instanceof Error ? err.message : undefined };
 }
 
@@ -73,6 +126,9 @@ export function toastMessageForUiLoadError(error: UiLoadError): string {
     case 'server':
       return `A server error occurred (${error.status}). Please try again or contact support.`;
     default:
+      if (error.message?.trim()) {
+        return error.message.trim();
+      }
       return 'We could not complete your request. Check the page details for more information.';
   }
 }
