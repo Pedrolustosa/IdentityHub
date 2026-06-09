@@ -8,6 +8,8 @@ type SidebarMenuItem = {
   route: string;
   icon: string;
   permission?: string;
+  permissions?: string[];
+  requireAll?: boolean;
 };
 
 @Component({
@@ -21,15 +23,35 @@ export class SidebarComponent {
   @Input() collapsed = false;
 
   readonly menuItems: SidebarMenuItem[] = [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
-    { label: 'Users', route: '/app/users', icon: 'users' },
-    { label: 'Role Claims', route: '/app/role-claims', icon: 'roleClaims' },
+    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View' },
+    { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View' },
+    {
+      label: 'Role Claims',
+      route: '/app/role-claims',
+      icon: 'roleClaims',
+      permissions: ['Roles.View', 'Roles.Permissions.View'],
+      requireAll: true
+    },
     { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' }
   ];
 
   constructor(private readonly authService: AuthService) {}
 
   get visibleMenuItems(): SidebarMenuItem[] {
-    return this.menuItems.filter((item) => !item.permission || this.authService.hasPermission(item.permission));
+    return this.menuItems.filter((item) => {
+      const single = item.permission ? [item.permission] : [];
+      const many = item.permissions ?? [];
+      const required = [...new Set([...single, ...many])];
+
+      if (!required.length) {
+        return true;
+      }
+
+      if (item.requireAll) {
+        return required.every((permission) => this.authService.hasPermission(permission));
+      }
+
+      return required.some((permission) => this.authService.hasPermission(permission));
+    });
   }
 }
