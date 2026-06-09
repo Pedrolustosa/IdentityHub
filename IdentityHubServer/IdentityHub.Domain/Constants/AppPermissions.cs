@@ -2,6 +2,28 @@
 {
     public static class AppPermissions
     {
+        public static IReadOnlyList<string> All() =>
+        [
+            Users.View,
+            Users.Create,
+            Users.Update,
+            Users.Delete,
+            Users.UpdateRoles,
+
+            Roles.View,
+            Roles.Create,
+            Roles.Update,
+            Roles.Delete,
+            Roles.PermissionsView,
+            Roles.PermissionsUpdate,
+
+            RoleClaims.View,
+            RoleClaims.Manage,
+
+            Dashboard.View,
+            Audit.View
+        ];
+
         public static class Users
         {
             public const string View = "Users.View";

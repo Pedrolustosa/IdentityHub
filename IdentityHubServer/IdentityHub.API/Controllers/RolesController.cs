@@ -67,6 +67,14 @@ public sealed class RolesController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("permissions/catalog")]
+    [Authorize(Policy = "Roles.Permissions.View")]
+    public async Task<IActionResult> GetPermissionCatalog(CancellationToken cancellationToken)
+    {
+        var result = await _service.GetPermissionCatalogAsync(cancellationToken);
+        return result.ToActionResult();
+    }
+
     [HttpGet("{id}/permissions")]
     [Authorize(Policy = "Roles.Permissions.View")]
     public async Task<IActionResult> GetPermissions(

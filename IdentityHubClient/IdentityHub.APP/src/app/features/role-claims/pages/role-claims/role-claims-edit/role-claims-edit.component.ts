@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { finalize, map } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { PERMISSION_CATALOG } from '../../../../../shared/constants/permissions-catalog';
@@ -65,19 +65,20 @@ export class RoleClaimsEditComponent implements OnInit {
 
     forkJoin({
       role: this.rolesService.getRoleById(this.roleId),
-      assigned: this.rolesService.getRolePermissions(this.roleId)
+      assigned: this.rolesService.getRolePermissions(this.roleId),
+      catalog: this.rolesService.getPermissionCatalog().pipe(catchError(() => of([...PERMISSION_CATALOG])))
     })
       .pipe(
-        map(({ role, assigned }) => {
+        map(({ role, assigned, catalog }) => {
           const assignedList = assigned ?? [];
-          return { role, assignedList };
+          return { role, assignedList, catalogList: catalog ?? [...PERMISSION_CATALOG] };
         }),
         finalize(() => (this.isLoading = false))
       )
       .subscribe({
-        next: ({ role, assignedList }) => {
+        next: ({ role, assignedList, catalogList }) => {
           this.role = role;
-          const union = uniqueSorted([...PERMISSION_CATALOG, ...assignedList]);
+          const union = uniqueSorted([...catalogList, ...assignedList]);
           this.permissionRows = [...union];
           this.selectedPermissions = [...assignedList];
         },

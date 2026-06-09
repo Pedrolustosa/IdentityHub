@@ -31,6 +31,9 @@ public sealed class RoleService : IRoleService
     public Task<Result> DeleteAsync(string id, CancellationToken cancellationToken)
         => _sender.Send(new DeleteRoleCommand(id), cancellationToken);
 
+    public Task<Result<List<string>>> GetPermissionCatalogAsync(CancellationToken cancellationToken)
+        => _sender.Send(new GetPermissionCatalogQuery(), cancellationToken);
+
     public Task<Result<List<string>>> GetPermissionsAsync(string roleId, CancellationToken cancellationToken)
         => _sender.Send(new GetRolePermissionsQuery(roleId), cancellationToken);
 
