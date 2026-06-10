@@ -46,18 +46,21 @@ namespace IdentityHub.IoC
             services.AddScoped<IRoleClaimService, RoleClaimService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IAuditLogService, AuditLogService>();
+            services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();
 
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            services.AddScoped<ISecurityAlertRepository, SecurityAlertRepository>();
 
             services.AddScoped<ICurrentUserContext, CurrentUserContext>();
             services.AddScoped<IClientDeviceInfoProvider, ClientDeviceInfoProvider>();
 
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailTemplateBuilder, EmailTemplateBuilder>();
+            services.AddScoped<ISecurityAlertService, SecurityAlertService>();
 
             return services;
         }

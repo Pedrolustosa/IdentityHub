@@ -10,6 +10,7 @@ import { RoleClaimsComponent } from './features/role-claims/pages/role-claims/ro
 import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component';
 import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
 import { AuditLogsComponent } from './features/audit-logs/pages/audit-logs/audit-logs.component';
+import { SecurityAlertsComponent } from './features/security-alerts/pages/security-alerts/security-alerts.component';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { authLayoutChildRoutes } from './features/auth/auth.routes';
@@ -31,6 +32,7 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'audit-logs', component: AuditLogsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
+      { path: 'security-alerts', component: SecurityAlertsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
       {
         path: 'role-claims/:roleId/edit',
         component: RoleClaimsEditComponent,

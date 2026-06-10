@@ -2,6 +2,7 @@
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
@@ -17,19 +18,22 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
     private readonly TokenService _tokenService;
     private readonly IAuthRepository _authRepository;
     private readonly IClientDeviceInfoProvider _clientDeviceInfoProvider;
+    private readonly ISecurityAlertService _securityAlertService;
 
     public LoginCommandHandler(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         TokenService tokenService,
         IAuthRepository authRepository,
-        IClientDeviceInfoProvider clientDeviceInfoProvider)
+        IClientDeviceInfoProvider clientDeviceInfoProvider,
+        ISecurityAlertService securityAlertService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _tokenService = tokenService;
         _authRepository = authRepository;
         _clientDeviceInfoProvider = clientDeviceInfoProvider;
+        _securityAlertService = securityAlertService;
     }
 
     public async Task<Result<AuthResponse>> Handle(
@@ -49,8 +53,11 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             command.Request.Password);
 
         if (!passwordValid)
+        {
+            await _securityAlertService.NotifySuspiciousLoginAsync(user, "Invalid credentials", cancellationToken);
             return Result<AuthResponse>.Failure(
                 Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
+        }
 
         if (!user.EmailConfirmed)
             return Result<AuthResponse>.Failure(

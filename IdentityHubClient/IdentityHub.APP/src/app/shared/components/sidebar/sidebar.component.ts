@@ -32,7 +32,8 @@ export class SidebarComponent {
       permissions: ['Roles.View', 'Roles.Permissions.View'],
       requireAll: true
     },
-    { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' }
+    { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' },
+    { label: 'Security Alerts', route: '/app/security-alerts', icon: 'securityAlerts', permission: 'Audit.View' }
   ];
 
   constructor(private readonly authService: AuthService) {}

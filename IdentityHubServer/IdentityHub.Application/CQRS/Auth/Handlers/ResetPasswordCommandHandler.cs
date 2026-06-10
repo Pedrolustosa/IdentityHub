@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -14,13 +15,16 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthRepository _repo;
+    private readonly ISecurityAlertService _securityAlertService;
 
     public ResetPasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
-        IAuthRepository repo)
+        IAuthRepository repo,
+        ISecurityAlertService securityAlertService)
     {
         _userManager = userManager;
         _repo = repo;
+        _securityAlertService = securityAlertService;
     }
 
     public async Task<Result> Handle(ResetPasswordCommand cmd, CancellationToken ct)
@@ -54,6 +58,12 @@ public sealed class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordC
         foreach (var t in tokens) t.IsRevoked = true;
 
         await _repo.SaveChangesAsync(ct);
+
+        await _securityAlertService.NotifyCriticalActionAsync(
+            user,
+            "Password reset",
+            "Your account password was reset.",
+            ct);
 
         return Result.Success();
     }

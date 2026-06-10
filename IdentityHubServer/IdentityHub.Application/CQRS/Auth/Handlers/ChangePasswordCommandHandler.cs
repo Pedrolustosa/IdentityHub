@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -12,13 +13,16 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthRepository _repo;
+    private readonly ISecurityAlertService _securityAlertService;
 
     public ChangePasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
-        IAuthRepository repo)
+        IAuthRepository repo,
+        ISecurityAlertService securityAlertService)
     {
         _userManager = userManager;
         _repo = repo;
+        _securityAlertService = securityAlertService;
     }
 
     public async Task<Result> Handle(ChangePasswordCommand cmd, CancellationToken ct)
@@ -40,6 +44,12 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
         foreach (var s in sessions) s.IsActive = false;
 
         await _repo.SaveChangesAsync(ct);
+
+        await _securityAlertService.NotifyCriticalActionAsync(
+            user,
+            "Password changed",
+            "Your account password was changed successfully.",
+            ct);
 
         return Result.Success();
     }

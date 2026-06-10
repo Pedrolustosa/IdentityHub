@@ -37,6 +37,24 @@ public sealed class EmailTemplateBuilder : IEmailTemplateBuilder
             actionUrl: actionUrl,
             recipientName: recipientName);
 
+    public EmailTemplate BuildSuspiciousLoginAlertTemplate(string details, string? recipientName = null)
+        => BuildNoticeTemplate(
+            subject: "Security alert: suspicious login attempt",
+            preheader: "We detected a suspicious login attempt in your account.",
+            title: "Suspicious login attempt",
+            message: "We blocked a sign-in attempt that may not be yours. If this was you, no action is needed.",
+            details: details,
+            recipientName: recipientName);
+
+    public EmailTemplate BuildCriticalActionAlertTemplate(string actionTitle, string details, string? recipientName = null)
+        => BuildNoticeTemplate(
+            subject: $"Security alert: {actionTitle}",
+            preheader: "A critical security action was detected in your account.",
+            title: actionTitle,
+            message: "If you did not perform this action, contact your administrator immediately.",
+            details: details,
+            recipientName: recipientName);
+
     private static EmailTemplate BuildTemplate(
         string subject,
         string preheader,
@@ -67,6 +85,44 @@ public sealed class EmailTemplateBuilder : IEmailTemplateBuilder
         body.Append("<p style='margin:0;color:#64748b;font-size:12px;line-height:1.5;'>If the button does not work, copy and paste this link into your browser:<br><a href='").Append(safeActionUrl).Append("' style='color:#2563eb;word-break:break-all;'>").Append(safeActionUrl).Append("</a></p>");
         body.Append("</td></tr>");
         body.Append("<tr><td style='padding:16px 24px;background:#f8fafc;color:#64748b;font-size:12px;'>This is an automated message from IdentityHub.</td></tr>");
+        body.Append("</table></td></tr></table></body></html>");
+
+        return new EmailTemplate(subject, body.ToString());
+    }
+
+    private static EmailTemplate BuildNoticeTemplate(
+        string subject,
+        string preheader,
+        string title,
+        string message,
+        string details,
+        string? recipientName)
+    {
+        var safeRecipientName = string.IsNullOrWhiteSpace(recipientName)
+            ? "there"
+            : WebUtility.HtmlEncode(recipientName.Trim());
+
+        var safeSubject = WebUtility.HtmlEncode(subject);
+        var safePreheader = WebUtility.HtmlEncode(preheader);
+        var safeTitle = WebUtility.HtmlEncode(title);
+        var safeMessage = WebUtility.HtmlEncode(message);
+        var safeDetails = WebUtility.HtmlEncode(details);
+
+        var body = new StringBuilder();
+        body.Append("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>");
+        body.Append("<title>").Append(safeSubject).Append("</title></head>");
+        body.Append("<body style='margin:0;background:#f3f6fb;font-family:Segoe UI,Arial,sans-serif;color:#0f172a;'>");
+        body.Append("<div style='display:none;max-height:0;overflow:hidden;opacity:0;'>").Append(safePreheader).Append("</div>");
+        body.Append("<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='padding:24px 12px;'><tr><td align='center'>");
+        body.Append("<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;'>");
+        body.Append("<tr><td style='background:#7f1d1d;padding:18px 24px;color:#ffffff;font-weight:600;letter-spacing:.3px;'>IdentityHub Security</td></tr>");
+        body.Append("<tr><td style='padding:24px;'>");
+        body.Append("<p style='margin:0 0 8px 0;color:#475569;'>Hello ").Append(safeRecipientName).Append(",</p>");
+        body.Append("<h1 style='margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#7f1d1d;'>").Append(safeTitle).Append("</h1>");
+        body.Append("<p style='margin:0 0 16px 0;color:#475569;line-height:1.6;'>").Append(safeMessage).Append("</p>");
+        body.Append("<div style='margin:0;padding:12px 14px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;color:#881337;font-size:13px;line-height:1.5;'>").Append(safeDetails).Append("</div>");
+        body.Append("</td></tr>");
+        body.Append("<tr><td style='padding:16px 24px;background:#f8fafc;color:#64748b;font-size:12px;'>This is an automated security message from IdentityHub.</td></tr>");
         body.Append("</table></td></tr></table></body></html>");
 
         return new EmailTemplate(subject, body.ToString());
