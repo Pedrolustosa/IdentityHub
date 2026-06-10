@@ -96,6 +96,13 @@ namespace IdentityHub.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
+        public async Task AddSecurityEventAsync(
+            SecurityEvent securityEvent,
+            CancellationToken cancellationToken = default)
+        {
+            await _context.SecurityEvents.AddAsync(securityEvent, cancellationToken);
+        }
+
         public Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return _context.SaveChangesAsync(cancellationToken);

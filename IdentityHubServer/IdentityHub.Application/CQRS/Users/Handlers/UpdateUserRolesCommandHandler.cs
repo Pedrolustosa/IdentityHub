@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Users.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
@@ -10,13 +11,16 @@ public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRo
 {
     private readonly IUserRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly ISecurityAlertService _securityAlertService;
 
     public UpdateUserRolesCommandHandler(
         IUserRepository repository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        ISecurityAlertService securityAlertService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
+        _securityAlertService = securityAlertService;
     }
 
     public async Task<Result> Handle(
@@ -43,6 +47,12 @@ public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRo
         await _auditLogRepository.WriteAsync(
             "Audit.User.RolesUpdated",
             $"User roles updated: id={user.Id}, email={user.Email}, roles=[{assignedRoles}]",
+            cancellationToken);
+
+        await _securityAlertService.NotifyCriticalActionAsync(
+            user,
+            "Roles updated",
+            $"Your assigned roles were updated to [{assignedRoles}].",
             cancellationToken);
 
         return Result.Success();

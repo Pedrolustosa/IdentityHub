@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Users.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
@@ -12,17 +13,20 @@ public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand
     private readonly IAuthRepository _authRepository;
     private readonly ICurrentUserContext _currentUserContext;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly ISecurityAlertService _securityAlertService;
 
     public DeleteUserCommandHandler(
         IUserRepository repository,
         IAuthRepository authRepository,
         ICurrentUserContext currentUserContext,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        ISecurityAlertService securityAlertService)
     {
         _repository = repository;
         _authRepository = authRepository;
         _currentUserContext = currentUserContext;
         _auditLogRepository = auditLogRepository;
+        _securityAlertService = securityAlertService;
     }
 
     public async Task<Result> Handle(
@@ -54,6 +58,12 @@ public sealed class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand
         await _auditLogRepository.WriteAsync(
             "Audit.User.Deleted",
             $"User deleted: id={userId}, email={userEmail}, deletedBy={deletedBy ?? "system"}",
+            cancellationToken);
+
+        await _securityAlertService.NotifyCriticalActionAsync(
+            user,
+            "Account deleted",
+            $"Your account was deleted by {(deletedBy ?? "system")}.",
             cancellationToken);
 
         return Result.Success();
