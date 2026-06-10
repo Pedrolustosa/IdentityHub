@@ -14,15 +14,18 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateBuilder _emailTemplateBuilder;
     private readonly IConfiguration _config;
 
     public ForgotPasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
         IEmailService emailService,
+        IEmailTemplateBuilder emailTemplateBuilder,
         IConfiguration config)
     {
         _userManager = userManager;
         _emailService = emailService;
+        _emailTemplateBuilder = emailTemplateBuilder;
         _config = config;
     }
 
@@ -42,7 +45,11 @@ public sealed class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswor
         var baseUrl = (_config["Frontend:BaseUrl"] ?? "").TrimEnd('/');
         var link = $"{baseUrl}/reset-password?email={email}&token={encoded}";
 
-        await _emailService.SendAsync(email, "Reset Password", $"<a href='{link}'>Reset</a>");
+        var template = _emailTemplateBuilder.BuildResetPasswordTemplate(
+            actionUrl: link,
+            recipientName: user.FullName ?? email);
+
+        await _emailService.SendAsync(email, template.Subject, template.BodyHtml);
 
         return Result.Success();
     }

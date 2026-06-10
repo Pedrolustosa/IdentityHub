@@ -10,6 +10,7 @@ public sealed class UsersControllerAuthorizationTests
     [InlineData("GetAll", "Users.View")]
     [InlineData("GetById", "Users.View")]
     [InlineData("Create", "Users.Create")]
+    [InlineData("Invite", "Users.Create")]
     [InlineData("Update", "Users.Update")]
     [InlineData("Delete", "Users.Delete")]
     [InlineData("UpdateRoles", "Users.Roles.Update")]

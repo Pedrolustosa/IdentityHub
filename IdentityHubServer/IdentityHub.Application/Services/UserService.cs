@@ -25,6 +25,9 @@ public sealed class UserService : IUserService
     public Task<Result> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken)
         => _sender.Send(new CreateUserCommand(request), cancellationToken);
 
+    public Task<Result> InviteAsync(InviteUserRequest request, CancellationToken cancellationToken)
+        => _sender.Send(new InviteUserCommand(request), cancellationToken);
+
     public Task<Result> UpdateAsync(string id, UpdateUserRequest request, CancellationToken cancellationToken)
         => _sender.Send(new UpdateUserCommand(id, request), cancellationToken);
 
