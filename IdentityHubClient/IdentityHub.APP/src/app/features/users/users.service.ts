@@ -17,6 +17,11 @@ export interface CreateUserRequest {
   fullName?: string | null;
 }
 
+export interface InviteUserRequest {
+  email: string;
+  fullName?: string | null;
+}
+
 export interface UpdateUserRequest {
   fullName?: string | null;
   isActive: boolean;
@@ -42,6 +47,10 @@ export class UsersService {
 
   createUser(body: CreateUserRequest): Observable<string> {
     return this.http.post(`${this.usersApiUrl}`, body, { responseType: 'text' });
+  }
+
+  inviteUser(body: InviteUserRequest): Observable<string> {
+    return this.http.post(`${this.usersApiUrl}/invite`, body, { responseType: 'text' });
   }
 
   updateUser(id: string, body: UpdateUserRequest): Observable<string> {

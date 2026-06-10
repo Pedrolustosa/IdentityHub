@@ -15,15 +15,18 @@ public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendCon
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IEmailService _emailService;
+    private readonly IEmailTemplateBuilder _emailTemplateBuilder;
     private readonly IConfiguration _configuration;
 
     public ResendConfirmationCommandHandler(
         UserManager<ApplicationUser> userManager,
         IEmailService emailService,
+        IEmailTemplateBuilder emailTemplateBuilder,
         IConfiguration configuration)
     {
         _userManager = userManager;
         _emailService = emailService;
+        _emailTemplateBuilder = emailTemplateBuilder;
         _configuration = configuration;
     }
 
@@ -53,10 +56,14 @@ public sealed class ResendConfirmationCommandHandler : IRequestHandler<ResendCon
         var confirmationLink =
             $"{frontendBase}/confirm-email?email={Uri.EscapeDataString(email)}&token={encodedToken}";
 
+        var template = _emailTemplateBuilder.BuildConfirmEmailTemplate(
+            actionUrl: confirmationLink,
+            recipientName: user.FullName ?? email);
+
         await _emailService.SendAsync(
             email,
-            "Confirm your account",
-            $"Click here: <a href='{confirmationLink}'>Confirm Email</a>");
+            template.Subject,
+            template.BodyHtml);
 
         return Result.Success();
     }

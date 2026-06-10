@@ -17,6 +17,7 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
 export class AuditLogsComponent implements OnInit {
   readonly eventTypeOptions = [
     'Audit.User.Created',
+    'Audit.User.Invited',
     'Audit.User.Updated',
     'Audit.User.Deleted',
     'Audit.User.RolesUpdated',

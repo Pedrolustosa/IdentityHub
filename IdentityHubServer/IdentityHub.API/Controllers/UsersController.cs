@@ -41,6 +41,16 @@ public sealed class UsersController(IUserService service) : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpPost("invite")]
+    [Authorize(Policy = "Users.Create")]
+    public async Task<IActionResult> Invite(
+        InviteUserRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _service.InviteAsync(request, cancellationToken);
+        return result.ToActionResult();
+    }
+
     [HttpPut("{id}")]
     [Authorize(Policy = "Users.Update")]
     public async Task<IActionResult> Update(

@@ -57,6 +57,7 @@ namespace IdentityHub.IoC
             services.AddScoped<IClientDeviceInfoProvider, ClientDeviceInfoProvider>();
 
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IEmailTemplateBuilder, EmailTemplateBuilder>();
 
             return services;
         }

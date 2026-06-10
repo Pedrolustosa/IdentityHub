@@ -22,6 +22,15 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
     }
 }
 
+public sealed class InviteUserCommandValidator : AbstractValidator<InviteUserCommand>
+{
+    public InviteUserCommandValidator()
+    {
+        RuleFor(x => x.Request.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Request.FullName).MaximumLength(120);
+    }
+}
+
 public sealed class DeleteUserCommandValidator : AbstractValidator<DeleteUserCommand>
 {
     public DeleteUserCommandValidator()
