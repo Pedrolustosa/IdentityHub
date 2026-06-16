@@ -34,6 +34,7 @@ namespace IdentityHub.Application.Services
                 new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
                 new Claim("sid", sessionId.ToString()),
                 new Claim("fullName", user.FullName ?? user.UserName ?? string.Empty),
+                new Claim("permission_version", user.PermissionVersion.ToString()),
             };
 
             var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -33,7 +33,7 @@ export class SidebarComponent {
       requireAll: true
     },
     { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' },
-    { label: 'Security Alerts', route: '/app/security-alerts', icon: 'securityAlerts', permission: 'Audit.View' }
+    { label: 'Security Alerts', route: '/app/security-alerts', icon: 'securityAlerts', permission: 'SecurityEvents.View' }
   ];
 
   constructor(private readonly authService: AuthService) {}

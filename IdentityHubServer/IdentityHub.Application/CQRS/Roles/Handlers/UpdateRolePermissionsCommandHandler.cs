@@ -1,8 +1,11 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Roles.Commands;
+using IdentityHub.Domain.Constants;
+using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace IdentityHub.Application.CQRS.Roles.Handlers;
@@ -13,13 +16,16 @@ public sealed class UpdateRolePermissionsCommandHandler
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public UpdateRolePermissionsCommandHandler(
         IRoleRepository repository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        UserManager<ApplicationUser> userManager)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
+        _userManager = userManager;
     }
 
     public async Task<Result> Handle(
@@ -38,6 +44,19 @@ public sealed class UpdateRolePermissionsCommandHandler
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var allowedPermissions = new HashSet<string>(AppPermissions.All(), StringComparer.OrdinalIgnoreCase);
+        var invalidPermissions = permissions
+            .Where(permission => !allowedPermissions.Contains(permission))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(permission => permission)
+            .ToList();
+
+        if (invalidPermissions.Count > 0)
+            return Result.Failure(
+                Error.Create(
+                    "Role.InvalidPermission",
+                    $"Unknown permission(s): {string.Join(", ", invalidPermissions)}"));
+
         var currentClaims = await _repository.GetClaimsAsync(role, cancellationToken);
 
         var currentPermissionClaims = currentClaims
@@ -53,6 +72,16 @@ public sealed class UpdateRolePermissionsCommandHandler
                 role,
                 new Claim(PermissionClaimType, permission),
                 cancellationToken);
+        }
+
+        if (!string.IsNullOrWhiteSpace(role.Name))
+        {
+            var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name);
+            foreach (var user in usersInRole)
+            {
+                user.PermissionVersion++;
+                await _userManager.UpdateAsync(user);
+            }
         }
 
         await _auditLogRepository.WriteAsync(

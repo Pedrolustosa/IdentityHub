@@ -18,7 +18,9 @@
             Roles.PermissionsUpdate,
 
             Dashboard.View,
-            Audit.View
+            Audit.View,
+            SecurityEvents.View,
+            SecurityEvents.Manage
         ];
 
         public static class Users
@@ -48,6 +50,12 @@
         public static class Audit
         {
             public const string View = "Audit.View";
+        }
+
+        public static class SecurityEvents
+        {
+            public const string View = "SecurityEvents.View";
+            public const string Manage = "SecurityEvents.Manage";
         }
     }
 }

@@ -8,7 +8,7 @@ namespace IdentityHub.API.Controllers;
 
 [ApiController]
 [Route("api/security-alerts")]
-[Authorize(Policy = "Audit.View")]
+[Authorize(Policy = "SecurityEvents.View")]
 public sealed class SecurityAlertsController : ControllerBase
 {
     private readonly ISecurityAlertsService _service;

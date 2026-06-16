@@ -17,35 +17,27 @@ describe('SessionTokensService', () => {
     sessionStorage.clear();
   });
 
-  it('stores tokens in localStorage when rememberMe is true', () => {
-    service.saveTokens('access', 'refresh', true);
+  it('stores access token in localStorage when rememberMe is true', () => {
+    service.saveAccessToken('access', true);
 
     expect(localStorage.getItem('accessToken')).toBe('access');
-    expect(localStorage.getItem('refreshToken')).toBe('refresh');
     expect(sessionStorage.getItem('accessToken')).toBeNull();
-    expect(sessionStorage.getItem('refreshToken')).toBeNull();
   });
 
-  it('stores tokens in sessionStorage when rememberMe is false', () => {
-    service.saveTokens('access', 'refresh', false);
+  it('stores access token in sessionStorage when rememberMe is false', () => {
+    service.saveAccessToken('access', false);
 
     expect(sessionStorage.getItem('accessToken')).toBe('access');
-    expect(sessionStorage.getItem('refreshToken')).toBe('refresh');
     expect(localStorage.getItem('accessToken')).toBeNull();
-    expect(localStorage.getItem('refreshToken')).toBeNull();
   });
 
   it('clears all token storage entries', () => {
     localStorage.setItem('accessToken', 'a');
-    localStorage.setItem('refreshToken', 'r');
     sessionStorage.setItem('accessToken', 'a2');
-    sessionStorage.setItem('refreshToken', 'r2');
 
     service.clearAll();
 
     expect(localStorage.getItem('accessToken')).toBeNull();
-    expect(localStorage.getItem('refreshToken')).toBeNull();
     expect(sessionStorage.getItem('accessToken')).toBeNull();
-    expect(sessionStorage.getItem('refreshToken')).toBeNull();
   });
 });

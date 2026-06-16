@@ -32,7 +32,7 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'audit-logs', component: AuditLogsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
-      { path: 'security-alerts', component: SecurityAlertsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
+      { path: 'security-alerts', component: SecurityAlertsComponent, canActivate: [permissionGuard], data: { permission: 'SecurityEvents.View' } },
       {
         path: 'roles/:roleId/permissions/edit',
         component: RoleClaimsEditComponent,

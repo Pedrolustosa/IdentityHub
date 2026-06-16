@@ -25,6 +25,6 @@ public sealed class SecurityAlertsControllerAuthorizationTests
             .SingleOrDefault();
 
         Assert.NotNull(controllerAuthorize);
-        Assert.Equal("Audit.View", controllerAuthorize!.Policy);
+        Assert.Equal("SecurityEvents.View", controllerAuthorize!.Policy);
     }
 }
