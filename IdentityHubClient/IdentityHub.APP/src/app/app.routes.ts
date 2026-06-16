@@ -34,23 +34,26 @@ export const routes: Routes = [
       { path: 'audit-logs', component: AuditLogsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
       { path: 'security-alerts', component: SecurityAlertsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
       {
-        path: 'role-claims/:roleId/edit',
+        path: 'roles/:roleId/permissions/edit',
         component: RoleClaimsEditComponent,
         canActivate: [permissionGuard],
         data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
       },
       {
-        path: 'role-claims/:roleId',
+        path: 'roles/:roleId/permissions',
         component: RoleClaimsDetailComponent,
         canActivate: [permissionGuard],
         data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
       },
       {
-        path: 'role-claims',
+        path: 'roles',
         component: RoleClaimsComponent,
         canActivate: [permissionGuard],
         data: { permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true }
       },
+      { path: 'role-claims', redirectTo: 'roles', pathMatch: 'full' },
+      { path: 'role-claims/:roleId', redirectTo: 'roles/:roleId/permissions', pathMatch: 'full' },
+      { path: 'role-claims/:roleId/edit', redirectTo: 'roles/:roleId/permissions/edit', pathMatch: 'full' },
       { path: 'users/:id/edit', component: UserEditComponent, canActivate: [permissionGuard], data: { permission: 'Users.Update' } },
       { path: 'users/:id', component: UserDetailComponent, canActivate: [permissionGuard], data: { permission: 'Users.View' } },
       { path: 'users', component: UsersComponent, canActivate: [permissionGuard], data: { permission: 'Users.View' } }

@@ -37,7 +37,7 @@ export class RoleClaimsDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('roleId');
     if (!id) {
-      void this.router.navigate(['/app/role-claims']);
+      void this.router.navigate(['/app/roles']);
       return;
     }
     this.roleId = id;

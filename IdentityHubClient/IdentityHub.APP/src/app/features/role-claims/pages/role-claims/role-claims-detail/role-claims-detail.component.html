@@ -1,6 +1,6 @@
 <section class="max-w-3xl space-y-6">
   <a
-    routerLink="/app/role-claims"
+    routerLink="/app/roles"
     class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -18,7 +18,7 @@
     <div class="bg-white rounded-xl border shadow-sm p-4">
       <app-load-error-banner
         [error]="loadError"
-        [notFoundBackLink]="['/app/role-claims']"
+        [notFoundBackLink]="['/app/roles']"
         notFoundBackLabel="Back to role permissions"
         (retry)="loadRoleData()"
       />
@@ -26,7 +26,7 @@
   } @else if (!role) {
     <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
       <p class="text-slate-900 font-medium">Role unavailable</p>
-      <a routerLink="/app/role-claims" class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
+      <a routerLink="/app/roles" class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
         Return to list
       </a>
     </div>
@@ -53,7 +53,7 @@
     <div class="flex flex-wrap gap-3">
       @if (canAssignRolePermissions) {
         <a
-          [routerLink]="['/app/role-claims', roleId, 'edit']"
+          [routerLink]="['/app/roles', roleId, 'permissions', 'edit']"
           class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -63,7 +63,7 @@
         </a>
       } @else {
         <a
-          [routerLink]="['/app/role-claims', roleId, 'edit']"
+          [routerLink]="['/app/roles', roleId, 'permissions', 'edit']"
           class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150"
         >
           View as checklist
