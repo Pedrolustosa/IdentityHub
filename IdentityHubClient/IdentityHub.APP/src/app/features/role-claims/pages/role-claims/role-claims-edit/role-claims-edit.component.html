@@ -23,14 +23,14 @@
       <app-load-error-banner
         [error]="loadError"
         [notFoundBackLink]="['/app/role-claims']"
-        notFoundBackLabel="Back to role claims"
+        notFoundBackLabel="Back to role permissions"
         (retry)="loadRoleEditData()"
       />
     </div>
   } @else if (!role) {
     <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
       <p class="text-slate-900 font-medium">Cannot edit this role</p>
-      <a routerLink="/app/role-claims" class="text-sm text-blue-600 hover:text-blue-500 font-medium">Go to role claims</a>
+      <a routerLink="/app/role-claims" class="text-sm text-blue-600 hover:text-blue-500 font-medium">Go to role permissions</a>
     </div>
   } @else {
     <header>

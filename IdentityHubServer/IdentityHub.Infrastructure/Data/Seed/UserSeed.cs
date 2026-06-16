@@ -8,6 +8,11 @@ namespace IdentityHub.Infrastructure.Data.Seed
     public static class UserSeed
     {
         private const string PermissionClaimType = "permission";
+        private static readonly string[] DeprecatedRolePermissions =
+        [
+            "RoleClaims.View",
+            "RoleClaims.Manage"
+        ];
 
         public static async Task SeedAsync(
             UserManager<ApplicationUser> userManager,
@@ -48,9 +53,6 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Roles.PermissionsView,
                     AppPermissions.Roles.PermissionsUpdate,
 
-                    AppPermissions.RoleClaims.View,
-                    AppPermissions.RoleClaims.Manage,
-
                     AppPermissions.Dashboard.View,
                     AppPermissions.Audit.View
                 },
@@ -63,8 +65,6 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Roles.View,
                     AppPermissions.Roles.PermissionsView,
 
-                    AppPermissions.RoleClaims.View,
-
                     AppPermissions.Dashboard.View
                 },
 
@@ -73,9 +73,7 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Users.View,
 
                     AppPermissions.Roles.View,
-                    AppPermissions.Roles.PermissionsView,
-
-                    AppPermissions.RoleClaims.View
+                    AppPermissions.Roles.PermissionsView
                 }
             };
 
@@ -87,6 +85,20 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     continue;
 
                 var existingClaims = await roleManager.GetClaimsAsync(role);
+
+                foreach (var deprecatedPermission in DeprecatedRolePermissions)
+                {
+                    var deprecatedClaims = existingClaims
+                        .Where(c => c.Type == PermissionClaimType && c.Value == deprecatedPermission)
+                        .ToList();
+
+                    foreach (var deprecatedClaim in deprecatedClaims)
+                    {
+                        await roleManager.RemoveClaimAsync(role, deprecatedClaim);
+                    }
+                }
+
+                existingClaims = await roleManager.GetClaimsAsync(role);
 
                 foreach (var permission in permissions)
                 {
