@@ -85,7 +85,7 @@ export class RoleClaimsEditComponent implements OnInit {
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
           this.loadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Role Claims');
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Role Permissions');
         }
       });
   }
@@ -120,14 +120,14 @@ export class RoleClaimsEditComponent implements OnInit {
     this.saveError = null;
     this.rolesService.updateRolePermissions(this.roleId, this.selectedPermissions).subscribe({
       next: () => {
-        this.toastr.success('Role permissions updated.', 'Role Claims');
+        this.toastr.success('Role permissions updated.', 'Role Permissions');
         this.isSaving = false;
       },
       error: (err: unknown) => {
         this.isSaving = false;
         const mapped = mapHttpToUiLoadError(err);
         this.saveError = mapped;
-        this.toastr.error(toastMessageForUiLoadError(mapped), 'Role Claims');
+        this.toastr.error(toastMessageForUiLoadError(mapped), 'Role Permissions');
       }
     });
   }

@@ -18,7 +18,7 @@ public sealed class RoleClaimsController : ControllerBase
     }
 
     [HttpGet("{roleId}")]
-    [Authorize(Policy = "RoleClaims.View")]
+    [Authorize(Policy = "Roles.Permissions.View")]
     public async Task<IActionResult> GetPermissions(
         string roleId,
         CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public sealed class RoleClaimsController : ControllerBase
     }
 
     [HttpPost("{roleId}")]
-    [Authorize(Policy = "RoleClaims.Manage")]
+    [Authorize(Policy = "Roles.Permissions.Update")]
     public async Task<IActionResult> AddPermission(
         string roleId,
         [FromBody] string permission,
@@ -39,7 +39,7 @@ public sealed class RoleClaimsController : ControllerBase
     }
 
     [HttpDelete("{roleId}")]
-    [Authorize(Policy = "RoleClaims.Manage")]
+    [Authorize(Policy = "Roles.Permissions.Update")]
     public async Task<IActionResult> RemovePermission(
         string roleId,
         [FromQuery] string permission,
@@ -50,7 +50,7 @@ public sealed class RoleClaimsController : ControllerBase
     }
 
     [HttpPut("{roleId}")]
-    [Authorize(Policy = "RoleClaims.Manage")]
+    [Authorize(Policy = "Roles.Permissions.Update")]
     public async Task<IActionResult> ReplacePermissions(
         string roleId,
         [FromBody] List<string> permissions,

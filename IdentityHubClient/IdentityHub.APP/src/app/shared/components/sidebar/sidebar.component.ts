@@ -26,7 +26,7 @@ export class SidebarComponent {
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View' },
     { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View' },
     {
-      label: 'Role Claims',
+      label: 'Role Permissions',
       route: '/app/role-claims',
       icon: 'roleClaims',
       permissions: ['Roles.View', 'Roles.Permissions.View'],

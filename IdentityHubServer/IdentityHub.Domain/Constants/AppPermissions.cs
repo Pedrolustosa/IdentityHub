@@ -17,9 +17,6 @@
             Roles.PermissionsView,
             Roles.PermissionsUpdate,
 
-            RoleClaims.View,
-            RoleClaims.Manage,
-
             Dashboard.View,
             Audit.View
         ];
@@ -41,12 +38,6 @@
             public const string Delete = "Roles.Delete";
             public const string PermissionsView = "Roles.Permissions.View";
             public const string PermissionsUpdate = "Roles.Permissions.Update";
-        }
-
-        public static class RoleClaims
-        {
-            public const string View = "RoleClaims.View";
-            public const string Manage = "RoleClaims.Manage";
         }
 
         public static class Dashboard
