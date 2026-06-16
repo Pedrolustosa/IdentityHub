@@ -12,6 +12,7 @@ namespace IdentityHub.API.Controllers;
 [Route("api/[controller]")]
 public sealed class AuthController : ControllerBase
 {
+    private const string RefreshTokenCookieName = "ih_refresh";
     private readonly IAuthService _service;
 
     public AuthController(IAuthService service)
@@ -55,15 +56,26 @@ public sealed class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _service.LoginAsync(request, cancellationToken);
+        if (result.IsSuccess && result.Value is not null)
+            SetRefreshTokenCookie(result.Value.RefreshToken);
+
         return result.ToActionResult();
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(
-        RefreshTokenRequest request,
+        RefreshTokenRequest? request,
         CancellationToken cancellationToken)
     {
-        var result = await _service.RefreshAsync(request, cancellationToken);
+        var effectiveRequest = new RefreshTokenRequest
+        {
+            RefreshToken = ResolveRefreshToken(request?.RefreshToken)
+        };
+
+        var result = await _service.RefreshAsync(effectiveRequest, cancellationToken);
+        if (result.IsSuccess && result.Value is not null)
+            SetRefreshTokenCookie(result.Value.RefreshToken);
+
         return result.ToActionResult();
     }
 
@@ -116,7 +128,7 @@ public sealed class AuthController : ControllerBase
     [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(
-        RefreshTokenRequest request,
+        RefreshTokenRequest? request,
         CancellationToken cancellationToken)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -124,7 +136,15 @@ public sealed class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId))
             return Unauthorized();
 
-        var result = await _service.LogoutAsync(userId, request, cancellationToken);
+        var effectiveRequest = new RefreshTokenRequest
+        {
+            RefreshToken = ResolveRefreshToken(request?.RefreshToken)
+        };
+
+        var result = await _service.LogoutAsync(userId, effectiveRequest, cancellationToken);
+        if (result.IsSuccess)
+            ClearRefreshTokenCookie();
+
         return result.ToActionResult();
     }
 
@@ -175,5 +195,48 @@ public sealed class AuthController : ControllerBase
 
         var result = await _service.UpdateProfileAsync(userId, request, cancellationToken);
         return result.ToActionResult();
+    }
+
+    private string ResolveRefreshToken(string? requestToken)
+    {
+        if (!string.IsNullOrWhiteSpace(requestToken))
+            return requestToken.Trim();
+
+        if (Request.Cookies.TryGetValue(RefreshTokenCookieName, out var cookieValue) &&
+            !string.IsNullOrWhiteSpace(cookieValue))
+            return cookieValue.Trim();
+
+        return string.Empty;
+    }
+
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return;
+
+        Response.Cookies.Append(
+            RefreshTokenCookieName,
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                IsEssential = true
+            });
+    }
+
+    private void ClearRefreshTokenCookie()
+    {
+        Response.Cookies.Delete(
+            RefreshTokenCookieName,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                IsEssential = true
+            });
     }
 }

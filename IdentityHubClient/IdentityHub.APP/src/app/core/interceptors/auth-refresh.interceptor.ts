@@ -15,16 +15,11 @@ function sharedRefreshAccessToken(
   rawClient: HttpClient,
   tokens: SessionTokensService
 ): Promise<string> {
-  const refreshToken = tokens.getRefreshToken();
-  if (!refreshToken) {
-    return Promise.reject(new Error('No refresh token'));
-  }
-
   refreshAccessPromise ??= firstValueFrom(
-    rawClient.post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, { refreshToken })
+    rawClient.post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
   )
     .then((res) => {
-      tokens.updateTokens(res.token, res.refreshToken);
+      tokens.updateAccessToken(res.token);
       return res.token;
     })
     .finally(() => {
@@ -46,9 +41,6 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => err);
       }
       if (req.headers.has(reattemptHeader)) {
-        return throwError(() => err);
-      }
-      if (!tokens.getRefreshToken()) {
         return throwError(() => err);
       }
 

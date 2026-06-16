@@ -10,5 +10,6 @@ namespace IdentityHub.Domain.Entities
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
         public string? DeletedBy { get; set; }
+        public int PermissionVersion { get; set; } = 1;
     }
 }

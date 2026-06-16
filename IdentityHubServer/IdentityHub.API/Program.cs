@@ -73,7 +73,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -189,13 +190,32 @@ builder.Services.AddAuthentication(options =>
                 return;
             }
 
+            var rawPermissionVersion = context.Principal?.FindFirst("permission_version")?.Value;
+            if (!int.TryParse(rawPermissionVersion, out var tokenPermissionVersion))
+            {
+                context.Fail("Permission version is missing from the token.");
+                return;
+            }
+
             var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
             var isSessionActive = await dbContext.UserSessions
                 .AsNoTracking()
                 .AnyAsync(session => session.Id == sessionId && session.UserId == userId && session.IsActive);
 
             if (!isSessionActive)
+            {
                 context.Fail("Session is no longer active.");
+                return;
+            }
+
+            var currentPermissionVersion = await dbContext.Users
+                .AsNoTracking()
+                .Where(user => user.Id == userId)
+                .Select(user => (int?)user.PermissionVersion)
+                .FirstOrDefaultAsync();
+
+            if (currentPermissionVersion is null || tokenPermissionVersion != currentPermissionVersion.Value)
+                context.Fail("Permission version is outdated.");
         },
         OnAuthenticationFailed = context =>
         {
@@ -229,11 +249,12 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var environment = services.GetRequiredService<IHostEnvironment>();
 
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    if (!await userManager.Users.AnyAsync())
+    if (environment.IsDevelopment() && !await userManager.Users.AnyAsync())
     {
         await UserSeed.SeedAsync(userManager, roleManager);
     }

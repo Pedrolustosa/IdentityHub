@@ -1,5 +1,6 @@
 using FluentValidation;
 using IdentityHub.Application.CQRS.Roles.Commands;
+using IdentityHub.Domain.Constants;
 
 namespace IdentityHub.Application.CQRS.Roles.Validators;
 
@@ -32,6 +33,8 @@ public sealed class UpdateRolePermissionsCommandValidator : AbstractValidator<Up
 {
     public UpdateRolePermissionsCommandValidator()
     {
+        var allowedPermissions = new HashSet<string>(AppPermissions.All(), StringComparer.OrdinalIgnoreCase);
+
         RuleFor(x => x.RoleId).NotEmpty();
 
         RuleFor(x => x.Permissions)
@@ -41,6 +44,8 @@ public sealed class UpdateRolePermissionsCommandValidator : AbstractValidator<Up
 
         RuleForEach(x => x.Permissions)
             .NotEmpty()
-            .MaximumLength(128);
+            .MaximumLength(128)
+            .Must(permission => permission is not null && allowedPermissions.Contains(permission.Trim()))
+            .WithMessage(permission => $"Unknown permission: '{permission}'.");
     }
 }

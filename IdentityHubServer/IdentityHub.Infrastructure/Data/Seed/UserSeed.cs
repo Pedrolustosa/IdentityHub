@@ -54,7 +54,9 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Roles.PermissionsUpdate,
 
                     AppPermissions.Dashboard.View,
-                    AppPermissions.Audit.View
+                    AppPermissions.Audit.View,
+                    AppPermissions.SecurityEvents.View,
+                    AppPermissions.SecurityEvents.Manage
                 },
 
                 ["Manager"] = new()

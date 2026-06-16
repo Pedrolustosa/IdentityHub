@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
@@ -78,7 +78,7 @@ export class AuthService {
   ) {}
 
   login(payload: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiBaseUrl}/login`, payload);
+    return this.http.post<AuthResponse>(`${this.apiBaseUrl}/login`, payload, { withCredentials: true });
   }
 
   register(payload: RegisterRequest): Observable<string> {
@@ -160,14 +160,9 @@ export class AuthService {
   }
 
   refreshSession(): Observable<AuthResponse> {
-    const refreshToken = this.sessionTokens.getRefreshToken();
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token'));
-    }
-
     return this.http
-      .post<AuthResponse>(`${this.apiBaseUrl}/refresh`, { refreshToken })
-      .pipe(tap((res) => this.sessionTokens.updateTokens(res.token, res.refreshToken)));
+      .post<AuthResponse>(`${this.apiBaseUrl}/refresh`, {}, { withCredentials: true })
+      .pipe(tap((res) => this.sessionTokens.updateAccessToken(res.token)));
   }
 
   isAuthenticated(): boolean {
@@ -184,15 +179,8 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshToken = this.sessionTokens.getRefreshToken();
-
-    if (!refreshToken) {
-      this.clearClientSessionAndNavigateToLogin();
-      return;
-    }
-
     this.http
-      .post(`${this.apiBaseUrl}/logout`, { refreshToken }, { responseType: 'text' })
+      .post(`${this.apiBaseUrl}/logout`, {}, { responseType: 'text', withCredentials: true })
       .subscribe({
         next: () => this.clearClientSessionAndNavigateToLogin(),
         error: () => this.clearClientSessionAndNavigateToLogin()

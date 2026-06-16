@@ -76,7 +76,7 @@ export class LoginComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (response) => {
-          this.sessionTokens.saveTokens(response.token, response.refreshToken, formValue.rememberMe);
+          this.sessionTokens.saveAccessToken(response.token, formValue.rememberMe);
 
           this.successMessage = 'Login successful.';
           this.toastr.success('You are now signed in.', 'Authentication');
