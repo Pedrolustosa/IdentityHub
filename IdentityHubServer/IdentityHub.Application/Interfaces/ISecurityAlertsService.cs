@@ -11,4 +11,6 @@ public interface ISecurityAlertsService
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+
+    Task<Result> UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken);
 }

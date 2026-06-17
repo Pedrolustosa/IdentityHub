@@ -297,6 +297,10 @@
                       <span class="session-meta-value">{{ session.createdAt | date:'medium' }}</span>
                     </p>
                     <p class="session-meta-item">
+                      <span class="session-meta-label">Last access</span>
+                      <span class="session-meta-value">{{ session.lastAccessAt ? (session.lastAccessAt | date:'medium') : 'Not used yet' }}</span>
+                    </p>
+                    <p class="session-meta-item">
                       <span class="session-meta-label">IP</span>
                       <span class="session-meta-value">{{ session.ipAddress }}</span>
                     </p>

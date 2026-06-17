@@ -14,15 +14,18 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAuthRepository _repo;
     private readonly ISecurityAlertService _securityAlertService;
+    private readonly IAuditLogRepository _auditLogRepository;
 
     public ChangePasswordCommandHandler(
         UserManager<ApplicationUser> userManager,
         IAuthRepository repo,
-        ISecurityAlertService securityAlertService)
+        ISecurityAlertService securityAlertService,
+        IAuditLogRepository auditLogRepository)
     {
         _userManager = userManager;
         _repo = repo;
         _securityAlertService = securityAlertService;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(ChangePasswordCommand cmd, CancellationToken ct)
@@ -44,6 +47,13 @@ public sealed class ChangePasswordCommandHandler : IRequestHandler<ChangePasswor
         foreach (var s in sessions) s.IsActive = false;
 
         await _repo.SaveChangesAsync(ct);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.User.PasswordChanged",
+            $"User password changed: id={user.Id}, email={user.Email}. All active sessions were ended.",
+            user.Id,
+            new { userId = user.Id, email = user.Email, endedSessions = sessions.Count },
+            ct);
 
         await _securityAlertService.NotifyCriticalActionAsync(
             user,

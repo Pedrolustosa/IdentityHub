@@ -9,4 +9,8 @@ public interface ISecurityAlertRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+
+    Task<SecurityEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(SecurityEvent securityEvent, CancellationToken cancellationToken = default);
 }

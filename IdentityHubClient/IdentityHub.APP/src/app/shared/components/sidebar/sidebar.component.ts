@@ -24,6 +24,7 @@ export class SidebarComponent {
 
   readonly menuItems: SidebarMenuItem[] = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View' },
+    { label: 'My Access', route: '/app/my-access', icon: 'profile' },
     { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View' },
     {
       label: 'Role Permissions',

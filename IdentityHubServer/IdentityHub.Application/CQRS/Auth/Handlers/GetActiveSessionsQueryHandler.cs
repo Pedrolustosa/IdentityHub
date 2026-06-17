@@ -28,6 +28,7 @@ public sealed class GetActiveSessionsQueryHandler : IRequestHandler<GetActiveSes
                 Browser = x.Browser,
                 OperatingSystem = x.OperatingSystem,
                 CreatedAt = x.CreatedAt,
+                LastAccessAt = x.LastAccessAt,
                 IsCurrent = query.CurrentSessionId.HasValue && x.Id == query.CurrentSessionId.Value
             })
             .ToList();

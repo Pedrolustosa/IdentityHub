@@ -12,6 +12,7 @@ namespace IdentityHub.Domain.Entities
         public string Browser { get; set; } = string.Empty;
         public string OperatingSystem { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public DateTime? LastAccessAt { get; set; }
         public DateTime? RevokedAt { get; set; }
         public bool IsActive { get; set; }
     }
