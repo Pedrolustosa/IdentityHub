@@ -36,6 +36,7 @@ export class UserEditComponent implements OnInit {
   rolesLoadFailed = false;
   selectedRoleNames: string[] = [];
   private initialRoleNames: string[] = [];
+  readonly canUpdateUserRoles: boolean;
 
   readonly editForm = this.formBuilder.nonNullable.group({
     fullName: [''],
@@ -49,7 +50,9 @@ export class UserEditComponent implements OnInit {
     private readonly rolesService: RolesService,
     private readonly authService: AuthService,
     private readonly toastr: ToastrService
-  ) {}
+  ) {
+    this.canUpdateUserRoles = this.authService.hasPermission('Users.Roles.Update');
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -146,7 +149,7 @@ export class UserEditComponent implements OnInit {
             this.isSaving = false;
           };
 
-          if (this.rolesChanged() && !this.rolesLoadFailed && this.availableRoles.length > 0) {
+          if (this.rolesChanged() && this.canUpdateUserRoles && !this.rolesLoadFailed && this.availableRoles.length > 0) {
             this.usersService.updateUserRoles(this.userId, { roles: this.selectedRoleNames }).subscribe({
               next: () => {
                 this.toastr.success('User and roles updated.', 'Users');
@@ -160,7 +163,9 @@ export class UserEditComponent implements OnInit {
               }
             });
           } else {
-            if (this.rolesChanged() && (this.rolesLoadFailed || this.availableRoles.length === 0)) {
+            if (this.rolesChanged() && !this.canUpdateUserRoles) {
+              this.toastr.warning('User profile updated. You do not have permission to update user roles.', 'Users');
+            } else if (this.rolesChanged() && (this.rolesLoadFailed || this.availableRoles.length === 0)) {
               this.toastr.warning('User profile updated. Roles were not changed because the roles list is unavailable.', 'Users');
             } else {
               this.toastr.success('User updated.', 'Users');

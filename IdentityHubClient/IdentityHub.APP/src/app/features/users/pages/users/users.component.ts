@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -12,30 +11,24 @@ import { UserListItem, UsersService } from '../../users.service';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
 export class UsersComponent implements OnInit {
-  private readonly formBuilder = new FormBuilder();
-
   isLoading = true;
   loadError: UiLoadError | null = null;
-  inviteError: UiLoadError | null = null;
-  isInviting = false;
   users: UserListItem[] = [];
-  readonly canInviteUsers: boolean;
-  readonly inviteForm = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    fullName: ['', [Validators.maxLength(120)]]
-  });
+  readonly canCreateUsers: boolean;
+  readonly canEditUsers: boolean;
 
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
     private readonly toastr: ToastrService
   ) {
-    this.canInviteUsers = this.authService.hasPermission('Users.Create');
+    this.canCreateUsers = this.authService.hasPermission('Users.Create');
+    this.canEditUsers = this.authService.hasPermission('Users.Update');
   }
 
   ngOnInit(): void {
@@ -59,44 +52,6 @@ export class UsersComponent implements OnInit {
           this.toastr.error(toastMessageForUiLoadError(mapped), 'Users');
         }
       });
-  }
-
-  inviteUser(): void {
-    if (!this.canInviteUsers || this.isInviting) {
-      return;
-    }
-
-    if (this.inviteForm.invalid) {
-      this.inviteForm.markAllAsTouched();
-      return;
-    }
-
-    const { email, fullName } = this.inviteForm.getRawValue();
-    this.isInviting = true;
-    this.inviteError = null;
-
-    this.usersService
-      .inviteUser({
-        email: email.trim().toLowerCase(),
-        fullName: fullName.trim() || null
-      })
-      .pipe(finalize(() => (this.isInviting = false)))
-      .subscribe({
-        next: () => {
-          this.toastr.success('Invitation sent. The user can now set a password from the email link.', 'Users');
-          this.inviteForm.reset({ email: '', fullName: '' });
-          this.loadUsers();
-        },
-        error: (err: unknown) => {
-          const mapped = mapHttpToUiLoadError(err);
-          this.inviteError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Users');
-        }
-      });
-  }
-
-  get emailControl() {
-    return this.inviteForm.controls.email;
   }
 
   rolesPreview(roles: string[] | null | undefined): string[] {

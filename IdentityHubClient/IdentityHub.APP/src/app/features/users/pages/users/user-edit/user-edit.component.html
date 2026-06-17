@@ -71,6 +71,11 @@
 
       <div class="border-t border-slate-100 pt-6">
         <h2 class="text-sm font-semibold text-slate-900">Roles</h2>
+        @if (!canUpdateUserRoles) {
+          <p class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+            You can view assigned roles, but only users with <strong>Users.Roles.Update</strong> can change them.
+          </p>
+        }
         @if (rolesLoadFailed) {
           <p class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
             Roles could not be loaded. You can still update profile fields. Role changes require the roles list.
@@ -87,6 +92,7 @@
                   class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   [id]="'role-' + role.id"
                   [checked]="isRoleChecked(role.name!)"
+                  [disabled]="!canUpdateUserRoles"
                   (change)="toggleRole(role.name!, $any($event.target).checked)"
                 />
                 <label [for]="'role-' + role.id" class="text-sm text-slate-800">{{ role.name }}</label>
