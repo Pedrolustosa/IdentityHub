@@ -32,11 +32,11 @@ public sealed class AuditLogService : IAuditLogService
 
         if (!result.IsSuccess || result.Value is null)
         {
-            return "Id,ActorUserId,Type,Description,CreatedAt\n";
+            return "Id,ActorUserId,Type,TargetId,Description,MetadataJson,CreatedAt\n";
         }
 
         var builder = new StringBuilder();
-        builder.AppendLine("Id,ActorUserId,Type,Description,CreatedAt");
+        builder.AppendLine("Id,ActorUserId,Type,TargetId,Description,MetadataJson,CreatedAt");
 
         foreach (var item in result.Value.Items)
         {
@@ -46,7 +46,11 @@ public sealed class AuditLogService : IAuditLogService
             builder.Append(',');
             builder.Append(EscapeCsv(item.Type));
             builder.Append(',');
+            builder.Append(EscapeCsv(item.TargetId));
+            builder.Append(',');
             builder.Append(EscapeCsv(item.Description));
+            builder.Append(',');
+            builder.Append(EscapeCsv(item.MetadataJson));
             builder.Append(',');
             builder.Append(EscapeCsv(item.CreatedAt.ToString("O")));
             builder.AppendLine();

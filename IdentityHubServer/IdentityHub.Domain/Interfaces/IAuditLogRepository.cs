@@ -11,4 +11,11 @@ public interface IAuditLogRepository
         CancellationToken cancellationToken = default);
 
     Task WriteAsync(string eventType, string description, CancellationToken cancellationToken = default);
+
+    Task WriteAsync(
+        string eventType,
+        string description,
+        string? targetId,
+        object? metadata,
+        CancellationToken cancellationToken = default);
 }

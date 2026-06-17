@@ -32,7 +32,9 @@ public sealed class GetAuditLogsQueryHandler
                 Id = x.Id,
                 ActorUserId = x.ActorUserId,
                 Type = x.Type,
+                TargetId = x.TargetId,
                 Description = x.Description,
+                MetadataJson = x.MetadataJson,
                 CreatedAt = x.CreatedAt
             }).ToList(),
             Page = page,

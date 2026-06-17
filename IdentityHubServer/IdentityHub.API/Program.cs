@@ -250,11 +250,18 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var environment = services.GetRequiredService<IHostEnvironment>();
+    var dbContext = services.GetRequiredService<AppDbContext>();
+
+    if (!environment.IsEnvironment("Testing"))
+    {
+        await dbContext.Database.MigrateAsync();
+    }
 
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    if (environment.IsDevelopment() && !await userManager.Users.AnyAsync())
+    if ((environment.IsDevelopment() || environment.IsEnvironment("Testing"))
+        && !await userManager.Users.AnyAsync())
     {
         await UserSeed.SeedAsync(userManager, roleManager);
     }
