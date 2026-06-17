@@ -3,6 +3,7 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
 import { ProfileComponent } from './features/profile/pages/profile/profile.component';
+import { MyAccessComponent } from './features/my-access/pages/my-access/my-access.component';
 import { UsersComponent } from './features/users/pages/users/users.component';
 import { UserCreateComponent } from './features/users/pages/users/user-create/user-create.component';
 import { UserDetailComponent } from './features/users/pages/users/user-detail/user-detail.component';
@@ -31,6 +32,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent, canActivate: [permissionGuard], data: { permission: 'Dashboard.View' } },
       { path: 'change-password', redirectTo: 'profile', pathMatch: 'full' },
       { path: 'profile', component: ProfileComponent },
+      { path: 'my-access', component: MyAccessComponent },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'audit-logs', component: AuditLogsComponent, canActivate: [permissionGuard], data: { permission: 'Audit.View' } },
       { path: 'security-alerts', component: SecurityAlertsComponent, canActivate: [permissionGuard], data: { permissions: ['SecurityEvents.View', 'Audit.View'] } },

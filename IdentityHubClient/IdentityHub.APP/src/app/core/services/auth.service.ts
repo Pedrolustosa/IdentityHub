@@ -64,6 +64,7 @@ export interface UserSessionResponse {
   browser: string;
   operatingSystem: string;
   createdAt: string;
+  lastAccessAt: string | null;
   isCurrent: boolean;
 }
 

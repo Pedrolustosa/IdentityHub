@@ -33,6 +33,17 @@ public sealed class SecurityAlertRepository : ISecurityAlertRepository
         return (items, totalCount);
     }
 
+    public Task<SecurityEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.SecurityEvents.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public async Task UpdateAsync(SecurityEvent securityEvent, CancellationToken cancellationToken = default)
+    {
+        _context.SecurityEvents.Update(securityEvent);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     private IQueryable<SecurityEvent> ApplyFilters(SecurityAlertFilter request)
     {
         var query = _context.SecurityEvents.AsNoTracking();
@@ -47,6 +58,18 @@ public sealed class SecurityAlertRepository : ISecurityAlertRepository
         {
             var userId = request.UserId.Trim();
             query = query.Where(x => x.UserId.Contains(userId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Severity))
+        {
+            var severity = request.Severity.Trim();
+            query = query.Where(x => x.Severity == severity);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            var status = request.Status.Trim();
+            query = query.Where(x => x.Status == status);
         }
 
         if (request.FromDate.HasValue)

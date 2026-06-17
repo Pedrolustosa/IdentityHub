@@ -9,10 +9,12 @@ namespace IdentityHub.Application.CQRS.Auth.Handlers;
 public sealed class RevokeSessionCommandHandler : IRequestHandler<RevokeSessionCommand, Result>
 {
     private readonly IAuthRepository _repo;
+    private readonly IAuditLogRepository _auditLogRepository;
 
-    public RevokeSessionCommandHandler(IAuthRepository repo)
+    public RevokeSessionCommandHandler(IAuthRepository repo, IAuditLogRepository auditLogRepository)
     {
         _repo = repo;
+        _auditLogRepository = auditLogRepository;
     }
 
     public async Task<Result> Handle(RevokeSessionCommand command, CancellationToken cancellationToken)
@@ -32,6 +34,13 @@ public sealed class RevokeSessionCommandHandler : IRequestHandler<RevokeSessionC
             await _repo.RevokeRefreshTokenAsync(refreshToken, cancellationToken);
 
         await _repo.SaveChangesAsync(cancellationToken);
+
+        await _auditLogRepository.WriteAsync(
+            "Audit.Session.Revoked",
+            $"Session revoked: sessionId={session.Id}, userId={session.UserId}, revokedTokens={refreshTokens.Count}",
+            session.Id.ToString(),
+            new { sessionId = session.Id, userId = session.UserId, revokedTokens = refreshTokens.Count },
+            cancellationToken);
 
         return Result.Success();
     }

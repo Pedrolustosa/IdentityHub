@@ -1,0 +1,101 @@
+<section class="space-y-6">
+  <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
+    <h1 class="text-2xl font-semibold tracking-tight text-slate-900">My access</h1>
+    <p class="text-slate-600">A read-only view of your roles, effective permissions, and current session.</p>
+  </header>
+
+  @if (isLoading) {
+    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+      <div class="h-6 w-40 rounded bg-slate-100 animate-pulse"></div>
+      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="bg-white rounded-xl border shadow-sm p-4">
+      <app-load-error-banner [error]="loadError" (retry)="load()" />
+    </div>
+  } @else if (me) {
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-xl border shadow-sm p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Account</h2>
+        <dl class="mt-4 space-y-3 text-sm">
+          <div class="flex justify-between gap-3">
+            <dt class="text-slate-500">Name</dt>
+            <dd class="text-slate-900 font-medium text-right break-all">{{ me.fullName || 'Not provided' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-slate-500">Email</dt>
+            <dd class="text-slate-900 font-medium text-right break-all">{{ me.email || 'Not provided' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-slate-500">Status</dt>
+            <dd>
+              <span
+                class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                [ngClass]="me.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700'"
+              >
+                {{ me.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="bg-white rounded-xl border shadow-sm p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Current session</h2>
+        @if (currentSession) {
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Started</dt>
+              <dd class="text-slate-900 text-right">{{ currentSession.createdAt | date:'medium' }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Last access</dt>
+              <dd class="text-slate-900 text-right">{{ currentSession.lastAccessAt ? (currentSession.lastAccessAt | date:'medium') : 'Not used yet' }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">IP</dt>
+              <dd class="text-slate-900 text-right break-all">{{ currentSession.ipAddress }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Browser</dt>
+              <dd class="text-slate-900 text-right">{{ currentSession.browser }}</dd>
+            </div>
+            <div class="flex justify-between gap-3">
+              <dt class="text-slate-500">Operating system</dt>
+              <dd class="text-slate-900 text-right">{{ currentSession.operatingSystem }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="mt-4 text-sm text-slate-500">No current session metadata is available.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border shadow-sm p-6">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Roles</h2>
+      @if (me.roles.length === 0) {
+        <p class="mt-4 text-sm text-slate-500">No roles are assigned to your account.</p>
+      } @else {
+        <ul class="mt-4 flex flex-wrap gap-2">
+          @for (role of me.roles; track role) {
+            <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800">{{ role }}</li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="bg-white rounded-xl border shadow-sm p-6">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Effective permissions</h2>
+      <p class="mt-1 text-xs text-slate-500">These permissions are derived from your roles and account claims. This screen is read-only.</p>
+      @if (me.permissions.length === 0) {
+        <p class="mt-4 text-sm text-slate-500">No permissions are granted to your account.</p>
+      } @else {
+        <ul class="mt-4 flex flex-wrap gap-2">
+          @for (permission of me.permissions; track permission) {
+            <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono text-slate-800">{{ permission }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

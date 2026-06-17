@@ -39,6 +39,8 @@ public sealed class SecurityAlertService : ISecurityAlertService
             Id = Guid.NewGuid(),
             UserId = user.Id,
             Type = SecurityAlertEventTypes.SuspiciousLogin,
+            Severity = SecurityEventSeverity.High,
+            Status = SecurityEventStatus.Open,
             Description = description,
             CreatedAt = now
         }, cancellationToken);
@@ -71,6 +73,8 @@ public sealed class SecurityAlertService : ISecurityAlertService
             Id = Guid.NewGuid(),
             UserId = user.Id,
             Type = SecurityAlertEventTypes.CriticalAction,
+            Severity = SecurityEventSeverity.High,
+            Status = SecurityEventStatus.Open,
             Description = description,
             CreatedAt = now
         }, cancellationToken);
@@ -83,6 +87,40 @@ public sealed class SecurityAlertService : ISecurityAlertService
         var template = _emailTemplateBuilder.BuildCriticalActionAlertTemplate(
             actionTitle,
             details: $"{details} | Time (UTC): {now:yyyy-MM-dd HH:mm:ss} | IP: {ipAddress} | Browser: {browser} | OS: {operatingSystem}.",
+            recipientName: user.FullName ?? user.Email);
+
+        await TrySendEmailAsync(user.Email, template.Subject, template.BodyHtml, cancellationToken);
+    }
+
+    public async Task NotifyRefreshTokenReuseAsync(
+        ApplicationUser user,
+        Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var (ipAddress, browser, operatingSystem) = _clientDeviceInfoProvider.GetCurrent();
+        var description =
+            $"Refresh token reuse detected. sessionId={sessionId}, ip={ipAddress}, browser={browser}, os={operatingSystem}, at={now:O}";
+
+        await _authRepository.AddSecurityEventAsync(new SecurityEvent
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Type = SecurityAlertEventTypes.RefreshTokenReuse,
+            Severity = SecurityEventSeverity.Critical,
+            Status = SecurityEventStatus.Open,
+            Description = description,
+            CreatedAt = now
+        }, cancellationToken);
+
+        await _authRepository.SaveChangesAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(user.Email))
+            return;
+
+        var template = _emailTemplateBuilder.BuildCriticalActionAlertTemplate(
+            "Refresh token reuse detected",
+            details: $"A revoked refresh token was reused and the affected session was revoked. Time (UTC): {now:yyyy-MM-dd HH:mm:ss} | IP: {ipAddress} | Browser: {browser} | OS: {operatingSystem}.",
             recipientName: user.FullName ?? user.Email);
 
         await TrySendEmailAsync(user.Email, template.Subject, template.BodyHtml, cancellationToken);

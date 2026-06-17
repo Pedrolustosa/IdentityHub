@@ -1,4 +1,5 @@
 using IdentityHub.API.Extensions;
+using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -26,6 +27,17 @@ public sealed class SecurityAlertsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var result = await _service.GetPagedAsync(request, page, pageSize, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpPut("{id:guid}/status")]
+    [Authorize(Policy = "SecurityEvents.Manage")]
+    public async Task<IActionResult> UpdateStatus(
+        Guid id,
+        [FromBody] UpdateSecurityAlertStatusRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _service.UpdateStatusAsync(id, request.Status, cancellationToken);
         return result.ToActionResult();
     }
 }

@@ -68,8 +68,10 @@ User management platform with an admin panel: accounts, roles, per-role permissi
 | Section | Purpose |
 |---------|---------|
 | **`ConnectionStrings:DefaultConnection`** | SQLite (default `Data Source=identityhub.db` next to the API process). |
-| **`Jwt`** | Signing key, issuer, audience, access token lifetime. |
+| **`Jwt`** | Signing key, issuer, audience, access token lifetime (`ExpireMinutes`, default **15**). |
 | **`Smtp`** | Outbound email (account confirmation, password reset, etc.) when configured. |
+
+> The **refresh token** is delivered as an **HttpOnly / Secure / SameSite=Strict cookie** (`ih_refresh`); it is not exposed to JavaScript. The SPA keeps only the short-lived **access token** in `localStorage`/`sessionStorage` and refreshes via the cookie with `withCredentials`.
 
 For non-local environments, **do not** commit real secrets; use [User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets), environment variables, or a secret store.
 
@@ -86,7 +88,46 @@ dotnet user-secrets set "Smtp:From" "no-reply@your-domain.com"
 
 - **Authentication:** JWT Bearer; users and passwords via **ASP.NET Core Identity**.
 - **Authorization:** dynamic policies aligned with **permissions** (e.g. `Users.View`). `PermissionPolicyProvider` maps the policy name to `PermissionRequirement`; `PermissionHandler` checks user claims of type **`permission`** (typically from roles).
-- **Reference permissions** (`IdentityHub.Domain.Constants.AppPermissions`): `Users.View`, `Users.Create`, `Users.Update`, `Roles.View`, `Roles.Manage` — assigned to roles in **`UserSeed`**.
+- **Sessions:** the JWT carries `sid` (session id) and `permission_version`. Every authenticated request validates that the session is still active and that the token's `permission_version` matches the user's current value; changing a role's permissions increments `PermissionVersion` for affected users, invalidating their existing tokens.
+- **Refresh tokens:** rotated on every use; reusing a revoked refresh token raises a `Security.Alert.RefreshTokenReuse` event and revokes the affected session.
+- **Reference permissions** (`IdentityHub.Domain.Constants.AppPermissions`): `Users.View`, `Users.Create`, `Users.Update`, `Users.Delete`, `Users.Roles.Update`, `Roles.View`, `Roles.Create`, `Roles.Update`, `Roles.Delete`, `Roles.Permissions.View`, `Roles.Permissions.Update`, `Dashboard.View`, `Audit.View`, `SecurityEvents.View`, `SecurityEvents.Manage` — assigned to roles in **`UserSeed`**.
+
+### Access matrix by endpoint
+
+| Method & route | Required permission |
+|----------------|---------------------|
+| `GET /api/dashboard` | `Dashboard.View` |
+| `GET /api/users` / `GET /api/users/{id}` | `Users.View` |
+| `POST /api/users` | `Users.Create` |
+| `PUT /api/users/{id}` | `Users.Update` |
+| `DELETE /api/users/{id}` | `Users.Delete` |
+| `PUT /api/users/{id}/roles` | `Users.Roles.Update` |
+| `GET /api/roles` / `GET /api/roles/{id}` | `Roles.View` |
+| `POST /api/roles` | `Roles.Create` |
+| `PUT /api/roles/{id}` | `Roles.Update` |
+| `DELETE /api/roles/{id}` | `Roles.Delete` |
+| `GET /api/roles/{id}/permissions`, `GET /api/roles/permissions/catalog` | `Roles.Permissions.View` |
+| `PUT /api/roles/{id}/permissions` | `Roles.Permissions.Update` |
+| `GET /api/audit-logs`, `GET /api/audit-logs/export` | `Audit.View` |
+| `GET /api/security-alerts` | `SecurityEvents.View` |
+| `PUT /api/security-alerts/{id}/status` | `SecurityEvents.Manage` |
+| `GET /api/auth/me`, `GET/DELETE /api/auth/sessions/...`, `POST /api/auth/change-password`, `PUT /api/auth/profile` | Authenticated (no specific permission) |
+
+### Access matrix by screen
+
+| Screen (route) | Minimum permission |
+|----------------|--------------------|
+| `/app/dashboard` | `Dashboard.View` |
+| `/app/my-access`, `/app/profile` | Authenticated |
+| `/app/users` | `Users.View` |
+| `/app/users/create` | `Users.Create` |
+| `/app/users/:id` | `Users.View` |
+| `/app/users/:id/edit` | `Users.Update` (role assignment also needs `Users.Roles.Update`) |
+| `/app/roles` | `Roles.View` |
+| `/app/roles/:roleId/permissions` | `Roles.Permissions.View` |
+| `/app/roles/:roleId/permissions/edit` | `Roles.Permissions.Update` |
+| `/app/audit-logs` | `Audit.View` |
+| `/app/security-alerts` | `SecurityEvents.View` (temporary fallback: `Audit.View`) |
 
 ### REST API (summary)
 
@@ -102,15 +143,26 @@ Typical local base: **`https://localhost:7039`**. Common prefix: **`/api/...`**.
 
 ### Database and seed
 
-- **SQLite** + migrations under **`IdentityHub.Infrastructure/Migrations`**.
-- **Seed** (`UserSeed`): roles `Admin`, `Manager`, `User` and development accounts (**change or disable** for production):
+- **SQLite** + versioned migrations under **`IdentityHub.Infrastructure/Migrations`**. The API applies pending migrations on startup (`Database.MigrateAsync()`) for every environment except `Testing` (integration tests use an in-memory SQLite created via `EnsureCreated`).
+- **Seed** (`UserSeed`): roles `Admin`, `Manager`, `User` and development accounts. Seeding only runs in **Development** (and the test environment) and is **idempotent** — default accounts are **never** created automatically in Production.
 
-#### EF Core migration commands (Package Manager Console)
+#### EF Core migration commands
+
+Package Manager Console:
 
 ```powershell
-Add-Migration InitialCreate -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
+Add-Migration <Name> -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
 Update-Database -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
 ```
+
+.NET CLI (from `IdentityHubServer`):
+
+```bash
+dotnet ef migrations add <Name> --project IdentityHub.Infrastructure --startup-project IdentityHub.API
+dotnet ef database update --project IdentityHub.Infrastructure --startup-project IdentityHub.API
+```
+
+> The running API applies pending migrations automatically on startup, so a manual `database update` is only needed for tooling or CI scenarios.
 
 | Email | Password | Role |
 |-------|----------|------|
@@ -155,7 +207,7 @@ dotnet run --launch-profile http    # http://localhost:5081
 | HTTP / core | `src/app/core/services/` — `auth.service`, guards, token usage; feature services under `features/**` (e.g. `users.service`, `roles.service`, `dashboard.service`) |
 | Shared UI (errors) | `src/app/shared/http/ui-load-error.ts` — maps `HttpErrorResponse` to typed UI errors; `src/app/shared/components/load-error-banner/` — banner + optional retry (used on dashboard, users, role-claims, profile forms, auth flows) |
 | Known permissions (UI) | `src/app/shared/constants/permissions-catalog.ts` — aligned with server (checkboxes on role-claims edit) |
-| Guards / interceptor | `src/app/core/guards/`, `src/app/core/interceptors/auth.interceptor.ts` (`Authorization: Bearer` from `localStorage` or `sessionStorage`) |
+| Guards / interceptor | `src/app/core/guards/`, `src/app/core/interceptors/auth.interceptor.ts` (adds `Authorization: Bearer` from the stored access token) and `auth-refresh.interceptor.ts` (single retry per 401: refreshes via the HttpOnly cookie, then replays the request; on failure clears the session and redirects to login) |
 
 ### API integration
 

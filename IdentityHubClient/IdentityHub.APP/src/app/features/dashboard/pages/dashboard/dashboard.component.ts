@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../../../core/services/auth.service';
 import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { DashboardService, DashboardSummary } from '../../dashboard.service';
@@ -18,6 +19,7 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
   loadError: UiLoadError | null = null;
   summary: DashboardSummary | null = null;
+  readonly canViewSecurityAlerts: boolean;
 
   readonly tooltipTotalUsers =
     'The headline is the count of all users. The badge shows week-over-week change in new registrations (accounts created in the last 7 days vs the previous 7 days, UTC). It does not represent growth of total headcount. Same rules as GET /api/Dashboard.';
@@ -33,8 +35,12 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private readonly dashboardService: DashboardService,
+    private readonly authService: AuthService,
     private readonly toastr: ToastrService
-  ) {}
+  ) {
+    this.canViewSecurityAlerts =
+      this.authService.hasPermission('SecurityEvents.View') || this.authService.hasPermission('Audit.View');
+  }
 
   ngOnInit(): void {
     this.loadDashboard();

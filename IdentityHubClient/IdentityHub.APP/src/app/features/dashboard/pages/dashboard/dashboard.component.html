@@ -159,6 +159,7 @@
         </div>
       </div>
 
+      @if (canViewSecurityAlerts) {
       <div
         class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-5 hover:shadow-md hover:border-slate-300/80 transition-all duration-150 flex flex-col h-full min-h-[220px]"
       >
@@ -197,6 +198,7 @@
           </svg>
         </div>
       </div>
+      }
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
