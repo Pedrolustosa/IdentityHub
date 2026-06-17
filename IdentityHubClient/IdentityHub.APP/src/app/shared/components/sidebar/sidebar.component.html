@@ -20,11 +20,13 @@
       <a
         [routerLink]="item.route"
         routerLinkActive="!bg-slate-800 !text-white border-l-4 border-blue-500"
-        class="transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 hover:bg-slate-800/70 flex items-center"
+        class="relative transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 hover:bg-slate-800/70 flex items-center"
         [class.justify-center]="collapsed"
         [class.gap-2]="!collapsed"
+        [attr.title]="collapsed ? item.label : null"
+        [attr.aria-label]="item.label"
       >
-        <span class="text-base">
+        <span class="relative text-base">
           @switch (item.icon) {
             @case ('dashboard') {
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -64,9 +66,17 @@
               </svg>
             }
           }
+          @if (collapsed && badgeCount(item) > 0) {
+            <span class="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-950" aria-hidden="true"></span>
+          }
         </span>
         @if (!collapsed) {
           <span>{{ item.label }}</span>
+          @if (badgeCount(item) > 0) {
+            <span class="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+              {{ badgeCount(item) }}
+            </span>
+          }
         }
       </a>
     }

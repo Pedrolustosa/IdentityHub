@@ -1,8 +1,8 @@
 using IdentityHub.API.Authorization;
 using IdentityHub.API.Middlewares;
 using IdentityHub.Application.DTOs;
-using IdentityHub.Domain.Interfaces;
 using IdentityHub.Domain.Entities;
+using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Data.Seed;
 using IdentityHub.Infrastructure.Repositories;
@@ -33,7 +33,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using Bearer scheme.",
+        Description = "JWT Authorization header using Bearer scheme. Exemplo: Bearer {token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
@@ -58,11 +58,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-
-builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -85,9 +85,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AuthLoginRateLimitPolicy, context =>
     {
         var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+
         var permitLimit = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:Login:PermitLimit") ?? 10);
+
         var windowSeconds = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:Login:WindowSeconds") ?? 60);
@@ -106,9 +108,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AuthForgotPasswordRateLimitPolicy, context =>
     {
         var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+
         var permitLimit = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:ForgotPassword:PermitLimit") ?? 5);
+
         var windowSeconds = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:ForgotPassword:WindowSeconds") ?? 300);
@@ -127,9 +131,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy(AuthResendConfirmationRateLimitPolicy, context =>
     {
         var configuration = context.RequestServices.GetRequiredService<IConfiguration>();
+
         var permitLimit = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:ResendConfirmation:PermitLimit") ?? 5);
+
         var windowSeconds = Math.Max(
             1,
             configuration.GetValue<int?>("RateLimiting:Auth:ResendConfirmation:WindowSeconds") ?? 300);
@@ -171,8 +177,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
+
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtKey))
     };
@@ -191,6 +199,7 @@ builder.Services.AddAuthentication(options =>
             }
 
             var rawPermissionVersion = context.Principal?.FindFirst("permission_version")?.Value;
+
             if (!int.TryParse(rawPermissionVersion, out var tokenPermissionVersion))
             {
                 context.Fail("Permission version is missing from the token.");
@@ -198,9 +207,13 @@ builder.Services.AddAuthentication(options =>
             }
 
             var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+
             var isSessionActive = await dbContext.UserSessions
                 .AsNoTracking()
-                .AnyAsync(session => session.Id == sessionId && session.UserId == userId && session.IsActive);
+                .AnyAsync(session =>
+                    session.Id == sessionId &&
+                    session.UserId == userId &&
+                    session.IsActive);
 
             if (!isSessionActive)
             {
@@ -215,13 +228,17 @@ builder.Services.AddAuthentication(options =>
                 .FirstOrDefaultAsync();
 
             if (currentPermissionVersion is null || tokenPermissionVersion != currentPermissionVersion.Value)
+            {
                 context.Fail("Permission version is outdated.");
+            }
         },
+
         OnAuthenticationFailed = context =>
         {
             Console.WriteLine($"Invalid token: {context.Exception.Message}");
             return Task.CompletedTask;
         },
+
         OnForbidden = context =>
         {
             Console.WriteLine("Access denied");
@@ -229,6 +246,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -238,7 +257,9 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
 app.UseCors(FrontendCorsPolicy);
+
 app.UseRateLimiter();
 
 app.UseAuthentication();
@@ -268,7 +289,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-public partial class Program
-{
-}

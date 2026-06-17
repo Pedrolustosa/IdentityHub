@@ -1,0 +1,23 @@
+@if (items().length > 0) {
+  <nav aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+      @for (item of items(); track item.label; let last = $last) {
+        <li class="flex items-center gap-1.5">
+          @if (item.url && !last) {
+            <a
+              [routerLink]="item.url"
+              class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-150"
+            >
+              {{ item.label }}
+            </a>
+          } @else {
+            <span class="font-medium text-slate-700 dark:text-slate-200" aria-current="page">{{ item.label }}</span>
+          }
+          @if (!last) {
+            <span class="text-slate-300 dark:text-slate-600" aria-hidden="true">/</span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+}
