@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,6 +23,8 @@ export class ForgotPasswordComponent {
   isLoading = false;
   submitted = false;
   requestError: UiLoadError | null = null;
+  cooldownSeconds = 0;
+  private cooldownInterval: any;
 
   readonly form = this.formBuilder.nonNullable.group({
     email: ['', [Validators.required, Validators.email]]
@@ -53,6 +55,9 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (message) => {
           this.submitted = true;
+          this.cooldownSeconds = 60;
+          this.startCooldown();
+
           const msg = normalizeToastMessage(
             message,
             'If an account exists for this email, you will receive password reset instructions.'
@@ -65,5 +70,25 @@ export class ForgotPasswordComponent {
           this.toastr.error(toastMessageForUiLoadError(mapped), 'Password Recovery');
         }
       });
+  }
+
+  private startCooldown(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
+    this.cooldownInterval = setInterval(() => {
+      this.cooldownSeconds--;
+      if (this.cooldownSeconds <= 0) {
+        clearInterval(this.cooldownInterval);
+        this.cooldownInterval = null;
+      }
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
   }
 }

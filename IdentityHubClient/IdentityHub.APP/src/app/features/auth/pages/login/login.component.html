@@ -26,13 +26,44 @@
 
       <div class="flex flex-col gap-1">
         <label for="password" class="text-sm font-medium text-slate-700">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="Your password"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
+        <div class="relative">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Your password"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            (keydown)="onPasswordKeyDown($event)"
+            [ngClass]="{
+              'border-red-500': passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)
+            }"
+          />
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-600 hover:text-slate-800 transition-colors"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            @if (showPassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-4.753 4.753m4.753-4.753L3.596 3.039m10.318 10.318L21.597 21"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            }
+          </button>
+        </div>
+        @if (capsLockActive) {
+          <small class="text-amber-600 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4v2m0 5v1m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Caps Lock is active
+          </small>
+        }
         @if (passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)) {
           <small class="text-red-600">Password must have at least 7 characters.</small>
         }
@@ -59,9 +90,26 @@
         [disabled]="isLoading || loginForm.invalid"
         class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 transition-all duration-150 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {{ isLoading ? 'Please wait...' : 'Sign in' }}
+        @if (isLoading) {
+          <span class="flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Signing in...
+          </span>
+        } @else {
+          Sign in
+        }
       </button>
     </form>
+
+    @if (emailRequiresConfirmation) {
+      <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <p class="font-medium mb-2">Email confirmation required</p>
+        <p class="mb-3">Your email address needs to be confirmed. Check your inbox for a confirmation link.</p>
+        <a routerLink="/resend-confirmation" class="inline-block text-blue-600 hover:text-blue-500 font-medium">Resend confirmation email</a>
+      </div>
+    }
 
     <div class="pt-4 text-center text-sm text-slate-500 space-y-2">
       <div>

@@ -5,13 +5,14 @@ import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
 import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, LoadErrorBannerComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -19,6 +20,9 @@ export class RegisterComponent {
   isLoading = false;
   requestError: UiLoadError | null = null;
   successMessage = '';
+  showPassword = false;
+  showConfirmPassword = false;
+  showTermsModal = false;
 
   readonly registerForm: FormGroup;
 
@@ -58,10 +62,10 @@ export class RegisterComponent {
   get strengthPercentage(): number {
     const password = this.passwordControl?.value ?? '';
     let score = 0;
-    if (password.length >= 7) score += 25;
-    if (/[A-Z]/.test(password)) score += 25;
-    if (/\d/.test(password)) score += 25;
-    if (/[^A-Za-z0-9]/.test(password)) score += 25;
+    if (this.hasMinLength) score += 25;
+    if (this.hasUppercase) score += 25;
+    if (this.hasNumbers) score += 25;
+    if (this.hasSpecialChar) score += 25;
     return score;
   }
 
@@ -75,7 +79,12 @@ export class RegisterComponent {
 
   get hasMinLength(): boolean {
     const password = this.passwordControl?.value ?? '';
-    return password.length >= 7;
+    return password.length >= 7 && password.length <= 12;
+  }
+
+  get hasMaxLength(): boolean {
+    const password = this.passwordControl?.value ?? '';
+    return password.length <= 12;
   }
 
   get hasUppercase(): boolean {
@@ -83,9 +92,30 @@ export class RegisterComponent {
     return /[A-Z]/.test(password);
   }
 
-  get hasNumber(): boolean {
+  get hasNumbers(): boolean {
     const password = this.passwordControl?.value ?? '';
-    return /\d/.test(password);
+    return /\d{2,}/.test(password);
+  }
+
+  get hasSpecialChar(): boolean {
+    const password = this.passwordControl?.value ?? '';
+    return /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  openTermsModal(): void {
+    this.showTermsModal = true;
+  }
+
+  closeTermsModal(): void {
+    this.showTermsModal = false;
   }
 
   private passwordsMatchValidator(): ValidatorFn {
@@ -122,7 +152,7 @@ export class RegisterComponent {
         next: () => {
           const registeredEmail = formValue.email.trim().toLowerCase();
           this.successMessage =
-            'Account created. Check your inbox to confirm your email before signing in. Redirecting to sign in…';
+            'Account created successfully! Check your email to confirm your account. You can close this window or click the button below to sign in.';
           this.toastr.success('We sent a confirmation link to your email.', 'Registration');
           this.registerForm.reset({
             fullName: '',
@@ -131,13 +161,6 @@ export class RegisterComponent {
             confirmPassword: '',
             agreeToTerms: false
           });
-          setTimeout(
-            () =>
-              void this.router.navigate(['/login'], {
-                queryParams: { email: registeredEmail }
-              }),
-            2200
-          );
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err, { authForm401AsInvalid: true });
