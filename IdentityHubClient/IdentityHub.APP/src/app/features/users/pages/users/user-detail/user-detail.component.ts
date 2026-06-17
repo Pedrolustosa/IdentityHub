@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../../../../core/services/auth.service';
 import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { UserListItem, UsersService } from '../../../users.service';
@@ -19,13 +20,17 @@ export class UserDetailComponent implements OnInit {
   loadError: UiLoadError | null = null;
   user: UserListItem | null = null;
   userId = '';
+  readonly canEditUser: boolean;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly usersService: UsersService,
+    private readonly authService: AuthService,
     private readonly toastr: ToastrService
-  ) {}
+  ) {
+    this.canEditUser = this.authService.hasPermission('Users.Update');
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

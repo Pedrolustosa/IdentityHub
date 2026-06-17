@@ -29,11 +29,10 @@ export class SidebarComponent {
       label: 'Role Permissions',
       route: '/app/roles',
       icon: 'roleClaims',
-      permissions: ['Roles.View', 'Roles.Permissions.View'],
-      requireAll: true
+      permission: 'Roles.View'
     },
     { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' },
-    { label: 'Security Alerts', route: '/app/security-alerts', icon: 'securityAlerts', permission: 'SecurityEvents.View' }
+    { label: 'Security Alerts', route: '/app/security-alerts', icon: 'securityAlerts', permissions: ['SecurityEvents.View', 'Audit.View'] }
   ];
 
   constructor(private readonly authService: AuthService) {}

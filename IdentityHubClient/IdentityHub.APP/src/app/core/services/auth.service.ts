@@ -264,9 +264,9 @@ export class AuthService {
     return this.getApplicationPermissions().some((entry) => entry === permission);
   }
 
-  /** Only the Admin role may change role permission assignments (hierarchy: Admin > Manager > User). */
+  /** Role-permission assignment requires explicit permission. */
   canAssignRolePermissions(): boolean {
-    return this.hasApplicationRole('Admin');
+    return this.hasPermission('Roles.Permissions.Update');
   }
 
   canViewAuditLogs(): boolean {
