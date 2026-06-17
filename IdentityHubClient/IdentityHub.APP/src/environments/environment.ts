@@ -4,6 +4,7 @@
  */
 export const environment = {
   production: true,
+  name: 'production',
   /** API origin including `/api`, without trailing slash. */
   apiUrl: 'https://api.example.com/api'
 };

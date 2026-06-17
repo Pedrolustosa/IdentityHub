@@ -4,5 +4,6 @@
  */
 export const environment = {
   production: true,
+  name: 'staging',
   apiUrl: 'https://staging-api.example.com/api'
 };
