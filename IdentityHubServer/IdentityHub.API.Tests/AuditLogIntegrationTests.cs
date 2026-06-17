@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -239,8 +240,67 @@ public sealed class AuditLogIntegrationTests : IClassFixture<TestWebApplicationF
 
         var csv = await response.Content.ReadAsStringAsync();
 
-        Assert.Contains("Id,ActorUserId,Type,Description,CreatedAt", csv);
+        Assert.Contains("Id,ActorUserId,Type,TargetId,Description,MetadataJson,CreatedAt", csv);
         Assert.Contains(email, csv);
+    }
+
+    [Fact]
+    public async Task UpdateRolePermissions_ShouldAuditOldAndNewPermissions()
+    {
+        await AuthenticateAsAdminAsync();
+
+        var marker = Guid.NewGuid().ToString("N");
+        var roleName = $"AuditPermRole{marker}";
+
+        var createRoleResponse = await _client.PostAsJsonAsync("/api/roles", new { name = roleName });
+        Assert.Equal(HttpStatusCode.OK, createRoleResponse.StatusCode);
+
+        var rolesResponse = await _client.GetAsync("/api/roles");
+        rolesResponse.EnsureSuccessStatusCode();
+
+        var roles = await rolesResponse.Content.ReadFromJsonAsync<List<RoleDto>>();
+        var role = roles?.FirstOrDefault(r => string.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(role);
+
+        var firstUpdate = await _client.PutAsJsonAsync($"/api/roles/{role!.Id}/permissions", new
+        {
+            permissions = new[] { "Dashboard.View" }
+        });
+        Assert.Equal(HttpStatusCode.OK, firstUpdate.StatusCode);
+
+        var secondUpdate = await _client.PutAsJsonAsync($"/api/roles/{role.Id}/permissions", new
+        {
+            permissions = new[] { "Users.View", "Roles.View" }
+        });
+        Assert.Equal(HttpStatusCode.OK, secondUpdate.StatusCode);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var secondUpdateAudit = await db.AuditLogEntries
+            .Where(e => e.Type == "Audit.Role.PermissionsUpdated"
+                && e.Description.Contains(role.Id)
+                && e.Description.Contains("newPermissions=[Roles.View, Users.View]"))
+            .Select(e => new { e.Description, e.TargetId, e.MetadataJson })
+            .FirstAsync();
+
+        Assert.Contains("oldPermissions=[Dashboard.View]", secondUpdateAudit.Description);
+        Assert.Contains("newPermissions=[Roles.View, Users.View]", secondUpdateAudit.Description);
+        Assert.Contains("oldCount=1", secondUpdateAudit.Description);
+        Assert.Contains("newCount=2", secondUpdateAudit.Description);
+
+        Assert.Equal(role.Id, secondUpdateAudit.TargetId);
+        Assert.NotNull(secondUpdateAudit.MetadataJson);
+
+        using var metadata = JsonDocument.Parse(secondUpdateAudit.MetadataJson!);
+        var root = metadata.RootElement;
+        Assert.Equal(role.Id, root.GetProperty("roleId").GetString());
+
+        var oldPermissions = root.GetProperty("oldPermissions").EnumerateArray().Select(x => x.GetString()).ToList();
+        var newPermissions = root.GetProperty("newPermissions").EnumerateArray().Select(x => x.GetString()).ToList();
+
+        Assert.Equal(new[] { "Dashboard.View" }, oldPermissions);
+        Assert.Equal(new[] { "Roles.View", "Users.View" }, newPermissions);
     }
 
     private async Task AuthenticateAsAdminAsync()

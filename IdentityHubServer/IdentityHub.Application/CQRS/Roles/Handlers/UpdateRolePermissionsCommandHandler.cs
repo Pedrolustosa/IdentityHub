@@ -63,6 +63,17 @@ public sealed class UpdateRolePermissionsCommandHandler
             .Where(c => c.Type == PermissionClaimType)
             .ToList();
 
+        var oldPermissions = currentPermissionClaims
+            .Select(c => c.Value.Trim())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var newPermissions = permissions
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         foreach (var claim in currentPermissionClaims)
             await _repository.RemoveClaimAsync(role, claim, cancellationToken);
 
@@ -86,7 +97,18 @@ public sealed class UpdateRolePermissionsCommandHandler
 
         await _auditLogRepository.WriteAsync(
             "Audit.Role.PermissionsUpdated",
-            $"Role permissions updated: roleId={role.Id}, roleName={role.Name}, count={permissions.Count}",
+            $"Role permissions updated: roleId={role.Id}, roleName={role.Name}, "
+                + $"oldCount={oldPermissions.Count}, newCount={newPermissions.Count}, "
+                + $"oldPermissions=[{string.Join(", ", oldPermissions)}], "
+                + $"newPermissions=[{string.Join(", ", newPermissions)}]",
+            role.Id,
+            new
+            {
+                roleId = role.Id,
+                roleName = role.Name,
+                oldPermissions,
+                newPermissions
+            },
             cancellationToken);
 
         return Result.Success();

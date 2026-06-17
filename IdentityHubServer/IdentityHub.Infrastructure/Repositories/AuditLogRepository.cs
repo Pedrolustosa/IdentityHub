@@ -2,6 +2,7 @@ using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace IdentityHub.Infrastructure.Repositories;
 
@@ -72,9 +73,17 @@ public sealed class AuditLogRepository : IAuditLogRepository
         return query;
     }
 
+    public Task WriteAsync(
+        string eventType,
+        string description,
+        CancellationToken cancellationToken = default)
+        => WriteAsync(eventType, description, null, null, cancellationToken);
+
     public async Task WriteAsync(
         string eventType,
         string description,
+        string? targetId,
+        object? metadata,
         CancellationToken cancellationToken = default)
     {
         var userId = _currentUserContext.UserId;
@@ -84,7 +93,9 @@ public sealed class AuditLogRepository : IAuditLogRepository
             Id = Guid.NewGuid(),
             ActorUserId = string.IsNullOrWhiteSpace(userId) ? "system" : userId,
             Type = eventType,
+            TargetId = string.IsNullOrWhiteSpace(targetId) ? null : targetId,
             Description = description,
+            MetadataJson = metadata is null ? null : JsonSerializer.Serialize(metadata),
             CreatedAt = DateTime.UtcNow
         });
 
