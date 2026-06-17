@@ -1,28 +1,73 @@
 <main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-  <section class="w-full max-w-md bg-white rounded-xl shadow-xl p-6 text-center">
-    <app-brand-logo variant="auth" class="mb-4" />
+  <section class="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
+    <div class="flex flex-col items-center gap-3 pb-4">
+      <app-brand-logo variant="auth" [wordmark]="false" />
+    </div>
 
     @if (isLoading) {
-      <p class="text-slate-600 text-sm">Confirming your email…</p>
+      <div class="flex flex-col items-center justify-center gap-4 py-8">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <p class="text-slate-600 text-sm font-medium">Confirming your email…</p>
+      </div>
     } @else if (status === 'invalid') {
-      <h1 class="text-xl font-semibold text-slate-900 mb-2">Invalid link</h1>
-      <p class="text-sm text-slate-500 mb-6">This confirmation link is missing the email or token. Open the link from your latest confirmation email.</p>
-      <a routerLink="/login" class="text-sm font-medium text-blue-600 hover:text-blue-500">Back to sign in</a>
+      <div class="flex flex-col items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4v2m0 5v1m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h1 class="text-xl font-semibold text-slate-900 text-center">Invalid or expired link</h1>
+        <p class="text-sm text-slate-600 text-center">This confirmation link is missing required information or has expired. Please request a new one.</p>
+        <div class="w-full space-y-2 pt-2">
+          <a
+            routerLink="/resend-confirmation"
+            class="block w-full text-center rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 transition-colors duration-150"
+          >
+            Send new confirmation email
+          </a>
+          <a
+            routerLink="/login"
+            class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-500"
+          >
+            Back to sign in
+          </a>
+        </div>
+      </div>
     } @else if (status === 'success') {
-      <h1 class="text-xl font-semibold text-slate-900 mb-2">Email confirmed</h1>
-      <p class="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-6">{{ message }}</p>
-      <a
-        routerLink="/login"
-        class="inline-flex w-full justify-center rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 transition-colors duration-150"
-      >
-        Sign in
-      </a>
+      <div class="flex flex-col items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h1 class="text-xl font-semibold text-slate-900 text-center">Email confirmed</h1>
+        <p class="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-center">{{ message }}</p>
+        <a
+          routerLink="/login"
+          class="w-full inline-flex justify-center rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 transition-colors duration-150"
+        >
+          Sign in
+        </a>
+      </div>
     } @else if (status === 'error' && loadError) {
-      <h1 class="text-xl font-semibold text-slate-900 mb-2">Could not confirm</h1>
-      <app-load-error-banner [error]="loadError" (retry)="attemptConfirm()" />
-      <div class="mt-6 flex flex-col gap-2 text-sm">
-        <a routerLink="/resend-confirmation" class="font-medium text-blue-600 hover:text-blue-500">Resend confirmation email</a>
-        <a routerLink="/login" class="text-slate-600 hover:text-slate-900">Back to sign in</a>
+      <div class="flex flex-col items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h1 class="text-xl font-semibold text-slate-900 text-center">Could not confirm email</h1>
+        <app-load-error-banner [error]="loadError" (retry)="attemptConfirm()" />
+        <div class="w-full space-y-2 pt-2">
+          <a
+            routerLink="/resend-confirmation"
+            class="block w-full text-center rounded-lg bg-blue-600 text-white font-medium py-2 text-sm hover:bg-blue-500 transition-colors duration-150"
+          >
+            Resend confirmation email
+          </a>
+          <a
+            routerLink="/login"
+            class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-500"
+          >
+            Back to sign in
+          </a>
+        </div>
       </div>
     }
   </section>

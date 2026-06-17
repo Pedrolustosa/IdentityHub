@@ -1,16 +1,20 @@
 <main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
   <section class="w-full max-w-lg bg-white rounded-xl shadow-xl p-6">
       <div class="flex flex-col items-center gap-3 pb-4">
-        <div class="flex gap-3">
-          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Google</button>
-          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">GitHub</button>
-        </div>
+        <app-brand-logo variant="auth" [wordmark]="false" />
         <h1 class="text-2xl font-semibold text-slate-900">Create account</h1>
         <p class="text-sm text-slate-500">It takes less than a minute.</p>
       </div>
-      <hr class="mb-4" />
 
-    <form [formGroup]="registerForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
+    @if (successMessage.length > 0) {
+      <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 space-y-3">
+        <p class="font-medium">{{ successMessage }}</p>
+        <a routerLink="/login" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          Go to sign in
+        </a>
+      </div>
+    } @else {
+      <form [formGroup]="registerForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1">
         <label for="fullName" class="text-sm font-medium text-slate-700">Name</label>
         <input id="fullName" type="text" formControlName="fullName" placeholder="John Doe" class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
@@ -29,42 +33,158 @@
 
       <div class="flex flex-col gap-2">
         <label for="password" class="text-sm font-medium text-slate-700">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="At least 7 characters"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-        <div class="h-2 w-full rounded bg-slate-200 overflow-hidden">
-          <div class="h-full bg-blue-600 transition-all duration-200" [style.width.%]="strengthPercentage"></div>
+        <div class="relative">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Create a strong password"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            [ngClass]="{ 'border-red-500': passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched) }"
+          />
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-600 hover:text-slate-800"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            @if (showPassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-4.753 4.753m4.753-4.753L3.596 3.039m10.318 10.318L21.597 21"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            }
+          </button>
         </div>
-        <small class="text-slate-500">Strength: {{ strengthLabel }}</small>
-        <ul class="text-xs space-y-1 text-slate-500">
-          <li [ngClass]="{ 'text-green-600': hasMinLength }">Use at least 7 characters</li>
-          <li [ngClass]="{ 'text-green-600': hasUppercase }">Include 1 uppercase letter</li>
-          <li [ngClass]="{ 'text-green-600': hasNumber }">Include 1 number</li>
+
+        <!-- Password strength bar -->
+        <div class="h-2 w-full rounded bg-slate-200 overflow-hidden">
+          <div
+            class="h-full transition-all duration-200"
+            [ngClass]="{
+              'bg-red-500': strengthPercentage <= 25,
+              'bg-amber-500': strengthPercentage > 25 && strengthPercentage <= 50,
+              'bg-blue-500': strengthPercentage > 50 && strengthPercentage <= 75,
+              'bg-green-500': strengthPercentage > 75
+            }"
+            [style.width.%]="strengthPercentage"
+          ></div>
+        </div>
+
+        <small class="text-slate-600">Strength: <span [ngClass]="{
+          'text-red-600': strengthPercentage <= 25,
+          'text-amber-600': strengthPercentage > 25 && strengthPercentage <= 50,
+          'text-blue-600': strengthPercentage > 50 && strengthPercentage <= 75,
+          'text-green-600': strengthPercentage > 75
+        }">{{ strengthLabel }}</span></small>
+
+        <!-- Password requirements checklist -->
+        <ul class="text-xs space-y-1">
+          <li class="flex items-center gap-2" [ngClass]="{ 'text-green-600': hasMinLength, 'text-slate-500': !hasMinLength }">
+            @if (hasMinLength) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            }
+            Between 7 and 12 characters
+          </li>
+          <li class="flex items-center gap-2" [ngClass]="{ 'text-green-600': hasUppercase, 'text-slate-500': !hasUppercase }">
+            @if (hasUppercase) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            }
+            At least 1 uppercase letter
+          </li>
+          <li class="flex items-center gap-2" [ngClass]="{ 'text-green-600': hasNumbers, 'text-slate-500': !hasNumbers }">
+            @if (hasNumbers) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            }
+            At least 2 numbers
+          </li>
+          <li class="flex items-center gap-2" [ngClass]="{ 'text-green-600': hasSpecialChar, 'text-slate-500': !hasSpecialChar }">
+            @if (hasSpecialChar) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            }
+            At least 1 special character (&#33;&#64;#$%^&*)
+          </li>
         </ul>
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="confirmPassword" class="text-sm font-medium text-slate-700">Confirm password</label>
-        <input
-          id="confirmPassword"
-          type="password"
-          formControlName="confirmPassword"
-          placeholder="Confirm your password"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
+        <label for="confirmPassword" class="text-sm font-medium text-slate-700">Confirm Password</label>
+        <div class="relative">
+          <input
+            id="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            placeholder="Confirm your password"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            [ngClass]="{ 'border-red-500': (confirmPasswordControl?.dirty || confirmPasswordControl?.touched) && registerForm.hasError('passwordMismatch') }"
+          />
+          <button
+            type="button"
+            (click)="toggleConfirmPasswordVisibility()"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-600 hover:text-slate-800"
+            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+          >
+            @if (showConfirmPassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-4.753 4.753m4.753-4.753L3.596 3.039m10.318 10.318L21.597 21"/>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            }
+          </button>
+        </div>
         @if ((confirmPasswordControl?.dirty || confirmPasswordControl?.touched) && registerForm.hasError('passwordMismatch')) {
           <small class="text-red-600">Passwords do not match.</small>
         }
       </div>
 
-      <div class="flex items-center gap-2">
-        <input id="agreeToTerms" type="checkbox" formControlName="agreeToTerms" class="h-4 w-4 rounded border-slate-300 text-blue-600" />
+      <div class="flex items-start gap-2">
+        <input
+          id="agreeToTerms"
+          type="checkbox"
+          formControlName="agreeToTerms"
+          class="h-4 w-4 rounded border-slate-300 text-blue-600 mt-0.5"
+        />
         <label for="agreeToTerms" class="text-sm text-slate-600">
-          I agree to the <span class="text-blue-600">terms</span>.
+          I agree to the
+          <button
+            type="button"
+            (click)="openTermsModal()"
+            class="text-blue-600 hover:text-blue-500 underline font-medium"
+          >
+            terms of service
+          </button>
         </label>
       </div>
       @if (registerForm.get('agreeToTerms')?.invalid && (registerForm.get('agreeToTerms')?.dirty || registerForm.get('agreeToTerms')?.touched)) {
@@ -84,13 +204,56 @@
         [disabled]="isLoading || registerForm.invalid"
         class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 transition-all duration-150 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {{ isLoading ? 'Please wait...' : 'Create account' }}
+        @if (isLoading) {
+          <span class="flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Creating account...
+          </span>
+        } @else {
+          Create account
+        }
       </button>
     </form>
+    }
 
     <div class="pt-4 text-center text-sm text-slate-500">
       Already have an account?
       <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/login">Sign in</a>
     </div>
+
+    <!-- Terms Modal -->
+    @if (showTermsModal) {
+      <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md max-h-[80vh] overflow-y-auto p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-slate-900">Terms of Service</h2>
+            <button
+              type="button"
+              (click)="closeTermsModal()"
+              class="text-slate-500 hover:text-slate-700"
+              aria-label="Close modal"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="text-sm text-slate-600 space-y-4">
+            <p>By creating an account, you agree to our terms of service and privacy policy.</p>
+            <p>Our service is provided as-is for authorized use only. Unauthorized access is prohibited.</p>
+            <p>You are responsible for maintaining the confidentiality of your password and account information.</p>
+          </div>
+          <button
+            type="button"
+            (click)="closeTermsModal()"
+            class="w-full mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    }
   </section>
 </main>

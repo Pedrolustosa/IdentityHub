@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,12 +17,14 @@ import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
   templateUrl: './resend-confirmation.component.html',
   styleUrl: './resend-confirmation.component.css'
 })
-export class ResendConfirmationComponent implements OnInit {
+export class ResendConfirmationComponent implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
 
   isLoading = false;
   submitted = false;
   requestError: UiLoadError | null = null;
+  cooldownSeconds = 0;
+  private cooldownInterval: any;
 
   readonly form = this.formBuilder.nonNullable.group({
     email: ['', [Validators.required, Validators.email]]
@@ -63,6 +65,9 @@ export class ResendConfirmationComponent implements OnInit {
       .subscribe({
         next: (body) => {
           this.submitted = true;
+          this.cooldownSeconds = 60;
+          this.startCooldown();
+
           const msg = normalizeToastMessage(
             body,
             'If an account exists and is not yet confirmed, we sent a new confirmation email.'
@@ -75,5 +80,25 @@ export class ResendConfirmationComponent implements OnInit {
           this.toastr.error(toastMessageForUiLoadError(mapped), 'Email Confirmation');
         }
       });
+  }
+
+  private startCooldown(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
+
+    this.cooldownInterval = setInterval(() => {
+      this.cooldownSeconds--;
+      if (this.cooldownSeconds <= 0) {
+        clearInterval(this.cooldownInterval);
+        this.cooldownInterval = null;
+      }
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+    }
   }
 }

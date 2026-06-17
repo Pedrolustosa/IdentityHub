@@ -22,6 +22,9 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   successMessage = '';
   requestError: UiLoadError | null = null;
+  showPassword = false;
+  capsLockActive = false;
+  emailRequiresConfirmation = false;
 
   readonly loginForm: FormGroup;
 
@@ -57,6 +60,14 @@ export class LoginComponent implements OnInit {
     return this.loginForm.get('password');
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  onPasswordKeyDown(event: KeyboardEvent): void {
+    this.capsLockActive = event.getModifierState('CapsLock');
+  }
+
   submit(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -65,6 +76,7 @@ export class LoginComponent implements OnInit {
 
     this.successMessage = '';
     this.requestError = null;
+    this.emailRequiresConfirmation = false;
     this.isLoading = true;
 
     const formValue = this.loginForm.getRawValue();
@@ -85,13 +97,18 @@ export class LoginComponent implements OnInit {
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err, { authForm401AsInvalid: true });
           this.requestError = mapped;
-          this.toastr.warning(
-            normalizeToastMessage(
-              toastMessageForUiLoadError(mapped),
-              'We could not sign you in. Please check your email and password and try again.'
-            ),
-            'Authentication'
+
+          // Check if error indicates unconfirmed email
+          const errMsg = (err as any)?.error?.message || '';
+          this.emailRequiresConfirmation = errMsg.toLowerCase().includes('email') && errMsg.toLowerCase().includes('confirm');
+
+          // Use generic message for security
+          const msg = normalizeToastMessage(
+            toastMessageForUiLoadError(mapped),
+            'Invalid email or password. Please check your credentials and try again.'
           );
+
+          this.toastr.warning(msg, 'Authentication');
         }
       });
   }

@@ -24,6 +24,8 @@ export class ResetPasswordComponent implements OnInit {
   requestError: UiLoadError | null = null;
   emailFromQuery = '';
   tokenFromQuery = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   readonly form = this.formBuilder.nonNullable.group({
     newPassword: ['', [Validators.required, Validators.minLength(7)]],
@@ -56,6 +58,52 @@ export class ResetPasswordComponent implements OnInit {
     return this.form.get('confirmPassword');
   }
 
+  get strengthPercentage(): number {
+    const password = this.newPasswordControl?.value ?? '';
+    let score = 0;
+    if (this.hasMinLength) score += 25;
+    if (this.hasUppercase) score += 25;
+    if (this.hasNumbers) score += 25;
+    if (this.hasSpecialChar) score += 25;
+    return score;
+  }
+
+  get strengthLabel(): string {
+    const score = this.strengthPercentage;
+    if (score <= 25) return 'Weak';
+    if (score <= 50) return 'Fair';
+    if (score <= 75) return 'Good';
+    return 'Strong';
+  }
+
+  get hasMinLength(): boolean {
+    const password = this.newPasswordControl?.value ?? '';
+    return password.length >= 7 && password.length <= 12;
+  }
+
+  get hasUppercase(): boolean {
+    const password = this.newPasswordControl?.value ?? '';
+    return /[A-Z]/.test(password);
+  }
+
+  get hasNumbers(): boolean {
+    const password = this.newPasswordControl?.value ?? '';
+    return /\d{2,}/.test(password);
+  }
+
+  get hasSpecialChar(): boolean {
+    const password = this.newPasswordControl?.value ?? '';
+    return /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   passwordsMatch(): boolean {
     return this.form.controls.newPassword.value === this.form.controls.confirmPassword.value;
   }
@@ -86,8 +134,8 @@ export class ResetPasswordComponent implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: () => {
-          this.toastr.success('Password updated. You can sign in with your new password.', 'Password Reset');
-          void this.router.navigate(['/login']);
+          this.toastr.success('Password updated successfully. You can now sign in with your new password.', 'Password Reset');
+          void this.router.navigate(['/login'], { queryParams: { email: this.emailFromQuery } });
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
