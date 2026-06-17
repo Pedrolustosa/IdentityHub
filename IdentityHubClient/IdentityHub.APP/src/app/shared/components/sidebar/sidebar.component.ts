@@ -12,6 +12,7 @@ type SidebarMenuItem = {
   permissions?: string[];
   requireAll?: boolean;
   badge?: 'securityAlerts';
+  group: 'overview' | 'administration' | 'security' | 'account';
 };
 
 @Component({
@@ -25,26 +26,44 @@ export class SidebarComponent implements OnInit {
   @Input() collapsed = false;
 
   readonly securityAlertsCount = signal<number>(0);
+  readonly showBlockedItems = signal<boolean>(false);
 
   readonly menuItems: SidebarMenuItem[] = [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View' },
-    { label: 'My Access', route: '/app/my-access', icon: 'profile' },
-    { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View' },
+    // Overview
+    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View', group: 'overview' },
+
+    // Administration
+    { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View', group: 'administration' },
     {
-      label: 'Role Permissions',
+      label: 'Roles & Permissions',
       route: '/app/roles',
       icon: 'roleClaims',
-      permission: 'Roles.View'
+      permission: 'Roles.View',
+      group: 'administration'
     },
-    { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View' },
+
+    // Security
+    { label: 'My Sessions', route: '/app/profile', icon: 'sessions', permission: '', group: 'security' },
     {
       label: 'Security Alerts',
       route: '/app/security-alerts',
       icon: 'securityAlerts',
       permissions: ['SecurityEvents.View', 'Audit.View'],
-      badge: 'securityAlerts'
-    }
+      badge: 'securityAlerts',
+      group: 'security'
+    },
+    { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View', group: 'security' },
+
+    // Account
+    { label: 'My Access', route: '/app/my-access', icon: 'access', permission: '', group: 'account' }
   ];
+
+  readonly groupLabels: Record<string, string> = {
+    overview: 'Overview',
+    administration: 'Administration',
+    security: 'Security',
+    account: 'Account'
+  };
 
   constructor(
     private readonly authService: AuthService,
@@ -65,27 +84,54 @@ export class SidebarComponent implements OnInit {
         next: (response) => this.securityAlertsCount.set(response.totalCount),
         error: () => this.securityAlertsCount.set(0)
       });
+
+    // Check if user is admin (has any admin permission)
+    const isAdmin = this.authService.hasPermission('Users.View') && this.authService.hasPermission('Roles.View');
+    this.showBlockedItems.set(isAdmin);
   }
 
   badgeCount(item: SidebarMenuItem): number {
     return item.badge === 'securityAlerts' ? this.securityAlertsCount() : 0;
   }
 
-  get visibleMenuItems(): SidebarMenuItem[] {
-    return this.menuItems.filter((item) => {
-      const single = item.permission ? [item.permission] : [];
-      const many = item.permissions ?? [];
-      const required = [...new Set([...single, ...many])];
+  canAccessItem(item: SidebarMenuItem): boolean {
+    const single = item.permission ? [item.permission] : [];
+    const many = item.permissions ?? [];
+    const required = [...new Set([...single, ...many])];
 
-      if (!required.length) {
-        return true;
+    if (!required.length) {
+      return true;
+    }
+
+    if (item.requireAll) {
+      return required.every((permission) => this.authService.hasPermission(permission));
+    }
+
+    return required.some((permission) => this.authService.hasPermission(permission));
+  }
+
+  get groupedMenuItems(): Record<string, SidebarMenuItem[]> {
+    const groups: Record<string, SidebarMenuItem[]> = {
+      overview: [],
+      administration: [],
+      security: [],
+      account: []
+    };
+
+    this.menuItems.forEach((item) => {
+      // Add accessible items
+      if (this.canAccessItem(item)) {
+        groups[item.group].push(item);
+      } else if (this.showBlockedItems()) {
+        // Add blocked items for admin view
+        groups[item.group].push(item);
       }
-
-      if (item.requireAll) {
-        return required.every((permission) => this.authService.hasPermission(permission));
-      }
-
-      return required.some((permission) => this.authService.hasPermission(permission));
     });
+
+    return groups;
+  }
+
+  get visibleGroups(): string[] {
+    return Object.keys(this.groupedMenuItems).filter((group) => this.groupedMenuItems[group].length > 0);
   }
 }

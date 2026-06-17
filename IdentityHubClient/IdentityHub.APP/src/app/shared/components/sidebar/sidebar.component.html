@@ -15,70 +15,154 @@
     }
   </div>
 
-  <nav class="flex flex-col gap-1">
-    @for (item of visibleMenuItems; track item.route) {
-      <a
-        [routerLink]="item.route"
-        routerLinkActive="!bg-slate-800 !text-white border-l-4 border-blue-500"
-        class="relative transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 hover:bg-slate-800/70 flex items-center"
-        [class.justify-center]="collapsed"
-        [class.gap-2]="!collapsed"
-        [attr.title]="collapsed ? item.label : null"
-        [attr.aria-label]="item.label"
-      >
-        <span class="relative text-base">
-          @switch (item.icon) {
-            @case ('dashboard') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v7.5H3.75V3Zm0 10.5h7.5V21h-7.5v-7.5Zm10.5 0h6v3h-6v-3Zm0 6h6v1.5h-6V19.5Z"/>
-              </svg>
-            }
-            @case ('users') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.5v-1.125A3.375 3.375 0 0 0 11.625 15h-5.25A3.375 3.375 0 0 0 3 18.375V19.5m15-6a2.625 2.625 0 1 0 0-5.25 2.625 2.625 0 0 0 0 5.25ZM9 10.5A3 3 0 1 0 9 4.5a3 3 0 0 0 0 6Zm6 9v-1.125A3.375 3.375 0 0 1 18.375 15h.375A3.375 3.375 0 0 1 22.125 18.375V19.5"/>
-              </svg>
-            }
-            @case ('roleClaims') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
-              </svg>
-            }
-            @case ('auditLogs') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H7.5A2.25 2.25 0 0 1 5.25 18V6a2.25 2.25 0 0 1 2.25-2.25Z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6m-6 3h6m-6 3h3"/>
-              </svg>
-            }
-            @case ('securityAlerts') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-              </svg>
-            }
-            @case ('profile') {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-              </svg>
-            }
-            @default {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.278a1.125 1.125 0 0 0 1.516.84l1.205-.486a1.125 1.125 0 0 1 1.36.42l1.296 2.244a1.125 1.125 0 0 1-.204 1.431l-.993.994a1.125 1.125 0 0 0 0 1.59l.993.994c.39.39.47.99.204 1.43l-1.296 2.245a1.125 1.125 0 0 1-1.36.42l-1.205-.486a1.125 1.125 0 0 0-1.516.84l-.213 1.278a1.125 1.125 0 0 1-1.11.94h-2.592a1.125 1.125 0 0 1-1.11-.94l-.213-1.278a1.125 1.125 0 0 0-1.516-.84l-1.205.486a1.125 1.125 0 0 1-1.36-.42L2.204 17.09a1.125 1.125 0 0 1 .204-1.43l.993-.994a1.125 1.125 0 0 0 0-1.59l-.993-.994a1.125 1.125 0 0 1-.204-1.431L3.5 8.407a1.125 1.125 0 0 1 1.36-.42l1.205.486a1.125 1.125 0 0 0 1.516-.84l.213-1.278Z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
-              </svg>
-            }
-          }
-          @if (collapsed && badgeCount(item) > 0) {
-            <span class="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-950" aria-hidden="true"></span>
-          }
-        </span>
+  <nav class="flex flex-col gap-4">
+    @for (group of visibleGroups; track group) {
+      <div class="flex flex-col gap-1">
+        <!-- Group Label -->
         @if (!collapsed) {
-          <span>{{ item.label }}</span>
-          @if (badgeCount(item) > 0) {
-            <span class="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-              {{ badgeCount(item) }}
-            </span>
+          <div class="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {{ groupLabels[group] }}
+          </div>
+        }
+
+        <!-- Menu Items in Group -->
+        @for (item of groupedMenuItems[group]; track item.route) {
+          @if (canAccessItem(item)) {
+            <!-- Accessible Item -->
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="!bg-slate-800 !text-white border-l-4 border-blue-500"
+              class="relative transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 hover:bg-slate-800/70 flex items-center"
+              [class.justify-center]="collapsed"
+              [class.gap-2]="!collapsed"
+              [attr.title]="collapsed ? item.label : null"
+              [attr.aria-label]="item.label"
+            >
+              <span class="relative text-base">
+                @switch (item.icon) {
+                  @case ('dashboard') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v7.5H3.75V3Zm0 10.5h7.5V21h-7.5v-7.5Zm10.5 0h6v3h-6v-3Zm0 6h6v1.5h-6V19.5Z"/>
+                    </svg>
+                  }
+                  @case ('users') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.5v-1.125A3.375 3.375 0 0 0 11.625 15h-5.25A3.375 3.375 0 0 0 3 18.375V19.5m15-6a2.625 2.625 0 1 0 0-5.25 2.625 2.625 0 0 0 0 5.25ZM9 10.5A3 3 0 1 0 9 4.5a3 3 0 0 0 0 6Zm6 9v-1.125A3.375 3.375 0 0 1 18.375 15h.375A3.375 3.375 0 0 1 22.125 18.375V19.5"/>
+                    </svg>
+                  }
+                  @case ('roleClaims') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
+                    </svg>
+                  }
+                  @case ('auditLogs') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H7.5A2.25 2.25 0 0 1 5.25 18V6a2.25 2.25 0 0 1 2.25-2.25Z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6m-6 3h6m-6 3h3"/>
+                    </svg>
+                  }
+                  @case ('securityAlerts') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                  }
+                  @case ('sessions') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                  }
+                  @case ('access') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  }
+                  @default {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.278a1.125 1.125 0 0 0 1.516.84l1.205-.486a1.125 1.125 0 0 1 1.36.42l1.296 2.244a1.125 1.125 0 0 1-.204 1.431l-.993.994a1.125 1.125 0 0 0 0 1.59l.993.994c.39.39.47.99.204 1.43l-1.296 2.245a1.125 1.125 0 0 1-1.36.42l-1.205-.486a1.125 1.125 0 0 0-1.516.84l-.213 1.278a1.125 1.125 0 0 1-1.11.94h-2.592a1.125 1.125 0 0 1-1.11-.94l-.213-1.278a1.125 1.125 0 0 0-1.516-.84l-1.205.486a1.125 1.125 0 0 1-1.36-.42L2.204 17.09a1.125 1.125 0 0 1 .204-1.43l.993-.994a1.125 1.125 0 0 0 0-1.59l-.993-.994a1.125 1.125 0 0 1-.204-1.431L3.5 8.407a1.125 1.125 0 0 1 1.36-.42l1.205.486a1.125 1.125 0 0 0 1.516-.84l.213-1.278Z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
+                    </svg>
+                  }
+                }
+                @if (collapsed && badgeCount(item) > 0) {
+                  <span class="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-950" aria-hidden="true"></span>
+                }
+              </span>
+              @if (!collapsed) {
+                <span class="flex-1">{{ item.label }}</span>
+                @if (badgeCount(item) > 0) {
+                  <span class="ml-auto inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                    {{ badgeCount(item) }}
+                  </span>
+                }
+              }
+            </a>
+          } @else if (showBlockedItems()) {
+            <!-- Blocked Item (Admin View) -->
+            <div
+              class="relative transition-all duration-150 border-l-4 border-transparent rounded-r-lg px-3 py-2 opacity-50 flex items-center text-slate-500 cursor-not-allowed"
+              [class.justify-center]="collapsed"
+              [class.gap-2]="!collapsed"
+              [attr.title]="collapsed ? item.label + ' (unauthorized)' : null"
+              [attr.aria-label]="item.label + ' (unauthorized)'"
+            >
+              <span class="relative text-base">
+                @switch (item.icon) {
+                  @case ('dashboard') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5v7.5H3.75V3Zm0 10.5h7.5V21h-7.5v-7.5Zm10.5 0h6v3h-6v-3Zm0 6h6v1.5h-6V19.5Z"/>
+                    </svg>
+                  }
+                  @case ('users') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.5v-1.125A3.375 3.375 0 0 0 11.625 15h-5.25A3.375 3.375 0 0 0 3 18.375V19.5m15-6a2.625 2.625 0 1 0 0-5.25 2.625 2.625 0 0 0 0 5.25ZM9 10.5A3 3 0 1 0 9 4.5a3 3 0 0 0 0 6Zm6 9v-1.125A3.375 3.375 0 0 1 18.375 15h.375A3.375 3.375 0 0 1 22.125 18.375V19.5"/>
+                    </svg>
+                  }
+                  @case ('roleClaims') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
+                    </svg>
+                  }
+                  @case ('auditLogs') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H7.5A2.25 2.25 0 0 1 5.25 18V6a2.25 2.25 0 0 1 2.25-2.25Z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6m-6 3h6m-6 3h3"/>
+                    </svg>
+                  }
+                  @case ('securityAlerts') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                  }
+                  @case ('sessions') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                  }
+                  @case ('access') {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  }
+                  @default {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.278a1.125 1.125 0 0 0 1.516.84l1.205-.486a1.125 1.125 0 0 1 1.36.42l1.296 2.244a1.125 1.125 0 0 1-.204 1.431l-.993.994a1.125 1.125 0 0 0 0 1.59l.993.994c.39.39.47.99.204 1.43l-1.296 2.245a1.125 1.125 0 0 1-1.36.42l-1.205-.486a1.125 1.125 0 0 0-1.516.84l-.213 1.278a1.125 1.125 0 0 1-1.11.94h-2.592a1.125 1.125 0 0 1-1.11-.94l-.213-1.278a1.125 1.125 0 0 0-1.516-.84l-1.205.486a1.125 1.125 0 0 1-1.36-.42L2.204 17.09a1.125 1.125 0 0 1 .204-1.43l.993-.994a1.125 1.125 0 0 0 0-1.59l-.993-.994a1.125 1.125 0 0 1-.204-1.431L3.5 8.407a1.125 1.125 0 0 1 1.36-.42l1.205.486a1.125 1.125 0 0 0 1.516-.84l.213-1.278Z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
+                    </svg>
+                  }
+                }
+              </span>
+              @if (!collapsed) {
+                <span class="flex-1">{{ item.label }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              }
+            </div>
           }
         }
-      </a>
+      </div>
     }
   </nav>
 </aside>
