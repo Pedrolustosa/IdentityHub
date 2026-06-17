@@ -132,6 +132,10 @@ export class AuthService {
     return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions`);
   }
 
+  getSecurityAlertCount(): Observable<number> {
+    return this.http.get<number>(`${environment.apiUrl}/security-alerts/unread-count`);
+  }
+
   revokeSession(sessionId: string): Observable<string> {
     return this.http.delete(`${this.apiBaseUrl}/sessions/${sessionId}`, {
       responseType: 'text'
