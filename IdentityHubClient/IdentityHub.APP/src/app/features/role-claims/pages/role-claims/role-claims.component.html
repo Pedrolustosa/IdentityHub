@@ -2,22 +2,33 @@
   <header class="role-claims-header rounded-2xl border border-slate-200/80 px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Role permissions</h1>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Roles &amp; Permissions</h1>
         <p class="text-slate-600">View permission claims per role and manage them.</p>
       </div>
-      <div class="grid grid-cols-3 gap-2 sm:gap-3">
-        <div class="role-claims-kpi">
-          <span class="role-claims-kpi-label">Roles</span>
-          <span class="role-claims-kpi-value">{{ rows.length }}</span>
+      <div class="flex items-center gap-3">
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="role-claims-kpi">
+            <span class="role-claims-kpi-label">Roles</span>
+            <span class="role-claims-kpi-value">{{ rows.length }}</span>
+          </div>
+          <div class="role-claims-kpi">
+            <span class="role-claims-kpi-label">Loaded</span>
+            <span class="role-claims-kpi-value">{{ rolesWithPermissionsLoadedCount() }}</span>
+          </div>
+          <div class="role-claims-kpi">
+            <span class="role-claims-kpi-label">Pending</span>
+            <span class="role-claims-kpi-value">{{ rolesWithoutPermissionsLoadedCount() }}</span>
+          </div>
         </div>
-        <div class="role-claims-kpi">
-          <span class="role-claims-kpi-label">Loaded</span>
-          <span class="role-claims-kpi-value">{{ rolesWithPermissionsLoadedCount() }}</span>
-        </div>
-        <div class="role-claims-kpi">
-          <span class="role-claims-kpi-label">Pending</span>
-          <span class="role-claims-kpi-value">{{ rolesWithoutPermissionsLoadedCount() }}</span>
-        </div>
+        @if (canCreateRole) {
+          <button type="button" (click)="showCreateModal = true"
+            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            New role
+          </button>
+        }
       </div>
     </div>
   </header>
@@ -27,8 +38,9 @@
       <div class="space-y-3">
         @for (_ of [1, 2, 3, 4, 5]; track $index) {
           <div class="grid grid-cols-12 gap-3 items-center">
-            <div class="col-span-5 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-3 h-9 rounded-md bg-slate-100 animate-pulse"></div>
+            <div class="col-span-4 h-9 rounded-md bg-slate-100 animate-pulse"></div>
+            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
+            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
             <div class="col-span-4 h-9 rounded-md bg-slate-100 animate-pulse"></div>
           </div>
         }
@@ -41,25 +53,39 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
         </svg>
         <p class="text-slate-900 font-medium">No roles found</p>
-        <p class="text-slate-500 text-sm">Create roles in the API or seed data first</p>
+        @if (canCreateRole) {
+          <button type="button" (click)="showCreateModal = true"
+            class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
+            Create first role
+          </button>
+        }
       </div>
     } @else {
+      <div class="mb-4">
+        <input [(ngModel)]="searchTerm" type="text" placeholder="Search by role name…"
+          class="w-full max-w-sm rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"/>
+      </div>
+
       <div class="hidden md:block overflow-x-auto">
-        <table class="w-full min-w-[640px] text-sm role-claims-table">
+        <table class="w-full min-w-[760px] text-sm role-claims-table">
           <thead>
             <tr class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
               <th class="text-left py-3 px-3 font-semibold">Role</th>
+              <th class="text-left py-3 px-3 font-semibold">Users</th>
               <th class="text-left py-3 px-3 font-semibold">Permissions</th>
               <th class="text-right py-3 px-3 font-semibold w-[1%] whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody>
-            @for (row of rows; track row.role.id) {
+            @for (row of filteredRows(); track row.role.id) {
               <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
                 <td class="py-3 px-3 text-slate-900 font-medium">
                   <a [routerLink]="['/app/roles', row.role.id, 'permissions']" class="text-blue-600 hover:text-blue-500 hover:underline">
                     {{ row.role.name || 'Unnamed' }}
                   </a>
+                </td>
+                <td class="py-3 px-3 text-slate-600 text-sm">
+                  {{ row.role.userCount ?? '—' }}
                 </td>
                 <td class="py-3 px-3 text-slate-700">
                   @if (row.permissionCount === null) {
@@ -72,26 +98,28 @@
                 </td>
                 <td class="py-3 px-3 text-right">
                   <div class="inline-flex items-center justify-end gap-1">
-                    <a
-                      [routerLink]="['/app/roles', row.role.id, 'permissions']"
-                      class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150"
-                      title="View permissions"
-                    >
+                    <a [routerLink]="['/app/roles', row.role.id, 'permissions']"
+                      class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150" title="View permissions">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
                       </svg>
                     </a>
                     @if (canAssignRolePermissions) {
-                      <a
-                        [routerLink]="['/app/roles', row.role.id, 'permissions', 'edit']"
-                        class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150"
-                        title="Edit permissions"
-                      >
+                      <a [routerLink]="['/app/roles', row.role.id, 'permissions', 'edit']"
+                        class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-150" title="Edit permissions">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                           <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/>
                         </svg>
                       </a>
+                    }
+                    @if (canDeleteRole) {
+                      <button type="button" (click)="deleteRole(row)" [disabled]="deletingRoleId === row.role.id"
+                        class="rounded-lg p-2 text-rose-600 hover:bg-rose-50 transition-colors duration-150 disabled:opacity-50" title="Delete role">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                        </svg>
+                      </button>
                     }
                   </div>
                 </td>
@@ -102,12 +130,15 @@
       </div>
 
       <div class="md:hidden space-y-3">
-        @for (row of rows; track row.role.id) {
+        @for (row of filteredRows(); track row.role.id) {
           <div class="rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition-colors duration-150">
             <div class="flex items-start justify-between gap-3">
-              <a [routerLink]="['/app/roles', row.role.id, 'permissions']" class="font-medium text-blue-600 hover:text-blue-500 hover:underline">
-                {{ row.role.name || 'Unnamed' }}
-              </a>
+              <div>
+                <a [routerLink]="['/app/roles', row.role.id, 'permissions']" class="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+                  {{ row.role.name || 'Unnamed' }}
+                </a>
+                <p class="text-xs text-slate-500 mt-0.5">{{ row.role.userCount ?? 0 }} users</p>
+              </div>
               @if (row.permissionCount === null) {
                 <span class="text-xs text-slate-400 whitespace-nowrap">N/A</span>
               } @else {
@@ -115,19 +146,21 @@
               }
             </div>
             <div class="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-              <a
-                [routerLink]="['/app/roles', row.role.id, 'permissions']"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150"
-              >
+              <a [routerLink]="['/app/roles', row.role.id, 'permissions']"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150">
                 View
               </a>
               @if (canAssignRolePermissions) {
-                <a
-                  [routerLink]="['/app/roles', row.role.id, 'permissions', 'edit']"
-                  class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150"
-                >
-                  Edit
+                <a [routerLink]="['/app/roles', row.role.id, 'permissions', 'edit']"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150">
+                  Edit permissions
                 </a>
+              }
+              @if (canDeleteRole) {
+                <button type="button" (click)="deleteRole(row)" [disabled]="deletingRoleId === row.role.id"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 disabled:opacity-50 transition-colors duration-150">
+                  Delete
+                </button>
               }
             </div>
           </div>
@@ -135,4 +168,27 @@
       </div>
     }
   </div>
+
+  @if (showCreateModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white shadow-xl p-6 space-y-4">
+        <h2 class="text-base font-semibold text-slate-900">Create new role</h2>
+        <div>
+          <label for="new-role-name" class="block text-sm font-medium text-slate-700 mb-1.5">Role name</label>
+          <input id="new-role-name" type="text" [(ngModel)]="newRoleName" placeholder="e.g. Manager"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"/>
+        </div>
+        <div class="flex flex-wrap gap-3 pt-1">
+          <button type="button" (click)="createRole()" [disabled]="!newRoleName.trim() || isCreating"
+            class="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 transition-colors duration-150">
+            @if (isCreating) { Creating… } @else { Create }
+          </button>
+          <button type="button" (click)="showCreateModal = false; newRoleName = ''" [disabled]="isCreating"
+            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors duration-150">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </section>

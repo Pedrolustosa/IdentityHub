@@ -9,9 +9,11 @@ namespace IdentityHub.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class UsersController(IUserService service) : ControllerBase
+public sealed class UsersController(IUserService service, IAuthService authService, IAuditLogService auditLogService) : ControllerBase
 {
     private readonly IUserService _service = service;
+    private readonly IAuthService _authService = authService;
+    private readonly IAuditLogService _auditLogService = auditLogService;
 
     [HttpGet]
     [Authorize(Policy = "Users.View")]
@@ -80,6 +82,38 @@ public sealed class UsersController(IUserService service) : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _service.UpdateRolesAsync(id, request, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{id}/sessions")]
+    [Authorize(Policy = "Users.View")]
+    public async Task<IActionResult> GetUserSessions(
+        string id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _authService.GetActiveSessionsAsync(id, null, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{id}/sessions/history")]
+    [Authorize(Policy = "Users.View")]
+    public async Task<IActionResult> GetUserSessionsHistory(
+        string id,
+        [FromQuery] int take = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _authService.GetRecentSessionsAsync(id, null, take, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{id}/audit")]
+    [Authorize(Policy = "Audit.View")]
+    public async Task<IActionResult> GetUserAudit(
+        string id,
+        [FromQuery] int take = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _auditLogService.GetRecentByUserAsync(id, take, cancellationToken);
         return result.ToActionResult();
     }
 }

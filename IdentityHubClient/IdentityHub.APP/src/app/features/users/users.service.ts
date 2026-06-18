@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -8,6 +8,9 @@ export interface UserListItem {
   email: string | null;
   fullName: string | null;
   isActive: boolean;
+  emailConfirmed?: boolean;
+  lastLoginAt?: string | null;
+  activeSessions?: number;
   roles?: string[] | null;
 }
 
@@ -20,6 +23,8 @@ export interface CreateUserRequest {
 export interface InviteUserRequest {
   email: string;
   fullName?: string | null;
+  isActive?: boolean;
+  roles?: string[];
 }
 
 export interface UpdateUserRequest {
@@ -29,6 +34,28 @@ export interface UpdateUserRequest {
 
 export interface UpdateRolesRequest {
   roles: string[];
+}
+
+export interface UserSessionItem {
+  id: string;
+  ipAddress: string;
+  browser: string;
+  operatingSystem: string;
+  createdAt: string;
+  lastAccessAt: string | null;
+  revokedAt?: string | null;
+  isActive?: boolean;
+  isCurrent: boolean;
+}
+
+export interface UserAuditItem {
+  id: string;
+  actorUserId: string;
+  type: string;
+  targetId?: string | null;
+  description: string;
+  metadataJson?: string | null;
+  createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -63,5 +90,19 @@ export class UsersService {
     return this.http.put(`${this.usersApiUrl}/${encodeURIComponent(id)}/roles`, body, {
       responseType: 'text'
     });
+  }
+
+  getUserSessions(id: string): Observable<UserSessionItem[]> {
+    return this.http.get<UserSessionItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/sessions`);
+  }
+
+  getUserSessionsHistory(id: string, take = 20): Observable<UserSessionItem[]> {
+    const params = new HttpParams().set('take', take);
+    return this.http.get<UserSessionItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/sessions/history`, { params });
+  }
+
+  getUserAudit(id: string, take = 20): Observable<UserAuditItem[]> {
+    const params = new HttpParams().set('take', take);
+    return this.http.get<UserAuditItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/audit`, { params });
   }
 }

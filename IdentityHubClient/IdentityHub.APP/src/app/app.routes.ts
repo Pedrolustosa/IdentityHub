@@ -12,7 +12,9 @@ import { RoleClaimsComponent } from './features/role-claims/pages/role-claims/ro
 import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component';
 import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
 import { AuditLogsComponent } from './features/audit-logs/pages/audit-logs/audit-logs.component';
+import { AuditLogDetailComponent } from './features/audit-logs/pages/audit-logs/audit-log-detail/audit-log-detail.component';
 import { SecurityAlertsComponent } from './features/security-alerts/pages/security-alerts/security-alerts.component';
+import { SecurityAlertDetailComponent } from './features/security-alerts/pages/security-alerts/security-alert-detail/security-alert-detail.component';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { authLayoutChildRoutes } from './features/auth/auth.routes';
@@ -54,10 +56,36 @@ export const routes: Routes = [
         data: { permission: 'Audit.View', title: 'Audit Logs', breadcrumbs: [{ label: 'Audit Logs' }] }
       },
       {
+        path: 'audit-logs/:id',
+        component: AuditLogDetailComponent,
+        canActivate: [permissionGuard],
+        data: {
+          permission: 'Audit.View',
+          title: 'Audit log detail',
+          breadcrumbs: [
+            { label: 'Audit Logs', link: '/app/audit-logs' },
+            { label: 'Detail' }
+          ]
+        }
+      },
+      {
         path: 'security-alerts',
         component: SecurityAlertsComponent,
         canActivate: [permissionGuard],
-        data: { permissions: ['SecurityEvents.View', 'Audit.View'], title: 'Security Alerts', breadcrumbs: [{ label: 'Security Alerts' }] }
+        data: { permission: 'SecurityEvents.View', title: 'Security Alerts', breadcrumbs: [{ label: 'Security Alerts' }] }
+      },
+      {
+        path: 'security-alerts/:id',
+        component: SecurityAlertDetailComponent,
+        canActivate: [permissionGuard],
+        data: {
+          permission: 'SecurityEvents.View',
+          title: 'Security alert detail',
+          breadcrumbs: [
+            { label: 'Security Alerts', link: '/app/security-alerts' },
+            { label: 'Detail' }
+          ]
+        }
       },
       {
         path: 'roles/:roleId/permissions/edit',

@@ -6,21 +6,22 @@ using MediatR;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
-public sealed class GetActiveSessionsQueryHandler : IRequestHandler<GetActiveSessionsQuery, Result<IReadOnlyList<UserSessionResponse>>>
+public sealed class GetRecentSessionsQueryHandler : IRequestHandler<GetRecentSessionsQuery, Result<IReadOnlyList<UserSessionResponse>>>
 {
     private readonly IAuthRepository _repo;
 
-    public GetActiveSessionsQueryHandler(IAuthRepository repo)
+    public GetRecentSessionsQueryHandler(IAuthRepository repo)
     {
         _repo = repo;
     }
 
-    public async Task<Result<IReadOnlyList<UserSessionResponse>>> Handle(GetActiveSessionsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<UserSessionResponse>>> Handle(
+        GetRecentSessionsQuery query,
+        CancellationToken cancellationToken)
     {
-        var sessions = await _repo.GetActiveSessionsAsync(query.UserId, cancellationToken);
+        var sessions = await _repo.GetRecentSessionsAsync(query.UserId, query.Take, cancellationToken);
 
         var response = sessions
-            .OrderByDescending(x => x.CreatedAt)
             .Select(x => new UserSessionResponse
             {
                 Id = x.Id,

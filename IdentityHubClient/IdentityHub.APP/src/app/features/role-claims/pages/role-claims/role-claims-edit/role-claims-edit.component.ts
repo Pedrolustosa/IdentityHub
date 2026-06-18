@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
@@ -19,7 +20,7 @@ function uniqueSorted(values: string[]): string[] {
 @Component({
   selector: 'app-role-claims-edit',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
   templateUrl: './role-claims-edit.component.html',
   styleUrl: './role-claims-edit.component.css'
 })
@@ -28,11 +29,54 @@ export class RoleClaimsEditComponent implements OnInit {
   loadError: UiLoadError | null = null;
   saveError: UiLoadError | null = null;
   isSaving = false;
+  showConfirm = false;
+  permSearch = '';
   roleId = '';
   role: RoleListItem | null = null;
   /** Rows shown in the UI: fixed after load; never shrink when toggling checkboxes. */
   permissionRows: string[] = [];
   selectedPermissions: string[] = [];
+  private initialPermissions: string[] = [];
+
+  readonly criticalPermissions = ['Users.Delete', 'Roles.Permissions.Update', 'Audit.View', 'SecurityEvents.Manage'];
+
+  /** Permissions grouped by first segment (domain). */
+  get groupedPermissions(): Record<string, string[]> {
+    const term = this.permSearch.trim().toLowerCase();
+    const rows = term ? this.permissionRows.filter((p) => p.toLowerCase().includes(term)) : this.permissionRows;
+    return rows.reduce<Record<string, string[]>>((groups, p) => {
+      const domain = p.split('.')[0] ?? 'Other';
+      (groups[domain] ??= []).push(p);
+      return groups;
+    }, {});
+  }
+
+  get domainGroups(): string[] {
+    return Object.keys(this.groupedPermissions).sort((a, b) => a.localeCompare(b));
+  }
+
+  permissionsAdded(): string[] {
+    return this.selectedPermissions.filter((p) => !this.initialPermissions.includes(p));
+  }
+
+  permissionsRemoved(): string[] {
+    return this.initialPermissions.filter((p) => !this.selectedPermissions.includes(p));
+  }
+
+  hasCriticalAdditions(): boolean {
+    return this.permissionsAdded().some((p) => this.criticalPermissions.includes(p));
+  }
+
+  selectAll(domain: string): void {
+    const toAdd = this.groupedPermissions[domain] ?? [];
+    const merged = [...new Set([...this.selectedPermissions, ...toAdd])];
+    this.selectedPermissions = merged;
+  }
+
+  clearDomain(domain: string): void {
+    const toRemove = new Set(this.groupedPermissions[domain] ?? []);
+    this.selectedPermissions = this.selectedPermissions.filter((p) => !toRemove.has(p));
+  }
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -81,6 +125,7 @@ export class RoleClaimsEditComponent implements OnInit {
           const union = uniqueSorted([...catalogList, ...assignedList]);
           this.permissionRows = [...union];
           this.selectedPermissions = [...assignedList];
+          this.initialPermissions = [...assignedList];
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);
@@ -109,6 +154,17 @@ export class RoleClaimsEditComponent implements OnInit {
 
   cancel(): void {
     void this.router.navigate(['/app/roles', this.roleId, 'permissions']);
+  }
+
+  requestSave(): void {
+    if (!this.roleId || this.isSaving || !this.canAssignRolePermissions) {
+      return;
+    }
+    this.showConfirm = true;
+  }
+
+  cancelConfirm(): void {
+    this.showConfirm = false;
   }
 
   submit(): void {

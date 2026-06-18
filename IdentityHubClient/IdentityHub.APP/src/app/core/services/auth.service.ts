@@ -65,6 +65,8 @@ export interface UserSessionResponse {
   operatingSystem: string;
   createdAt: string;
   lastAccessAt: string | null;
+  revokedAt: string | null;
+  isActive: boolean;
   isCurrent: boolean;
 }
 
@@ -132,6 +134,11 @@ export class AuthService {
     return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions`);
   }
 
+  getSessionsHistory(take = 20): Observable<UserSessionResponse[]> {
+    const params = new HttpParams().set('take', take);
+    return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions/history`, { params });
+  }
+
   getSecurityAlertCount(): Observable<number> {
     return this.http.get<number>(`${environment.apiUrl}/security-alerts/unread-count`);
   }
@@ -140,6 +147,14 @@ export class AuthService {
     return this.http.delete(`${this.apiBaseUrl}/sessions/${sessionId}`, {
       responseType: 'text'
     });
+  }
+
+  revokeOtherSessions(): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/sessions/others`);
+  }
+
+  revokeUserSessions(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBaseUrl}/sessions/users/${encodeURIComponent(userId)}`);
   }
 
   getProfileSnapshotFromToken(): { email: string; fullName: string } | null {

@@ -90,6 +90,35 @@ public sealed class InviteUserCommandHandler : IRequestHandler<InviteUserCommand
             }
         }
 
+        // Assign roles if provided
+        if (command.Request.Roles.Count > 0)
+        {
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Count > 0)
+            {
+                var removeRolesResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeRolesResult.Succeeded)
+                {
+                    return Result.Failure(
+                        Error.Create("User.RoleUpdateFailed", string.Join(", ", removeRolesResult.Errors.Select(e => e.Description))));
+                }
+            }
+
+            var addRolesResult = await _userManager.AddToRolesAsync(user, command.Request.Roles);
+            if (!addRolesResult.Succeeded)
+            {
+                return Result.Failure(
+                    Error.Create("User.RoleUpdateFailed", string.Join(", ", addRolesResult.Errors.Select(e => e.Description))));
+            }
+        }
+
+        // Apply IsActive
+        if (user.IsActive != command.Request.IsActive)
+        {
+            user.IsActive = command.Request.IsActive;
+            await _repository.UpdateAsync(user, cancellationToken);
+        }
+
         var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
         var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
 

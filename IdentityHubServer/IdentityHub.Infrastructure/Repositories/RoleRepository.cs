@@ -1,4 +1,5 @@
 using IdentityHub.Domain.Interfaces;
+using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -8,10 +9,14 @@ namespace IdentityHub.Infrastructure.Repositories;
 public sealed class RoleRepository : IRoleRepository
 {
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly AppDbContext _context;
 
-    public RoleRepository(RoleManager<IdentityRole> roleManager)
+    public RoleRepository(
+        RoleManager<IdentityRole> roleManager,
+        AppDbContext context)
     {
         _roleManager = roleManager;
+        _context = context;
     }
 
     public async Task<List<IdentityRole>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -31,6 +36,26 @@ public sealed class RoleRepository : IRoleRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         return await _roleManager.FindByNameAsync(name);
+    }
+
+    public async Task<int> GetUserCountAsync(string roleId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.Set<IdentityUserRole<string>>()
+            .AsNoTracking()
+            .CountAsync(ur => ur.RoleId == roleId, cancellationToken);
+    }
+
+    public async Task<IDictionary<string, int>> GetUserCountsByRoleIdAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.Set<IdentityUserRole<string>>()
+            .AsNoTracking()
+            .GroupBy(ur => ur.RoleId)
+            .Select(group => new { RoleId = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(item => item.RoleId, item => item.Count, cancellationToken);
     }
 
     public async Task CreateAsync(IdentityRole role, CancellationToken cancellationToken = default)

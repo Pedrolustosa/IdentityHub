@@ -102,6 +102,18 @@
         }
       </div>
 
+      @if (isEditingSelf) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <strong>Editing your own account.</strong> You cannot deactivate yourself. Other changes apply normally.
+        </div>
+      }
+
+      @if (isRemovingCriticalRole()) {
+        <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          <strong>Warning:</strong> You are removing a critical role. This may revoke admin access immediately.
+        </div>
+      }
+
       @if (saveError) {
         <div class="border-t border-slate-100 pt-4">
           <app-load-error-banner [error]="saveError" (retry)="submit()" />
@@ -110,25 +122,55 @@
 
       <div class="flex flex-wrap gap-3 pt-2">
         <button
-          type="submit"
-          [disabled]="isSaving"
+          type="button"
+          (click)="requestSave()"
+          [disabled]="isSaving || !hasChanges()"
           class="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 disabled:pointer-events-none transition-colors duration-150"
         >
-          @if (isSaving) {
-            Saving…
-          } @else {
-            Save changes
-          }
+          @if (isSaving) { Saving… } @else { Review & save }
         </button>
-        <button
-          type="button"
-          (click)="cancel()"
-          [disabled]="isSaving"
-          class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors duration-150"
-        >
+        <button type="button" (click)="cancel()" [disabled]="isSaving"
+          class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors duration-150">
           Cancel
         </button>
       </div>
     </form>
+
+    @if (showConfirm) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl p-6 space-y-5">
+          <h2 class="text-base font-semibold text-slate-900">Confirm changes</h2>
+          <ul class="space-y-2 text-sm">
+            @if ((editForm.getRawValue().fullName.trim() || '') !== initialFullName) {
+              <li class="flex gap-2"><span class="text-slate-500">Name:</span><span class="font-medium text-slate-900">{{ editForm.getRawValue().fullName.trim() || '(empty)' }}</span></li>
+            }
+            @if (editForm.getRawValue().isActive !== initialIsActive) {
+              <li class="flex gap-2"><span class="text-slate-500">Status:</span><span class="font-medium" [ngClass]="editForm.getRawValue().isActive ? 'text-emerald-700' : 'text-rose-700'">{{ editForm.getRawValue().isActive ? 'Active' : 'Inactive' }}</span></li>
+            }
+            @if (rolesAdded().length) {
+              <li><span class="text-slate-500">Roles added:</span> <span class="font-medium text-emerald-700">{{ rolesAdded().join(', ') }}</span></li>
+            }
+            @if (rolesRemoved().length) {
+              <li><span class="text-slate-500">Roles removed:</span> <span class="font-medium text-rose-700">{{ rolesRemoved().join(', ') }}</span></li>
+            }
+          </ul>
+          @if (rolesChanged()) {
+            <p class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+              Permissions take effect on the user's next login or token refresh.
+            </p>
+          }
+          <div class="flex flex-wrap gap-3 pt-1">
+            <button type="button" (click)="submit()" [disabled]="isSaving"
+              class="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 transition-colors duration-150">
+              @if (isSaving) { Saving… } @else { Confirm save }
+            </button>
+            <button type="button" (click)="cancelConfirm()" [disabled]="isSaving"
+              class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors duration-150">
+              Back to edit
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   }
 </section>

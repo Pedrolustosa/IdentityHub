@@ -37,16 +37,36 @@
       <p class="text-xs text-slate-400 font-mono mt-2">ID: {{ role.id }}</p>
     </header>
 
-    <div class="bg-white rounded-xl border shadow-sm p-6">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Permission claims</h2>
+    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Permission claims</h2>
+        @if (permissions.length > 0) {
+          <input
+            [(ngModel)]="permSearch"
+            type="text"
+            placeholder="Search permissions…"
+            class="w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
+          />
+        }
+      </div>
+
       @if (permissions.length === 0) {
-        <p class="mt-4 text-sm text-slate-500">No permission claims on this role.</p>
+        <p class="text-sm text-slate-500">No permission claims on this role.</p>
+      } @else if (domainGroups.length === 0) {
+        <p class="text-sm text-slate-500">No permissions match your search.</p>
       } @else {
-        <ul class="mt-4 flex flex-wrap gap-2">
-          @for (p of permissions; track p) {
-            <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800 font-mono">{{ p }}</li>
+        <div class="space-y-4">
+          @for (domain of domainGroups; track domain) {
+            <div>
+              <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">{{ domain }}</p>
+              <ul class="flex flex-wrap gap-1.5">
+                @for (p of groupedPermissions[domain]; track p) {
+                  <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800 font-mono">{{ p }}</li>
+                }
+              </ul>
+            </div>
           }
-        </ul>
+        </div>
       }
     </div>
 

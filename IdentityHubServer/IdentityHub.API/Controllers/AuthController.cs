@@ -111,6 +111,26 @@ public sealed class AuthController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("sessions/history")]
+    public async Task<IActionResult> GetSessionsHistory(
+        [FromQuery] int take = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        Guid? currentSessionId = null;
+        var sidValue = User.FindFirst("sid")?.Value;
+        if (Guid.TryParse(sidValue, out var parsedSessionId))
+            currentSessionId = parsedSessionId;
+
+        var result = await _service.GetRecentSessionsAsync(userId, currentSessionId, take, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
     [HttpDelete("sessions/{sessionId:guid}")]
     public async Task<IActionResult> RevokeSession(
         Guid sessionId,
@@ -123,6 +143,58 @@ public sealed class AuthController : ControllerBase
 
         var result = await _service.RevokeSessionAsync(userId, sessionId, cancellationToken);
         return result.ToActionResult();
+    }
+
+    [Authorize(Policy = "Users.Update")]
+    [HttpDelete("sessions/users/{targetUserId}")]
+    public async Task<IActionResult> RevokeUserSessions(
+        string targetUserId,
+        CancellationToken cancellationToken)
+    {
+        var sessions = await _service.GetActiveSessionsAsync(targetUserId, null, cancellationToken);
+        if (!sessions.IsSuccess)
+            return sessions.ToActionResult();
+
+        foreach (var session in sessions.Value ?? [])
+        {
+            var revoke = await _service.RevokeSessionAsync(targetUserId, session.Id, cancellationToken);
+            if (!revoke.IsSuccess)
+                return revoke.ToActionResult();
+        }
+
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpDelete("sessions/others")]
+    public async Task<IActionResult> RevokeOtherSessions(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
+
+        Guid? currentSessionId = null;
+        var sidValue = User.FindFirst("sid")?.Value;
+        if (Guid.TryParse(sidValue, out var parsedSessionId))
+            currentSessionId = parsedSessionId;
+
+        var sessionsResult = await _service.GetActiveSessionsAsync(userId, currentSessionId, cancellationToken);
+        if (!sessionsResult.IsSuccess)
+            return sessionsResult.ToActionResult();
+
+        var others = (sessionsResult.Value ?? [])
+            .Where(session => !session.IsCurrent)
+            .ToList();
+
+        foreach (var session in others)
+        {
+            var revoke = await _service.RevokeSessionAsync(userId, session.Id, cancellationToken);
+            if (!revoke.IsSuccess)
+                return revoke.ToActionResult();
+        }
+
+        return NoContent();
     }
 
     [Authorize]

@@ -10,6 +10,9 @@ namespace IdentityHub.Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+        public int ActiveSessions { get; set; }
         public IList<string> Roles { get; set; } = [];
     }
 }

@@ -20,12 +20,19 @@ public sealed class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, Result
         CancellationToken cancellationToken)
     {
         var roles = await _repository.GetAllAsync(cancellationToken);
+        var countsByRoleId = await _repository.GetUserCountsByRoleIdAsync(cancellationToken);
 
-        var response = roles.Select(role => new RoleResponse
+        var response = new List<RoleResponse>();
+        foreach (var role in roles)
         {
-            Id = role.Id,
-            Name = role.Name
-        }).ToList();
+            var userCount = countsByRoleId.TryGetValue(role.Id, out var count) ? count : 0;
+            response.Add(new RoleResponse
+            {
+                Id = role.Id,
+                Name = role.Name ?? string.Empty,
+                UserCount = userCount
+            });
+        }
 
         return Result<List<RoleResponse>>.Success(response);
     }

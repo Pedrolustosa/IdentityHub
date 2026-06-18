@@ -29,14 +29,19 @@ export class UserEditComponent implements OnInit {
   loadError: UiLoadError | null = null;
   isSaving = false;
   saveError: UiLoadError | null = null;
+  showConfirm = false;
   userId = '';
   user: UserListItem | null = null;
   isEditingSelf = false;
   availableRoles: RoleListItem[] = [];
   rolesLoadFailed = false;
   selectedRoleNames: string[] = [];
-  private initialRoleNames: string[] = [];
+  initialRoleNames: string[] = [];
+  initialFullName = '';
+  initialIsActive = true;
   readonly canUpdateUserRoles: boolean;
+  readonly criticalRoles = ['Admin', 'Administrator', 'SuperAdmin'];
+  readonly criticalPermissions = ['Users.Delete', 'Roles.Permissions.Update', 'Audit.View', 'SecurityEvents.Manage'];
 
   readonly editForm = this.formBuilder.nonNullable.group({
     fullName: [''],
@@ -88,6 +93,8 @@ export class UserEditComponent implements OnInit {
           this.availableRoles = roles.filter((r) => r.name);
           this.initialRoleNames = [...(user.roles ?? [])];
           this.selectedRoleNames = [...this.initialRoleNames];
+          this.initialFullName = user.fullName ?? '';
+          this.initialIsActive = user.isActive;
           this.editForm.patchValue({
             fullName: user.fullName ?? '',
             isActive: user.isActive
@@ -120,12 +127,64 @@ export class UserEditComponent implements OnInit {
     return this.selectedRoleNames.includes(name);
   }
 
-  private rolesChanged(): boolean {
+  private rolesChangedStr(): boolean {
     return sortedRoles(this.selectedRoleNames) !== sortedRoles(this.initialRoleNames);
+  }
+
+  rolesChanged(): boolean {
+    return this.rolesChangedStr();
+  }
+
+  private promptRevokeSessionsAfterRoleChange(): void {
+    const revoke = window.confirm(
+      'Roles updated. Revoke all active sessions for this user so the new permissions take effect immediately?'
+    );
+    if (revoke) {
+      this.authService
+        .revokeUserSessions(this.userId)
+        .subscribe({
+          next: () => this.toastr.success('Sessions revoked.', 'Users'),
+          error: () => this.toastr.warning('Could not revoke sessions.', 'Users')
+        });
+    }
+    void this.router.navigate(['/app/users', this.userId]);
   }
 
   cancel(): void {
     void this.router.navigate(['/app/users', this.userId]);
+  }
+
+  rolesAdded(): string[] {
+    return this.selectedRoleNames.filter((r) => !this.initialRoleNames.includes(r));
+  }
+
+  rolesRemoved(): string[] {
+    return this.initialRoleNames.filter((r) => !this.selectedRoleNames.includes(r));
+  }
+
+  isRemovingCriticalRole(): boolean {
+    return this.rolesRemoved().some((r) => this.criticalRoles.some((c) => r.toLowerCase().includes(c.toLowerCase())));
+  }
+
+  hasChanges(): boolean {
+    const { fullName, isActive } = this.editForm.getRawValue();
+    return (
+      (fullName.trim() || '') !== this.initialFullName ||
+      isActive !== this.initialIsActive ||
+      this.rolesChanged()
+    );
+  }
+
+  requestSave(): void {
+    if (!this.userId || this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    this.showConfirm = true;
+  }
+
+  cancelConfirm(): void {
+    this.showConfirm = false;
   }
 
   submit(): void {
@@ -152,8 +211,9 @@ export class UserEditComponent implements OnInit {
           if (this.rolesChanged() && this.canUpdateUserRoles && !this.rolesLoadFailed && this.availableRoles.length > 0) {
             this.usersService.updateUserRoles(this.userId, { roles: this.selectedRoleNames }).subscribe({
               next: () => {
+                this.showConfirm = false;
                 this.toastr.success('User and roles updated.', 'Users');
-                void this.router.navigate(['/app/users', this.userId]);
+                this.promptRevokeSessionsAfterRoleChange();
                 finish();
               },
               error: () => {
@@ -170,6 +230,7 @@ export class UserEditComponent implements OnInit {
             } else {
               this.toastr.success('User updated.', 'Users');
             }
+            this.showConfirm = false;
             void this.router.navigate(['/app/users', this.userId]);
             finish();
           }

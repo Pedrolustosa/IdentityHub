@@ -48,7 +48,7 @@ export class SidebarComponent implements OnInit {
       label: 'Security Alerts',
       route: '/app/security-alerts',
       icon: 'securityAlerts',
-      permissions: ['SecurityEvents.View', 'Audit.View'],
+      permission: 'SecurityEvents.View',
       badge: 'securityAlerts',
       group: 'security'
     },
@@ -71,15 +71,14 @@ export class SidebarComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const canSeeAlerts =
-      this.authService.hasPermission('SecurityEvents.View') || this.authService.hasPermission('Audit.View');
+    const canSeeAlerts = this.authService.hasPermission('SecurityEvents.View');
 
     if (!canSeeAlerts) {
       return;
     }
 
     this.securityAlertsService
-      .getSecurityAlerts(1, 1, { type: '', userId: '', fromDate: '', toDate: '' })
+      .getSecurityAlerts(1, 1, { type: '', userId: '', severity: '', status: '', fromDate: '', toDate: '' })
       .subscribe({
         next: (response) => this.securityAlertsCount.set(response.totalCount),
         error: () => this.securityAlertsCount.set(0)

@@ -8,6 +8,8 @@ public interface IRoleRepository
     Task<List<IdentityRole>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IdentityRole?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<IdentityRole?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+    Task<int> GetUserCountAsync(string roleId, CancellationToken cancellationToken = default);
+    Task<IDictionary<string, int>> GetUserCountsByRoleIdAsync(CancellationToken cancellationToken = default);
 
     Task CreateAsync(IdentityRole role, CancellationToken cancellationToken = default);
     Task UpdateAsync(IdentityRole role, CancellationToken cancellationToken = default);

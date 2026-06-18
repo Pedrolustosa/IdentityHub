@@ -1,5 +1,6 @@
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
+using IdentityHub.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,13 +10,16 @@ public sealed class UserRepository : IUserRepository
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly AppDbContext _context;
 
     public UserRepository(
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager,
+        AppDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _context = context;
     }
 
     public async Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -47,6 +51,27 @@ public sealed class UserRepository : IUserRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         return await _userManager.GetRolesAsync(user);
+    }
+
+    public async Task<DateTime?> GetLastLoginAtAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.UserSessions
+            .AsNoTracking()
+            .Where(session => session.UserId == userId)
+            .Select(session => (DateTime?)(session.LastAccessAt ?? session.CreatedAt))
+            .OrderByDescending(date => date)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<int> GetActiveSessionsCountAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await _context.UserSessions
+            .AsNoTracking()
+            .CountAsync(session => session.UserId == userId && session.IsActive, cancellationToken);
     }
 
     public async Task CreateAsync(ApplicationUser user, string password, CancellationToken cancellationToken = default)

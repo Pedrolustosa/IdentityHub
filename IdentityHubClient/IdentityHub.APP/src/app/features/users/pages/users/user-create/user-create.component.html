@@ -1,71 +1,116 @@
 <section class="max-w-2xl space-y-6">
-  <a
-    routerLink="/app/users"
-    class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
-  >
+  <a routerLink="/app/users" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
     </svg>
     Back to users
   </a>
 
-  <header>
-    <h1 class="text-2xl font-semibold text-slate-900">Create user</h1>
-    <p class="text-slate-500 mt-1">Send an invitation so the user can set a password and access IdentityHub.</p>
-  </header>
-
-  <form (ngSubmit)="submit()" [formGroup]="createForm" class="bg-white rounded-xl border shadow-sm p-6 space-y-6">
-    <div>
-      <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-      <input
-        id="email"
-        type="email"
-        formControlName="email"
-        autocomplete="email"
-        placeholder="person@company.com"
-        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-      @if (emailControl.invalid && (emailControl.touched || emailControl.dirty)) {
-        <small class="text-red-600">Enter a valid email.</small>
-      }
-    </div>
-
-    <div>
-      <label for="fullName" class="block text-sm font-medium text-slate-700 mb-1.5">Full name (optional)</label>
-      <input
-        id="fullName"
-        type="text"
-        formControlName="fullName"
-        autocomplete="name"
-        placeholder="Jane Doe"
-        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
-    </div>
-
-    @if (submitError) {
-      <div class="border-t border-slate-100 pt-4">
-        <app-load-error-banner [error]="submitError" (retry)="submit()" />
+  @if (createdUserId !== null) {
+    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-6 space-y-4 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+      </svg>
+      <div>
+        <h2 class="text-lg font-semibold text-emerald-900">
+          {{ sendInvite ? 'Invitation sent!' : 'User created!' }}
+        </h2>
+        <p class="mt-1 text-sm text-emerald-700">
+          {{ sendInvite ? 'The user will receive an email to set their password.' : 'User was created without an invitation email.' }}
+        </p>
       </div>
-    }
-
-    <div class="flex flex-wrap gap-3 pt-2">
-      <button
-        type="submit"
-        [disabled]="isSubmitting"
-        class="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 disabled:pointer-events-none transition-colors duration-150"
-      >
-        @if (isSubmitting) {
-          Sending…
-        } @else {
-          Send invite
-        }
-      </button>
-      <a
-        routerLink="/app/users"
-        class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150"
-      >
-        Cancel
-      </a>
+      @if (!sendInvite && generatedPassword) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-left">
+          <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Temporary password</p>
+          <p class="mt-1 break-all font-mono text-sm text-amber-900">{{ generatedPassword }}</p>
+          <div class="mt-2 flex gap-2">
+            <button type="button" (click)="copyGeneratedPassword()" class="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors duration-150">
+              Copy password
+            </button>
+          </div>
+          <p class="mt-2 text-xs text-amber-700">Share this password securely with the user and request a change on first login.</p>
+        </div>
+      }
+      <div class="flex justify-center gap-3 pt-2">
+        <button type="button" (click)="goToList()" class="rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-medium hover:bg-emerald-500 transition-colors duration-150">
+          Back to users list
+        </button>
+        <button type="button" (click)="resetForAnother()" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150">
+          Create another
+        </button>
+      </div>
     </div>
-  </form>
+  } @else {
+    <header>
+      <h1 class="text-2xl font-semibold text-slate-900">Create user</h1>
+      <p class="text-slate-500 mt-1">Send an invitation so the user can set a password and access IdentityHub.</p>
+    </header>
+
+    <div class="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+      <button type="button"
+        class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors"
+        [ngClass]="sendInvite ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+        (click)="sendInvite = true">Send invite</button>
+      <button type="button"
+        class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors"
+        [ngClass]="!sendInvite ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+        (click)="sendInvite = false">Create without invite</button>
+    </div>
+
+    <form (ngSubmit)="submit()" [formGroup]="createForm" class="bg-white rounded-xl border shadow-sm p-6 space-y-6">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">Email <span class="text-red-500">*</span></label>
+          <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="person@company.com"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+          @if (emailControl.invalid && (emailControl.touched || emailControl.dirty)) {
+            <small class="text-red-600">Enter a valid email.</small>
+          }
+        </div>
+        <div>
+          <label for="fullName" class="block text-sm font-medium text-slate-700 mb-1.5">Full name (optional)</label>
+          <input id="fullName" type="text" formControlName="fullName" autocomplete="name" placeholder="Jane Doe"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+        </div>
+        <div class="flex items-center gap-3 pt-6">
+          <input id="isActive" type="checkbox" formControlName="isActive"
+            class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"/>
+          <label for="isActive" class="text-sm font-medium text-slate-700">Account active on creation</label>
+        </div>
+      </div>
+
+      @if (availableRoles.length > 0) {
+        <div class="border-t border-slate-100 pt-5">
+          <h2 class="text-sm font-semibold text-slate-800 mb-3">Roles (optional)</h2>
+          <ul class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            @for (role of availableRoles; track role.id) {
+              <li class="flex items-center gap-3">
+                <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  [id]="'role-' + role.id"
+                  [checked]="isRoleSelected(role.name!)"
+                  (change)="toggleRole(role.name!, $any($event.target).checked)"/>
+                <label [for]="'role-' + role.id" class="text-sm text-slate-800">{{ role.name }}</label>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (submitError) {
+        <div class="border-t border-slate-100 pt-4">
+          <app-load-error-banner [error]="submitError" (retry)="submit()" />
+        </div>
+      }
+
+      <div class="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
+        <button type="submit" [disabled]="isSubmitting"
+          class="inline-flex items-center justify-center rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 disabled:opacity-60 disabled:pointer-events-none transition-colors duration-150">
+          @if (isSubmitting) { Processing… }
+          @else if (sendInvite) { Send invite }
+          @else { Create user }
+        </button>
+        <a routerLink="/app/users" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors duration-150">Cancel</a>
+      </div>
+    </form>
+  }
 </section>

@@ -31,6 +31,9 @@ public sealed class AuthService : IAuthService
     public Task<Result<IReadOnlyList<UserSessionResponse>>> GetActiveSessionsAsync(string u, Guid? s, CancellationToken ct)
         => _sender.Send(new GetActiveSessionsQuery(u, s), ct);
 
+    public Task<Result<IReadOnlyList<UserSessionResponse>>> GetRecentSessionsAsync(string u, Guid? s, int t, CancellationToken ct)
+        => _sender.Send(new GetRecentSessionsQuery(u, s, t), ct);
+
     public Task<Result> LogoutAsync(string u, RefreshTokenRequest r, CancellationToken ct)
         => _sender.Send(new LogoutCommand(u, r), ct);
 

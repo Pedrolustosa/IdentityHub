@@ -81,33 +81,29 @@
         </label>
       </div>
 
-      <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500">Filters apply to pagination and CSV export.</p>
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            (click)="applyFilters()"
-            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-blue-500"
-          >
-            Apply Filters
-          </button>
-          <button
-            type="button"
-            (click)="resetFilters()"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            (click)="exportCsv()"
-            [disabled]="isExporting"
-            class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors duration-150 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {{ isExporting ? 'Exporting...' : 'Export CSV' }}
-          </button>
+        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-wrap items-center gap-2">
+            <p class="text-xs text-slate-500 font-medium">Quick period:</p>
+            @for (period of quickPeriods; track period.label) {
+              <button type="button" (click)="applyQuickPeriod(period.days)"
+                class="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50">{{ period.label }}</button>
+            }
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" (click)="applyFilters()"
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-blue-500">Apply Filters</button>
+            <button type="button" (click)="resetFilters()"
+              class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50">Reset</button>
+            <button type="button" (click)="exportCsv()" [disabled]="isExporting"
+              class="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition-colors duration-150 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50">
+              {{ isExporting ? 'Exporting...' : 'Export CSV' }}
+            </button>
+            <button type="button" (click)="exportJson()" [disabled]="items.length === 0"
+              class="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition-colors duration-150 hover:bg-indigo-100 disabled:opacity-50">
+              Export JSON
+            </button>
+          </div>
         </div>
-      </div>
     </section>
 
     @if (isLoading) {
@@ -141,15 +137,34 @@
               <th class="text-left py-3 px-3 font-semibold">Actor User ID</th>
               <th class="text-left py-3 px-3 font-semibold">Description</th>
               <th class="text-left py-3 px-3 font-semibold">Created At</th>
+              <th class="text-right py-3 px-3 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (item of items; track trackById($index, item)) {
               <tr class="border-b border-slate-100 align-top hover:bg-slate-50 transition-colors duration-150">
-                <td class="py-3 px-3 text-slate-900 font-medium">{{ item.type }}</td>
+                <td class="py-3 px-3">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-slate-900 font-medium">{{ item.type }}</span>
+                    <button type="button" (click)="copyId(item.id)"
+                      class="rounded p-0.5 text-slate-400 hover:text-slate-700 transition-colors" title="Copy log ID">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/>
+                      </svg>
+                    </button>
+                    @if (copiedId === item.id) {
+                      <span class="text-[10px] text-emerald-600">Copied!</span>
+                    }
+                  </div>
+                </td>
                 <td class="py-3 px-3 text-slate-700 font-mono text-xs break-all">{{ item.actorUserId }}</td>
                 <td class="py-3 px-3 text-slate-700">{{ item.description }}</td>
                 <td class="py-3 px-3 text-slate-600 whitespace-nowrap">{{ item.createdAt | date:'medium' }}</td>
+                <td class="py-3 px-3 text-right">
+                  <a [routerLink]="['/app/audit-logs', item.id]" class="inline-flex rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100">
+                    View details
+                  </a>
+                </td>
               </tr>
             }
           </tbody>
@@ -171,6 +186,9 @@
               <p class="text-[11px] uppercase tracking-wide text-slate-500">Actor User ID</p>
               <p class="mt-1 break-all font-mono text-xs text-slate-700">{{ item.actorUserId }}</p>
             </div>
+            <a [routerLink]="['/app/audit-logs', item.id]" class="inline-flex rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100">
+              View details
+            </a>
           </article>
         }
       </div>
