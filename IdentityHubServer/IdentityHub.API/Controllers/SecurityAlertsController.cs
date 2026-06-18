@@ -30,6 +30,13 @@ public sealed class SecurityAlertsController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        return result.ToActionResult();
+    }
+
     [HttpPut("{id:guid}/status")]
     [Authorize(Policy = "SecurityEvents.Manage")]
     public async Task<IActionResult> UpdateStatus(

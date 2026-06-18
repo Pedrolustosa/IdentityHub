@@ -36,6 +36,30 @@ public sealed class AuditLogRepository : IAuditLogRepository
         return (items, totalCount);
     }
 
+    public Task<AuditLogEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.AuditLogEntries
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<AuditLogEntry>> GetRecentByUserAsync(
+        string userId,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        var safeTake = Math.Clamp(take, 1, 100);
+
+        var items = await _context.AuditLogEntries
+            .AsNoTracking()
+            .Where(x => x.ActorUserId == userId || x.TargetId == userId)
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(safeTake)
+            .ToListAsync(cancellationToken);
+
+        return items;
+    }
+
     private IQueryable<AuditLogEntry> ApplyFilters(AuditLogFilter request)
     {
         var query = _context.AuditLogEntries.AsNoTracking();

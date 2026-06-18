@@ -12,5 +12,12 @@ public interface IAuditLogService
         int pageSize,
         CancellationToken cancellationToken);
 
+    Task<Result<AuditLogItemResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<Result<IReadOnlyList<AuditLogItemResponse>>> GetRecentByUserAsync(
+        string userId,
+        int take,
+        CancellationToken cancellationToken);
+
     Task<string> ExportCsvAsync(AuditLogFilter request, CancellationToken cancellationToken);
 }

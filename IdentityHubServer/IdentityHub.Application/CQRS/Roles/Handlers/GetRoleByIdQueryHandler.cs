@@ -26,10 +26,13 @@ public sealed class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, 
             return Result<RoleResponse>.Failure(
                 Error.Create("Role.NotFound", "Role not found"));
 
+        var userCount = await _repository.GetUserCountAsync(role.Id, cancellationToken);
+
         return Result<RoleResponse>.Success(new RoleResponse
         {
             Id = role.Id,
-            Name = role.Name
+            Name = role.Name ?? string.Empty,
+            UserCount = userCount
         });
     }
 }

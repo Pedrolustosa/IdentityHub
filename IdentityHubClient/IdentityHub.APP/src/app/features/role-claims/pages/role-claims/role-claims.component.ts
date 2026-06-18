@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs/operators';
@@ -17,7 +18,7 @@ export interface RoleWithPermissionMeta {
 @Component({
   selector: 'app-role-claims',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
   templateUrl: './role-claims.component.html',
   styleUrl: './role-claims.component.css'
 })
@@ -25,7 +26,14 @@ export class RoleClaimsComponent implements OnInit {
   isLoading = true;
   loadError: UiLoadError | null = null;
   rows: RoleWithPermissionMeta[] = [];
+  searchTerm = '';
+  showCreateModal = false;
+  newRoleName = '';
+  isCreating = false;
+  deletingRoleId: string | null = null;
   readonly canAssignRolePermissions: boolean;
+  readonly canCreateRole: boolean;
+  readonly canDeleteRole: boolean;
 
   constructor(
     private readonly rolesService: RolesService,
@@ -33,6 +41,8 @@ export class RoleClaimsComponent implements OnInit {
     private readonly toastr: ToastrService
   ) {
     this.canAssignRolePermissions = this.authService.canAssignRolePermissions();
+    this.canCreateRole = this.authService.hasPermission('Roles.Create');
+    this.canDeleteRole = this.authService.hasPermission('Roles.Delete');
   }
 
   ngOnInit(): void {
@@ -82,5 +92,54 @@ export class RoleClaimsComponent implements OnInit {
 
   rolesWithoutPermissionsLoadedCount(): number {
     return this.rows.filter((row) => row.permissionCount === null).length;
+  }
+
+  filteredRows(): RoleWithPermissionMeta[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) return this.rows;
+    return this.rows.filter((row) => (row.role.name ?? '').toLowerCase().includes(term));
+  }
+
+  createRole(): void {
+    const name = this.newRoleName.trim();
+    if (!name || this.isCreating) return;
+
+    this.isCreating = true;
+    this.rolesService
+      .createRole({ name })
+      .pipe(finalize(() => (this.isCreating = false)))
+      .subscribe({
+        next: () => {
+          this.toastr.success(`Role "${name}" created.`, 'Roles');
+          this.showCreateModal = false;
+          this.newRoleName = '';
+          this.load();
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Roles');
+        }
+      });
+  }
+
+  deleteRole(row: RoleWithPermissionMeta): void {
+    if (this.deletingRoleId || !row.role.name) return;
+
+    if (!window.confirm(`Delete role "${row.role.name}"? This cannot be undone.`)) return;
+
+    this.deletingRoleId = row.role.id;
+    this.rolesService
+      .deleteRole(row.role.id)
+      .pipe(finalize(() => (this.deletingRoleId = null)))
+      .subscribe({
+        next: () => {
+          this.rows = this.rows.filter((r) => r.role.id !== row.role.id);
+          this.toastr.success(`Role "${row.role.name}" deleted.`, 'Roles');
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Roles');
+        }
+      });
   }
 }

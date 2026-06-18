@@ -12,6 +12,7 @@ namespace IdentityHub.Domain.Interfaces
 
         Task AddSessionAsync(UserSession session, CancellationToken cancellationToken = default);
         Task<List<UserSession>> GetActiveSessionsAsync(string userId, CancellationToken cancellationToken = default);
+        Task<List<UserSession>> GetRecentSessionsAsync(string userId, int take, CancellationToken cancellationToken = default);
         Task<UserSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
         Task RevokeSessionAsync(UserSession session, CancellationToken cancellationToken = default);
 

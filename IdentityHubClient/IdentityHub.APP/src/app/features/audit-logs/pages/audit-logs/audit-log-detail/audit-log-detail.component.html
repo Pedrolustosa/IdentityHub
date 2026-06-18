@@ -1,0 +1,70 @@
+<section class="max-w-4xl space-y-6">
+  <a routerLink="/app/audit-logs" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+    </svg>
+    Back to audit logs
+  </a>
+
+  @if (isLoading) {
+    <div class="rounded-xl border bg-white p-6 shadow-sm space-y-4">
+      <div class="h-8 w-52 rounded-md bg-slate-100 animate-pulse"></div>
+      <div class="h-4 w-full max-w-md rounded-md bg-slate-100 animate-pulse"></div>
+      <div class="h-28 rounded-lg bg-slate-100 animate-pulse"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="rounded-xl border bg-white p-4 shadow-sm">
+      <app-load-error-banner [error]="loadError" [notFoundBackLink]="['/app/audit-logs']" notFoundBackLabel="Back to audit logs" (retry)="loadAuditLog(auditLogId)" />
+    </div>
+  } @else if (!auditLog) {
+    <div class="rounded-xl border bg-white p-8 shadow-sm text-center space-y-4">
+      <p class="font-medium text-slate-900">Audit entry unavailable</p>
+      <a routerLink="/app/audit-logs" class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500">Return to list</a>
+    </div>
+  } @else {
+    <div class="rounded-xl border bg-white shadow-sm overflow-hidden">
+      <div class="border-b border-slate-100 p-6 space-y-4">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 class="text-xl font-semibold tracking-tight text-slate-900">{{ auditLog.type }}</h1>
+            <p class="mt-1 text-sm text-slate-500">Recorded on {{ auditLog.createdAt | date:'medium' }}</p>
+          </div>
+          <button type="button" (click)="copyId()" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            Copy ID
+          </button>
+        </div>
+        @if (copied) {
+          <p class="text-xs text-emerald-600">Audit ID copied to clipboard.</p>
+        }
+      </div>
+
+      <dl class="grid gap-5 p-6 sm:grid-cols-2">
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Audit ID</dt>
+          <dd class="mt-1 text-xs font-mono text-slate-700 break-all">{{ auditLog.id }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Actor user ID</dt>
+          <dd class="mt-1 text-xs font-mono text-slate-700 break-all">{{ auditLog.actorUserId }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Target ID</dt>
+          <dd class="mt-1 text-sm text-slate-700 break-all">{{ auditLog.targetId || 'Not available' }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Event timestamp</dt>
+          <dd class="mt-1 text-sm text-slate-700">{{ auditLog.createdAt | date:'yyyy-MM-dd HH:mm:ss' }} UTC</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</dt>
+          <dd class="mt-1 text-sm text-slate-800">{{ auditLog.description }}</dd>
+        </div>
+      </dl>
+
+      <div class="border-t border-slate-100 bg-slate-50 p-6">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Metadata JSON</p>
+        <pre class="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-700">{{ metadataPretty }}</pre>
+      </div>
+    </div>
+  }
+</section>

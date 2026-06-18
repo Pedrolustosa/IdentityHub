@@ -49,6 +49,26 @@ public sealed class SecurityAlertsService : ISecurityAlertsService
         return Result<PagedResponse<SecurityAlertItemResponse>>.Success(response);
     }
 
+    public async Task<Result<SecurityAlertItemResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var securityEvent = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (securityEvent is null)
+            return Result<SecurityAlertItemResponse>.Failure(
+                Error.Create("SecurityAlert.NotFound", "Security alert not found"));
+
+        return Result<SecurityAlertItemResponse>.Success(new SecurityAlertItemResponse
+        {
+            Id = securityEvent.Id,
+            UserId = securityEvent.UserId,
+            Type = securityEvent.Type,
+            Severity = securityEvent.Severity,
+            Status = securityEvent.Status,
+            Description = securityEvent.Description,
+            CreatedAt = securityEvent.CreatedAt
+        });
+    }
+
     public async Task<Result> UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken)
     {
         var normalizedStatus = (status ?? string.Empty).Trim();

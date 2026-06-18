@@ -6,6 +6,11 @@ import { environment } from '../../../environments/environment';
 export interface RoleListItem {
   id: string;
   name: string | null;
+  userCount?: number;
+}
+
+export interface CreateRoleRequest {
+  name: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,5 +39,13 @@ export class RolesService {
     return this.http.put(`${this.rolesApiUrl}/${encodeURIComponent(roleId)}/permissions`, { permissions }, {
       responseType: 'text'
     });
+  }
+
+  createRole(body: CreateRoleRequest): Observable<string> {
+    return this.http.post(`${this.rolesApiUrl}`, body, { responseType: 'text' });
+  }
+
+  deleteRole(id: string): Observable<string> {
+    return this.http.delete(`${this.rolesApiUrl}/${encodeURIComponent(id)}`, { responseType: 'text' });
   }
 }

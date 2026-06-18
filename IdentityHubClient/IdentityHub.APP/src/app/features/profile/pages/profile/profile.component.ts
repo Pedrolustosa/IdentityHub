@@ -15,7 +15,7 @@ import { LoadErrorBannerComponent } from '../../../../shared/components/load-err
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService, ProfileResponse, UserSessionResponse } from '../../../../core/services/auth.service';
+import { AuthService, MeResponse, ProfileResponse, UserSessionResponse } from '../../../../core/services/auth.service';
 
 function profileUpdateErrorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) {
@@ -99,7 +99,13 @@ export class ProfileComponent implements OnInit {
   passwordSubmitError: UiLoadError | null = null;
   sessionsLoadError: UiLoadError | null = null;
   sessions: UserSessionResponse[] = [];
+  sessionsHistory: UserSessionResponse[] = [];
+  isSessionsHistoryLoading = false;
+  sessionsHistoryLoadError: UiLoadError | null = null;
   revokingSessionId: string | null = null;
+  revokingOtherSessions = false;
+  me: MeResponse | null = null;
+  selectedTab: 'personal' | 'security' | 'sessions' | 'access' = 'personal';
 
   /** Sign-in email from the session; sent on profile save and not editable in the UI. */
   initialEmail = '';
@@ -266,6 +272,7 @@ export class ProfileComponent implements OnInit {
 
     this.authService.getMe().subscribe({
       next: (me) => {
+        this.me = me;
         this.form.patchValue(
           {
             fullName: me.fullName ?? '',
@@ -278,6 +285,7 @@ export class ProfileComponent implements OnInit {
     });
 
     this.loadSessions();
+    this.loadSessionsHistory();
   }
 
   loadSessions(): void {
@@ -299,8 +307,34 @@ export class ProfileComponent implements OnInit {
       });
   }
 
+  loadSessionsHistory(): void {
+    this.isSessionsHistoryLoading = true;
+    this.sessionsHistoryLoadError = null;
+
+    this.authService
+      .getSessionsHistory(20)
+      .pipe(finalize(() => (this.isSessionsHistoryLoading = false)))
+      .subscribe({
+        next: (history) => {
+          this.sessionsHistory = history;
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.sessionsHistoryLoadError = mapped;
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Login history');
+        }
+      });
+  }
+
   revokeSession(session: UserSessionResponse): void {
     if (this.revokingSessionId) {
+      return;
+    }
+
+    const confirmed = typeof window === 'undefined'
+      ? true
+      : window.confirm(session.isCurrent ? 'Sign out this current session now?' : 'Revoke this session now?');
+    if (!confirmed) {
       return;
     }
 
@@ -319,6 +353,15 @@ export class ProfileComponent implements OnInit {
           }
 
           this.sessions = this.sessions.filter((entry) => entry.id !== session.id);
+          this.sessionsHistory = this.sessionsHistory.map((entry) =>
+            entry.id === session.id
+              ? {
+                  ...entry,
+                  isActive: false,
+                  revokedAt: new Date().toISOString()
+                }
+              : entry
+          );
           this.toastr.success('Session revoked.', 'Sessions');
         },
         error: (err: unknown) => {
@@ -333,8 +376,84 @@ export class ProfileComponent implements OnInit {
     return this.revokingSessionId === sessionId;
   }
 
+  revokeAllOtherSessions(): void {
+    if (this.revokingOtherSessions) {
+      return;
+    }
+
+    const hasOtherSessions = this.sessions.some((session) => !session.isCurrent);
+    if (!hasOtherSessions) {
+      this.toastr.info('No other active sessions to revoke.', 'Sessions');
+      return;
+    }
+
+    const confirmed = typeof window === 'undefined'
+      ? true
+      : window.confirm('Revoke all other active sessions for your account?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.revokingOtherSessions = true;
+    this.sessionsLoadError = null;
+
+    this.authService
+      .revokeOtherSessions()
+      .pipe(finalize(() => (this.revokingOtherSessions = false)))
+      .subscribe({
+        next: () => {
+          this.sessions = this.sessions.filter((session) => session.isCurrent);
+          this.loadSessionsHistory();
+          this.toastr.success('All other sessions were revoked.', 'Sessions');
+        },
+        error: (err: unknown) => {
+          const mapped = mapHttpToUiLoadError(err);
+          this.sessionsLoadError = mapped;
+          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
+        }
+      });
+  }
+
+  setTab(tab: 'personal' | 'security' | 'sessions' | 'access'): void {
+    this.selectedTab = tab;
+  }
+
+  tabClass(tab: 'personal' | 'security' | 'sessions' | 'access'): string {
+    return this.selectedTab === tab
+      ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-50'
+      : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50';
+  }
+
   currentSessionsCount(): number {
     return this.sessions.filter((session) => session.isCurrent).length;
+  }
+
+  historyActiveCount(): number {
+    return this.sessionsHistory.filter((session) => session.isActive).length;
+  }
+
+  historyRevokedCount(): number {
+    return this.sessionsHistory.filter((session) => !session.isActive).length;
+  }
+
+  sessionStatusClass(session: UserSessionResponse): string {
+    if (session.isCurrent) {
+      return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
+    }
+
+    if (session.isActive) {
+      return 'bg-sky-50 text-sky-700 ring-1 ring-sky-200';
+    }
+
+    return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200';
+  }
+
+  sessionStatusText(session: UserSessionResponse): string {
+    if (session.isCurrent) {
+      return 'Current';
+    }
+
+    return session.isActive ? 'Active' : 'Revoked';
   }
 
   submit(): void {

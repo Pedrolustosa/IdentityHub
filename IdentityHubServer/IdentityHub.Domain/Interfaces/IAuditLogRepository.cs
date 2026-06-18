@@ -10,6 +10,13 @@ public interface IAuditLogRepository
         int pageSize,
         CancellationToken cancellationToken = default);
 
+    Task<AuditLogEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AuditLogEntry>> GetRecentByUserAsync(
+        string userId,
+        int take,
+        CancellationToken cancellationToken = default);
+
     Task WriteAsync(string eventType, string description, CancellationToken cancellationToken = default);
 
     Task WriteAsync(

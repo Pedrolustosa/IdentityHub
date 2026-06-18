@@ -15,11 +15,20 @@
         <h1 class="text-2xl font-semibold text-slate-900">Profile and security</h1>
         <p class="text-slate-500 mt-1 max-w-xl mx-auto">Update your account details and password.</p>
       </header>
+
+      <div class="inline-flex w-full flex-wrap items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-1">
+        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('personal')" (click)="setTab('personal')">Dados pessoais</button>
+        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('security')" (click)="setTab('security')">Segurança</button>
+        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('sessions')" (click)="setTab('sessions')">Sessões</button>
+        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('access')" (click)="setTab('access')">Meu acesso</button>
+      </div>
     </div>
 
+    @if (selectedTab === 'personal' || selectedTab === 'security') {
     <div
       class="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch justify-items-center lg:justify-items-stretch"
     >
+      @if (selectedTab === 'personal') {
       <div
         class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
       >
@@ -65,7 +74,9 @@
           </button>
         </form>
       </div>
+      }
 
+      @if (selectedTab === 'security') {
       <div
         class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
       >
@@ -238,14 +249,27 @@
           </button>
         </form>
       </div>
+      }
     </div>
+    }
 
+    @if (selectedTab === 'sessions') {
     <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
       <div class="sessions-header border-b border-slate-100 px-5 py-4 sm:px-6">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-sm font-semibold text-slate-800">Active sessions</h2>
             <p class="text-xs text-slate-600 mt-1">Review where you are signed in and revoke one session at a time.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="revokeAllOtherSessions()"
+              [disabled]="revokingOtherSessions || isSessionsLoading"
+              class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-60"
+            >
+              {{ revokingOtherSessions ? 'Revoking...' : 'End all other sessions' }}
+            </button>
           </div>
           <div class="grid grid-cols-2 gap-2 sm:w-auto">
             <div class="session-kpi">
@@ -332,7 +356,105 @@
             }
           </div>
         }
+
+        <section class="pt-2 border-t border-slate-100 space-y-3">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-800">Recent login history</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Last 20 sessions for this account, including revoked entries.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 sm:w-auto">
+              <div class="session-kpi">
+                <span class="session-kpi-label">Active</span>
+                <span class="session-kpi-value">{{ historyActiveCount() }}</span>
+              </div>
+              <div class="session-kpi">
+                <span class="session-kpi-label">Revoked</span>
+                <span class="session-kpi-value">{{ historyRevokedCount() }}</span>
+              </div>
+            </div>
+          </div>
+
+          @if (sessionsHistoryLoadError) {
+            <app-load-error-banner [error]="sessionsHistoryLoadError" (retry)="loadSessionsHistory()" />
+          }
+
+          @if (isSessionsHistoryLoading) {
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+              Loading login history...
+            </div>
+          } @else if (sessionsHistory.length === 0) {
+            <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-sm text-slate-500">
+              No session history was found for this account.
+            </div>
+          } @else {
+            <div class="space-y-2">
+              @for (entry of sessionsHistory; track entry.id) {
+                <article class="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0 space-y-1.5">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-semibold tracking-wide text-slate-700">{{ entry.id.slice(0, 8) }}</span>
+                        <span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold" [ngClass]="sessionStatusClass(entry)">
+                          {{ sessionStatusText(entry) }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-slate-600">{{ entry.browser }} on {{ entry.operatingSystem }} • IP {{ entry.ipAddress }}</p>
+                      <p class="text-xs text-slate-500">Started: {{ entry.createdAt | date:'medium' }}</p>
+                      <p class="text-xs text-slate-500">Last access: {{ entry.lastAccessAt ? (entry.lastAccessAt | date:'medium') : 'Not used yet' }}</p>
+                      @if (!entry.isActive && entry.revokedAt) {
+                        <p class="text-xs text-slate-500">Revoked: {{ entry.revokedAt | date:'medium' }}</p>
+                      }
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
       </div>
     </section>
+    }
+
+    @if (selectedTab === 'access') {
+      <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
+          <h2 class="text-sm font-semibold text-slate-800">Meu acesso</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Roles e permissões efetivas da sessão atual.</p>
+        </div>
+
+        <div class="p-5 sm:p-6 space-y-5">
+          @if (me) {
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Roles</h3>
+              @if (me.roles.length === 0) {
+                <p class="mt-2 text-sm text-slate-500">Nenhuma role atribuída.</p>
+              } @else {
+                <div class="mt-2 flex flex-wrap gap-2">
+                  @for (role of me.roles; track role) {
+                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800">{{ role }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Permissões efetivas</h3>
+              @if (me.permissions.length === 0) {
+                <p class="mt-2 text-sm text-slate-500">Nenhuma permissão efetiva encontrada.</p>
+              } @else {
+                <div class="mt-2 flex flex-wrap gap-2">
+                  @for (permission of me.permissions; track permission) {
+                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono text-slate-800">{{ permission }}</span>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-sm text-slate-500">Não foi possível carregar seus dados de acesso.</p>
+          }
+        </div>
+      </section>
+    }
   </div>
 </div>

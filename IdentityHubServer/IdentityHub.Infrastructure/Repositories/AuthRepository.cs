@@ -76,6 +76,20 @@ namespace IdentityHub.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public Task<List<UserSession>> GetRecentSessionsAsync(
+            string userId,
+            int take,
+            CancellationToken cancellationToken = default)
+        {
+            var safeTake = Math.Clamp(take, 1, 100);
+
+            return _context.UserSessions
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreatedAt)
+                .Take(safeTake)
+                .ToListAsync(cancellationToken);
+        }
+
         public Task<UserSession?> GetSessionByIdAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default)

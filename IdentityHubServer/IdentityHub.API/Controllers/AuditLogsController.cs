@@ -29,6 +29,13 @@ public sealed class AuditLogsController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        return result.ToActionResult();
+    }
+
     [HttpGet("export")]
     public async Task<IActionResult> ExportCsv(
         [FromQuery] AuditLogFilter request,

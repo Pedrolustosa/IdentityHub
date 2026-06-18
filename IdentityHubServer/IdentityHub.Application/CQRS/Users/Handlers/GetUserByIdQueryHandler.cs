@@ -27,13 +27,18 @@ public sealed class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, 
                 Error.Create("User.NotFound", "User not found"));
 
         var roles = await _repository.GetRolesAsync(user, cancellationToken);
+        var lastLoginAt = await _repository.GetLastLoginAtAsync(user.Id, cancellationToken);
+        var activeSessions = await _repository.GetActiveSessionsCountAsync(user.Id, cancellationToken);
 
         return Result<UserResponse>.Success(new UserResponse
         {
             Id = user.Id,
-            Email = user.Email,
-            FullName = user.FullName,
+            Email = user.Email ?? string.Empty,
+            FullName = user.FullName ?? string.Empty,
             IsActive = user.IsActive,
+            EmailConfirmed = user.EmailConfirmed,
+            LastLoginAt = lastLoginAt,
+            ActiveSessions = activeSessions,
             Roles = roles
         });
     }

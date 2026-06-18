@@ -15,7 +15,9 @@ interface AuditLogApiDto {
   id: string;
   actorUserId: string;
   type: string;
+  targetId?: string | null;
   description: string;
+  metadataJson?: string | null;
   createdAt: string;
 }
 
@@ -31,7 +33,9 @@ export interface AuditLogItem {
   id: string;
   actorUserId: string;
   type: string;
+  targetId?: string | null;
   description: string;
+  metadataJson?: string | null;
   createdAt: string;
 }
 
@@ -66,6 +70,10 @@ export class AuditLogsService {
       params,
       responseType: 'blob'
     });
+  }
+
+  getById(id: string): Observable<AuditLogItem> {
+    return this.http.get<AuditLogItem>(`${this.auditLogsApiUrl}/${encodeURIComponent(id)}`);
   }
 
   private appendFilters(params: HttpParams, filters: AuditLogFilters): HttpParams {

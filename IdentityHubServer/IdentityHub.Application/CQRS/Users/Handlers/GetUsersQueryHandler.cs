@@ -26,13 +26,18 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, Result
         foreach (var user in users)
         {
             var roles = await _repository.GetRolesAsync(user, cancellationToken);
+            var lastLoginAt = await _repository.GetLastLoginAtAsync(user.Id, cancellationToken);
+            var activeSessions = await _repository.GetActiveSessionsCountAsync(user.Id, cancellationToken);
 
             response.Add(new UserResponse
             {
                 Id = user.Id,
-                Email = user.Email,
-                FullName = user.FullName,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
                 IsActive = user.IsActive,
+                EmailConfirmed = user.EmailConfirmed,
+                LastLoginAt = lastLoginAt,
+                ActiveSessions = activeSessions,
                 Roles = roles
             });
         }

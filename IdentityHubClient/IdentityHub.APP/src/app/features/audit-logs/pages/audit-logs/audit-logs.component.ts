@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuditLogFilters, AuditLogItem, AuditLogsService, PagedAuditLogs } from '../../audit-logs.service';
@@ -10,7 +11,7 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
 @Component({
   selector: 'app-audit-logs',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
   templateUrl: './audit-logs.component.html',
   styleUrl: './audit-logs.component.css'
 })
@@ -38,6 +39,12 @@ export class AuditLogsComponent implements OnInit {
   readonly pageSize = 20;
   totalCount = 0;
   totalPages = 0;
+  copiedId: string | null = null;
+  readonly quickPeriods = [
+    { label: 'Today', days: 0 },
+    { label: '7 days', days: 7 },
+    { label: '30 days', days: 30 }
+  ];
   readonly filters: AuditLogFilters = {
     type: '',
     actorUserId: '',
@@ -88,6 +95,38 @@ export class AuditLogsComponent implements OnInit {
     this.filters.fromDate = '';
     this.filters.toDate = '';
     this.loadAuditLogs(1);
+  }
+
+  applyQuickPeriod(days: number): void {
+    const now = new Date();
+    const to = now.toISOString().slice(0, 10);
+    if (days === 0) {
+      this.filters.fromDate = to;
+    } else {
+      const from = new Date(now);
+      from.setDate(from.getDate() - days);
+      this.filters.fromDate = from.toISOString().slice(0, 10);
+    }
+    this.filters.toDate = to;
+    this.loadAuditLogs(1);
+  }
+
+  copyId(id: string): void {
+    if (typeof navigator === 'undefined') return;
+    navigator.clipboard.writeText(id).then(() => {
+      this.copiedId = id;
+      setTimeout(() => (this.copiedId = null), 1500);
+    }).catch(() => {});
+  }
+
+  exportJson(): void {
+    const blob = new Blob([JSON.stringify(this.items, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `audit-logs-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   exportCsv(): void {

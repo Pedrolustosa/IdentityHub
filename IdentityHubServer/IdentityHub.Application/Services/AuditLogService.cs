@@ -1,7 +1,9 @@
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.CQRS.AuditLogs.Queries;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
+using IdentityHub.Domain.Interfaces;
 using IdentityHub.Domain.Entities;
 using MediatR;
 using System.Text;
@@ -11,10 +13,12 @@ namespace IdentityHub.Application.Services;
 public sealed class AuditLogService : IAuditLogService
 {
     private readonly ISender _sender;
+    private readonly IAuditLogRepository _repository;
 
-    public AuditLogService(ISender sender)
+    public AuditLogService(ISender sender, IAuditLogRepository repository)
     {
         _sender = sender;
+        _repository = repository;
     }
 
     public Task<Result<PagedResponse<AuditLogItemResponse>>> GetPagedAsync(
@@ -23,6 +27,49 @@ public sealed class AuditLogService : IAuditLogService
         int pageSize,
         CancellationToken cancellationToken)
         => _sender.Send(new GetAuditLogsQuery(request, page, pageSize), cancellationToken);
+
+    public async Task<Result<AuditLogItemResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var entry = await _repository.GetByIdAsync(id, cancellationToken);
+
+        if (entry is null)
+            return Result<AuditLogItemResponse>.Failure(
+                Error.Create("AuditLog.NotFound", "Audit log entry not found"));
+
+        return Result<AuditLogItemResponse>.Success(new AuditLogItemResponse
+        {
+            Id = entry.Id,
+            ActorUserId = entry.ActorUserId,
+            Type = entry.Type,
+            TargetId = entry.TargetId,
+            Description = entry.Description,
+            MetadataJson = entry.MetadataJson,
+            CreatedAt = entry.CreatedAt
+        });
+    }
+
+    public async Task<Result<IReadOnlyList<AuditLogItemResponse>>> GetRecentByUserAsync(
+        string userId,
+        int take,
+        CancellationToken cancellationToken)
+    {
+        var entries = await _repository.GetRecentByUserAsync(userId, take, cancellationToken);
+
+        var response = entries
+            .Select(entry => new AuditLogItemResponse
+            {
+                Id = entry.Id,
+                ActorUserId = entry.ActorUserId,
+                Type = entry.Type,
+                TargetId = entry.TargetId,
+                Description = entry.Description,
+                MetadataJson = entry.MetadataJson,
+                CreatedAt = entry.CreatedAt
+            })
+            .ToList();
+
+        return Result<IReadOnlyList<AuditLogItemResponse>>.Success(response);
+    }
 
     public async Task<string> ExportCsvAsync(
         AuditLogFilter request,
