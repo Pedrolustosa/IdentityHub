@@ -14,6 +14,9 @@ public sealed class UsersControllerAuthorizationTests
     [InlineData("Update", "Users.Update")]
     [InlineData("Delete", "Users.Delete")]
     [InlineData("UpdateRoles", "Users.Roles.Update")]
+    [InlineData("GetSessionsByUser", "Users.View")]
+    [InlineData("RevokeUserSession", "Users.Update")]
+    [InlineData("GetAuditLogsByUser", "Audit.View")]
     public void Action_ShouldDeclareExpectedPolicy(string methodName, string expectedPolicy)
     {
         var method = typeof(UsersController).GetMethod(methodName);

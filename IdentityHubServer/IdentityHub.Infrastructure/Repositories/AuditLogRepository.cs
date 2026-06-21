@@ -50,14 +50,12 @@ public sealed class AuditLogRepository : IAuditLogRepository
     {
         var safeTake = Math.Clamp(take, 1, 100);
 
-        var items = await _context.AuditLogEntries
+        return await _context.AuditLogEntries
             .AsNoTracking()
             .Where(x => x.ActorUserId == userId || x.TargetId == userId)
             .OrderByDescending(x => x.CreatedAt)
             .Take(safeTake)
             .ToListAsync(cancellationToken);
-
-        return items;
     }
 
     private IQueryable<AuditLogEntry> ApplyFilters(AuditLogFilter request)

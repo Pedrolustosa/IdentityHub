@@ -9,6 +9,7 @@
             Users.Update,
             Users.Delete,
             Users.UpdateRoles,
+            Users.InvitesView,
 
             Roles.View,
             Roles.Create,
@@ -18,9 +19,12 @@
             Roles.PermissionsUpdate,
 
             Dashboard.View,
+            Sessions.View,
+            Activity.View,
             Audit.View,
             SecurityEvents.View,
-            SecurityEvents.Manage
+            SecurityEvents.Manage,
+            SecuritySettings.View
         ];
 
         public static class Users
@@ -30,6 +34,7 @@
             public const string Update = "Users.Update";
             public const string Delete = "Users.Delete";
             public const string UpdateRoles = "Users.Roles.Update";
+            public const string InvitesView = "Users.Invites.View";
         }
 
         public static class Roles
@@ -47,6 +52,16 @@
             public const string View = "Dashboard.View";
         }
 
+        public static class Sessions
+        {
+            public const string View = "Sessions.View";
+        }
+
+        public static class Activity
+        {
+            public const string View = "Activity.View";
+        }
+
         public static class Audit
         {
             public const string View = "Audit.View";
@@ -56,6 +71,11 @@
         {
             public const string View = "SecurityEvents.View";
             public const string Manage = "SecurityEvents.Manage";
+        }
+
+        public static class SecuritySettings
+        {
+            public const string View = "SecuritySettings.View";
         }
     }
 }

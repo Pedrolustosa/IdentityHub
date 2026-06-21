@@ -281,10 +281,14 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    if ((environment.IsDevelopment() || environment.IsEnvironment("Testing"))
-        && !await userManager.Users.AnyAsync())
+    if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
     {
-        await UserSeed.SeedAsync(userManager, roleManager);
+        await UserSeed.EnsureRolesAndPermissionsAsync(roleManager);
+
+        if (!await userManager.Users.AnyAsync())
+        {
+            await UserSeed.SeedAsync(userManager, roleManager);
+        }
     }
 }
 

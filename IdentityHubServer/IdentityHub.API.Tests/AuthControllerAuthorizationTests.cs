@@ -6,10 +6,12 @@ namespace IdentityHub.API.Tests;
 
 public sealed class AuthControllerAuthorizationTests
 {
-    [Fact]
-    public void ChangePassword_ShouldRequireAuthenticatedUser()
+    [Theory]
+    [InlineData("ChangePassword")]
+    [InlineData("GetRecentSessions")]
+    public void Action_ShouldRequireAuthenticatedUser(string methodName)
     {
-        var method = typeof(AuthController).GetMethod("ChangePassword");
+        var method = typeof(AuthController).GetMethod(methodName);
 
         Assert.NotNull(method);
 

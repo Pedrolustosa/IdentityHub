@@ -3,13 +3,17 @@ using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace IdentityHub.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public sealed class UsersController(IUserService service, IAuthService authService, IAuditLogService auditLogService) : ControllerBase
+public sealed class UsersController(
+    IUserService service,
+    IAuthService authService,
+    IAuditLogService auditLogService) : ControllerBase
 {
     private readonly IUserService _service = service;
     private readonly IAuthService _authService = authService;
@@ -87,30 +91,43 @@ public sealed class UsersController(IUserService service, IAuthService authServi
 
     [HttpGet("{id}/sessions")]
     [Authorize(Policy = "Users.View")]
-    public async Task<IActionResult> GetUserSessions(
-        string id,
-        CancellationToken cancellationToken)
-    {
-        var result = await _authService.GetActiveSessionsAsync(id, null, cancellationToken);
-        return result.ToActionResult();
-    }
-
-    [HttpGet("{id}/sessions/history")]
-    [Authorize(Policy = "Users.View")]
-    public async Task<IActionResult> GetUserSessionsHistory(
+    public async Task<IActionResult> GetSessionsByUser(
         string id,
         [FromQuery] int take = 20,
         CancellationToken cancellationToken = default)
     {
-        var result = await _authService.GetRecentSessionsAsync(id, null, take, cancellationToken);
+        Guid? currentSessionId = null;
+
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.Equals(currentUserId, id, StringComparison.OrdinalIgnoreCase))
+        {
+            var sidValue = User.FindFirst("sid")?.Value;
+            if (Guid.TryParse(sidValue, out var parsedSessionId))
+            {
+                currentSessionId = parsedSessionId;
+            }
+        }
+
+        var result = await _authService.GetRecentSessionsAsync(id, currentSessionId, take, cancellationToken);
         return result.ToActionResult();
     }
 
-    [HttpGet("{id}/audit")]
-    [Authorize(Policy = "Audit.View")]
-    public async Task<IActionResult> GetUserAudit(
+    [HttpDelete("{id}/sessions/{sessionId:guid}")]
+    [Authorize(Policy = "Users.Update")]
+    public async Task<IActionResult> RevokeUserSession(
         string id,
-        [FromQuery] int take = 20,
+        Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _authService.RevokeSessionAsync(id, sessionId, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("{id}/audit-logs")]
+    [Authorize(Policy = "Audit.View")]
+    public async Task<IActionResult> GetAuditLogsByUser(
+        string id,
+        [FromQuery] int take = 50,
         CancellationToken cancellationToken = default)
     {
         var result = await _auditLogService.GetRecentByUserAsync(id, take, cancellationToken);

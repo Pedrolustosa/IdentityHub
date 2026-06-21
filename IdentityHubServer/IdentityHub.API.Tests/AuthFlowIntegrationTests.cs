@@ -183,6 +183,30 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
     }
 
     [Fact]
+    public async Task GetRecentSessions_ShouldIncludeRevokedSessionWithStatusFields()
+    {
+        var currentLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        var otherLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", currentLogin.Token);
+
+        var otherSessionId = ExtractSessionId(otherLogin.Token);
+
+        var revokeResponse = await _client.DeleteAsync($"/api/auth/sessions/{otherSessionId}");
+        Assert.Equal(HttpStatusCode.OK, revokeResponse.StatusCode);
+
+        var recentResponse = await _client.GetAsync("/api/auth/sessions/recent?take=10");
+        Assert.Equal(HttpStatusCode.OK, recentResponse.StatusCode);
+
+        var sessions = await recentResponse.Content.ReadFromJsonAsync<List<UserSessionDto>>();
+
+        Assert.NotNull(sessions);
+        Assert.Contains(sessions!, x => x.Id == otherSessionId && !x.IsActive && x.RevokedAt.HasValue);
+        Assert.Contains(sessions!, x => x.Id == ExtractSessionId(currentLogin.Token) && x.IsCurrent);
+    }
+
+    [Fact]
     public async Task ResetPassword_WithInvalidTokenFormat_ShouldReturnBadRequest()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/reset-password", new
@@ -276,6 +300,8 @@ public sealed class AuthFlowIntegrationTests : IClassFixture<TestWebApplicationF
         public string Browser { get; set; } = string.Empty;
         public string OperatingSystem { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public DateTime? RevokedAt { get; set; }
+        public bool IsActive { get; set; }
         public bool IsCurrent { get; set; }
     }
 }

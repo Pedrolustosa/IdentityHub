@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface SecurityAlertFilters {
   type: string;
   userId: string;
-  severity: string;
-  status: string;
+  severity?: string;
+  status?: string;
   fromDate: string;
   toDate: string;
 }
@@ -16,8 +17,8 @@ interface SecurityAlertApiDto {
   id: string;
   userId: string;
   type: string;
-  severity: string;
-  status: string;
+  severity?: string;
+  status?: string;
   description: string;
   createdAt: string;
 }
@@ -65,17 +66,33 @@ export class SecurityAlertsService {
 
     const requestParams = this.appendFilters(params, filters);
 
-    return this.http.get<PagedSecurityAlertsApiDto>(this.securityAlertsApiUrl, { params: requestParams });
+    return this.http.get<PagedSecurityAlertsApiDto>(this.securityAlertsApiUrl, { params: requestParams }).pipe(
+      map((dto) => ({
+        page: dto.page,
+        pageSize: dto.pageSize,
+        totalCount: dto.totalCount,
+        totalPages: dto.totalPages,
+        items: dto.items.map((item) => ({
+          id: item.id,
+          userId: item.userId,
+          type: item.type,
+          severity: item.severity ?? 'Low',
+          status: item.status ?? 'Open',
+          description: item.description,
+          createdAt: item.createdAt
+        }))
+      }))
+    );
+  }
+
+  getById(id: string): Observable<SecurityAlertItem> {
+    return this.http.get<SecurityAlertItem>(`${this.securityAlertsApiUrl}/${encodeURIComponent(id)}`);
   }
 
   updateAlertStatus(id: string, body: UpdateSecurityAlertStatusRequest): Observable<string> {
     return this.http.put(`${this.securityAlertsApiUrl}/${encodeURIComponent(id)}/status`, body, {
       responseType: 'text'
     });
-  }
-
-  getById(id: string): Observable<SecurityAlertItem> {
-    return this.http.get<SecurityAlertItem>(`${this.securityAlertsApiUrl}/${encodeURIComponent(id)}`);
   }
 
   private appendFilters(params: HttpParams, filters: SecurityAlertFilters): HttpParams {
@@ -89,11 +106,11 @@ export class SecurityAlertsService {
       next = next.set('userId', filters.userId.trim());
     }
 
-    if (filters.severity.trim()) {
+    if (filters.severity?.trim()) {
       next = next.set('severity', filters.severity.trim());
     }
 
-    if (filters.status.trim()) {
+    if (filters.status?.trim()) {
       next = next.set('status', filters.status.trim());
     }
 

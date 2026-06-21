@@ -87,6 +87,9 @@
     <div class="bg-white rounded-xl border shadow-sm p-6">
       <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Effective permissions</h2>
       <p class="mt-1 text-xs text-slate-500">These permissions are derived from your roles and account claims. This screen is read-only.</p>
+      @if (lastPermissionsUpdateAt) {
+        <p class="mt-2 text-xs text-slate-500">Last permissions update: {{ lastPermissionsUpdateAt | date:'medium' }}</p>
+      }
       @if (me.permissions.length === 0) {
         <p class="mt-4 text-sm text-slate-500">No permissions are granted to your account.</p>
       } @else {
@@ -96,6 +99,37 @@
           }
         </ul>
       }
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-xl border shadow-sm p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Screens you can access</h2>
+        @if (allowedRoutes().length === 0) {
+          <p class="mt-3 text-sm text-slate-500">No application screens are currently available.</p>
+        } @else {
+          <ul class="mt-3 space-y-2 text-sm">
+            @for (entry of allowedRoutes(); track entry.route) {
+              <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800">{{ entry.label }}</li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="bg-white rounded-xl border shadow-sm p-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Blocked screens</h2>
+        @if (blockedRoutes().length === 0) {
+          <p class="mt-3 text-sm text-slate-500">No blocked screens detected.</p>
+        } @else {
+          <ul class="mt-3 space-y-2 text-sm">
+            @for (entry of blockedRoutes(); track entry.label) {
+              <li class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
+                <p class="font-medium text-rose-800">{{ entry.label }}</p>
+                <p class="mt-0.5 text-xs text-rose-700">Required: {{ entry.requiredAny.join(' OR ') }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </div>
     </div>
   }
 </section>
