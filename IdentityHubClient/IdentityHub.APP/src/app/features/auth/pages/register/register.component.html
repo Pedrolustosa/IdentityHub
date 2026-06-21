@@ -18,7 +18,7 @@
       <div class="flex flex-col gap-1">
         <label for="fullName" class="text-sm font-medium text-slate-700">Name</label>
         <input id="fullName" type="text" formControlName="fullName" placeholder="John Doe" class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-        @if (fullNameControl?.invalid && (fullNameControl?.dirty || fullNameControl?.touched)) {
+        @if (fullNameControl!.invalid && (fullNameControl!.dirty || fullNameControl!.touched)) {
           <small class="text-red-600">Please enter your full name.</small>
         }
       </div>
@@ -26,7 +26,7 @@
       <div class="flex flex-col gap-1">
         <label for="email" class="text-sm font-medium text-slate-700">Email</label>
         <input id="email" type="email" formControlName="email" placeholder="you@example.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-        @if (emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)) {
+        @if (emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)) {
           <small class="text-red-600">Please enter a valid email.</small>
         }
       </div>
@@ -40,7 +40,7 @@
             formControlName="password"
             placeholder="Create a strong password"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            [ngClass]="{ 'border-red-500': passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched) }"
+            [ngClass]="{ 'border-red-500': passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched) }"
           />
           <button
             type="button"
