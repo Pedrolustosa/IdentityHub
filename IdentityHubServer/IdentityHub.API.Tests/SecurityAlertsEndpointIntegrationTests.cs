@@ -86,6 +86,40 @@ public sealed class SecurityAlertsEndpointIntegrationTests : IClassFixture<TestW
         });
     }
 
+    [Fact]
+    public async Task GetSecurityAlertById_ShouldReturnAlertDetails()
+    {
+        await AuthenticateAsAdminAsync();
+
+        await _client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@identityhub.com",
+            password = "Wrong@123"
+        });
+
+        var listResponse = await _client.GetAsync("/api/security-alerts?page=1&pageSize=1");
+        listResponse.EnsureSuccessStatusCode();
+
+        var listPayload = await listResponse.Content.ReadFromJsonAsync<PagedSecurityAlertResponseDto>();
+        Assert.NotNull(listPayload);
+        Assert.NotEmpty(listPayload!.Items);
+
+        var item = listPayload.Items.First();
+
+        var detailResponse = await _client.GetAsync($"/api/security-alerts/{item.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
+
+        var detail = await detailResponse.Content.ReadFromJsonAsync<SecurityAlertItemDto>();
+
+        Assert.NotNull(detail);
+        Assert.Equal(item.Id, detail!.Id);
+        Assert.Equal(item.Type, detail.Type);
+        Assert.Equal(item.UserId, detail.UserId);
+        Assert.False(string.IsNullOrWhiteSpace(detail.Status));
+        Assert.False(string.IsNullOrWhiteSpace(detail.Severity));
+    }
+
     private async Task AuthenticateAsAdminAsync()
     {
         var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
@@ -122,6 +156,8 @@ public sealed class SecurityAlertsEndpointIntegrationTests : IClassFixture<TestW
         public Guid Id { get; set; }
         public string UserId { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
+        public string Severity { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

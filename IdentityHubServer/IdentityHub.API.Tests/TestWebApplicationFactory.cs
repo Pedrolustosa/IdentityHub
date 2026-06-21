@@ -64,13 +64,24 @@ public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<DbConnection>();
 
-            _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open();
+            var hasSqliteFilePath = _additionalConfiguration.TryGetValue("Tests:SqliteFilePath", out var sqliteFilePath)
+                && !string.IsNullOrWhiteSpace(sqliteFilePath);
 
-            services.AddSingleton(_connection);
+            if (hasSqliteFilePath)
+            {
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseSqlite($"Data Source={sqliteFilePath}"));
+            }
+            else
+            {
+                _connection = new SqliteConnection("DataSource=:memory:");
+                _connection.Open();
 
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite((SqliteConnection)_connection));
+                services.AddSingleton(_connection);
+
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseSqlite((SqliteConnection)_connection));
+            }
 
             using var scope = services.BuildServiceProvider().CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

@@ -23,6 +23,13 @@ namespace IdentityHub.Infrastructure.Data.Seed
             await EnsureUsers(userManager);
         }
 
+        public static async Task EnsureRolesAndPermissionsAsync(
+            RoleManager<IdentityRole> roleManager)
+        {
+            await EnsureRoles(roleManager);
+            await EnsurePermissions(roleManager);
+        }
+
         private static async Task EnsureRoles(RoleManager<IdentityRole> roleManager)
         {
             string[] roles = { "Admin", "Manager", "User" };
@@ -45,6 +52,7 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Users.Update,
                     AppPermissions.Users.Delete,
                     AppPermissions.Users.UpdateRoles,
+                    AppPermissions.Users.InvitesView,
 
                     AppPermissions.Roles.View,
                     AppPermissions.Roles.Create,
@@ -54,20 +62,26 @@ namespace IdentityHub.Infrastructure.Data.Seed
                     AppPermissions.Roles.PermissionsUpdate,
 
                     AppPermissions.Dashboard.View,
+                    AppPermissions.Sessions.View,
+                    AppPermissions.Activity.View,
                     AppPermissions.Audit.View,
                     AppPermissions.SecurityEvents.View,
-                    AppPermissions.SecurityEvents.Manage
+                    AppPermissions.SecurityEvents.Manage,
+                    AppPermissions.SecuritySettings.View
                 },
 
                 ["Manager"] = new()
                 {
                     AppPermissions.Users.View,
                     AppPermissions.Users.Update,
+                    AppPermissions.Users.InvitesView,
 
                     AppPermissions.Roles.View,
                     AppPermissions.Roles.PermissionsView,
 
-                    AppPermissions.Dashboard.View
+                    AppPermissions.Dashboard.View,
+                    AppPermissions.Sessions.View,
+                    AppPermissions.Activity.View
                 },
 
                 ["User"] = new()

@@ -204,10 +204,10 @@ export class SecurityAlertsComponent implements OnInit {
     if (this.filters.userId.trim()) {
       count++;
     }
-    if (this.filters.severity.trim()) {
+    if (this.filters.severity?.trim()) {
       count++;
     }
-    if (this.filters.status.trim()) {
+    if (this.filters.status?.trim()) {
       count++;
     }
     if (this.filters.fromDate.trim()) {

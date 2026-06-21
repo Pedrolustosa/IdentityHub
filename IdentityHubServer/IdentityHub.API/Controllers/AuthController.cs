@@ -111,8 +111,8 @@ public sealed class AuthController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("sessions/history")]
-    public async Task<IActionResult> GetSessionsHistory(
+    [HttpGet("sessions/recent")]
+    public async Task<IActionResult> GetRecentSessions(
         [FromQuery] int take = 20,
         CancellationToken cancellationToken = default)
     {

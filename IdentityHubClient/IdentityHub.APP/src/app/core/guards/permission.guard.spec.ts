@@ -62,15 +62,23 @@ describe('permissionGuard', () => {
 
     const result = run({ permissions: ['Roles.View', 'Roles.Permissions.View'], requireAll: true });
 
-    expect(result).toEqual(router.createUrlTree(['/app/profile']));
+    expect(result).toEqual(router.createUrlTree(['/app/access-denied'], {
+      queryParams: {
+        required: 'Roles.View,Roles.Permissions.View'
+      }
+    }));
   });
 
-  it('redirects to /app/profile when the required permission is missing', () => {
+  it('redirects to /app/access-denied when the required permission is missing', () => {
     authServiceSpy.isAuthenticated.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(false);
 
     const result = run({ permission: 'Users.View' });
 
-    expect(result).toEqual(router.createUrlTree(['/app/profile']));
+    expect(result).toEqual(router.createUrlTree(['/app/access-denied'], {
+      queryParams: {
+        required: 'Users.View'
+      }
+    }));
   });
 });

@@ -217,6 +217,73 @@ public sealed class AuditLogIntegrationTests : IClassFixture<TestWebApplicationF
     }
 
     [Fact]
+    public async Task GetAuditLogById_ShouldReturnEntryDetails()
+    {
+        await AuthenticateAsAdminAsync();
+
+        var marker = Guid.NewGuid().ToString("N");
+        var email = $"audit.detail.{marker}@identityhub.com";
+
+        var createResponse = await _client.PostAsJsonAsync("/api/users", new
+        {
+            email,
+            password = "Audit@123",
+            fullName = "Audit Detail User"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+
+        var listResponse = await _client.GetAsync("/api/audit-logs?page=1&pageSize=50");
+        listResponse.EnsureSuccessStatusCode();
+
+        var payload = await listResponse.Content.ReadFromJsonAsync<PagedAuditLogResponseDto>();
+        Assert.NotNull(payload);
+
+        var createdEntry = payload!.Items.FirstOrDefault(x => x.Description.Contains(email, StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(createdEntry);
+
+        var detailResponse = await _client.GetAsync($"/api/audit-logs/{createdEntry!.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, detailResponse.StatusCode);
+
+        var detail = await detailResponse.Content.ReadFromJsonAsync<AuditLogItemDto>();
+
+        Assert.NotNull(detail);
+        Assert.Equal(createdEntry.Id, detail!.Id);
+        Assert.Equal(createdEntry.Type, detail.Type);
+        Assert.Contains(email, detail.Description);
+    }
+
+    [Fact]
+    public async Task GetAuditLogsByUser_ShouldReturnUserScopedEntries()
+    {
+        await AuthenticateAsAdminAsync();
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var adminId = await db.Users
+            .Where(u => u.Email == "admin@identityhub.com")
+            .Select(u => u.Id)
+            .SingleAsync();
+
+        var response = await _client.GetAsync($"/api/users/{adminId}/audit-logs?take=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var payload = await response.Content.ReadFromJsonAsync<List<AuditLogItemDto>>();
+
+        Assert.NotNull(payload);
+        Assert.NotEmpty(payload!);
+        Assert.All(payload!, item =>
+        {
+            var scopedToUser = item.ActorUserId == adminId
+                || string.Equals(item.TargetId, adminId, StringComparison.OrdinalIgnoreCase);
+            Assert.True(scopedToUser);
+        });
+    }
+
+    [Fact]
     public async Task ExportAuditLogs_ShouldReturnCsvForFilteredEntries()
     {
         await AuthenticateAsAdminAsync();
@@ -351,6 +418,7 @@ public sealed class AuditLogIntegrationTests : IClassFixture<TestWebApplicationF
         public Guid Id { get; set; }
         public string ActorUserId { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
+        public string? TargetId { get; set; }
         public string Description { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

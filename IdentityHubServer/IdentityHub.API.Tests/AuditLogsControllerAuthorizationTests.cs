@@ -6,10 +6,13 @@ namespace IdentityHub.API.Tests;
 
 public sealed class AuditLogsControllerAuthorizationTests
 {
-    [Fact]
-    public void GetPaged_ShouldDeclareExpectedPolicy()
+    [Theory]
+    [InlineData("GetPaged")]
+    [InlineData("GetById")]
+    [InlineData("ExportCsv")]
+    public void Action_ShouldInheritControllerPolicy(string methodName)
     {
-        var method = typeof(AuditLogsController).GetMethod("GetPaged");
+        var method = typeof(AuditLogsController).GetMethod(methodName);
 
         Assert.NotNull(method);
 

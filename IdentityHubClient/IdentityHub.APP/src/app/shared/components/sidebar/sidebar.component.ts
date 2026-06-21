@@ -53,9 +53,15 @@ export class SidebarComponent implements OnInit {
       group: 'security'
     },
     { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View', group: 'security' },
+    { label: 'System Sessions', route: '/app/sessions', icon: 'sessions', permissions: ['Sessions.View', 'Users.View'], group: 'security' },
+    { label: 'Recent Activity', route: '/app/activity', icon: 'auditLogs', permissions: ['Activity.View', 'Audit.View'], group: 'security' },
+    { label: 'Security Settings', route: '/app/security-settings', icon: 'securityAlerts', permissions: ['SecuritySettings.View', 'SecurityEvents.Manage'], group: 'security' },
 
     // Account
-    { label: 'My Access', route: '/app/my-access', icon: 'access', permission: '', group: 'account' }
+    { label: 'My Access', route: '/app/my-access', icon: 'access', permission: '', group: 'account' },
+    { label: 'User Invites', route: '/app/user-invites', icon: 'users', permissions: ['Users.Invites.View', 'Users.View'], group: 'account' },
+    { label: 'Permissions Matrix', route: '/app/permissions/matrix', icon: 'roleClaims', permission: 'Roles.Permissions.View', group: 'account' },
+    { label: 'Permissions Catalog', route: '/app/permissions/catalog', icon: 'roleClaims', permission: 'Roles.Permissions.View', group: 'account' }
   ];
 
   readonly groupLabels: Record<string, string> = {
