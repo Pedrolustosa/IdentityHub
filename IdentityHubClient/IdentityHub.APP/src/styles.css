@@ -11,3 +11,59 @@
 @layer tailwind-utilities {
   @tailwind utilities;
 }
+
+/* Button Utilities for IdentityHub Design System */
+@layer components {
+  /* Base button styles */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus-visible:outline-primary-500 active:bg-primary-800;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 focus-visible:outline-slate-500 active:bg-slate-100;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply bg-danger-600 text-white hover:bg-danger-700 focus-visible:outline-danger-500 active:bg-danger-800;
+  }
+
+  /* Ghost button (minimal) */
+  .btn-ghost {
+    @apply text-slate-700 hover:bg-slate-100 focus-visible:outline-slate-500 active:bg-slate-200;
+  }
+
+  /* Link button (no styling) */
+  .btn-link {
+    @apply text-primary-600 hover:text-primary-700 focus-visible:outline-primary-500 underline;
+  }
+
+  /* Button sizes */
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-md {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Full width button */
+  .btn-full {
+    @apply w-full;
+  }
+
+  /* Mark/Highlight from SearchHighlightPipe */
+  mark {
+    @apply bg-warning-200 font-semibold;
+  }
+}

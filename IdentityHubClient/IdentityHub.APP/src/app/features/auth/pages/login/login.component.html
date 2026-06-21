@@ -16,10 +16,10 @@
           placeholder="you@example.com"
           class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
           [ngClass]="{
-            'border-red-500': emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)
+            'border-red-500': emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)
           }"
         />
-        @if (emailControl?.invalid && (emailControl?.dirty || emailControl?.touched)) {
+        @if (emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)) {
           <small class="text-red-600">Please enter a valid email address.</small>
         }
       </div>
@@ -35,7 +35,7 @@
             class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
             (keydown)="onPasswordKeyDown($event)"
             [ngClass]="{
-              'border-red-500': passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)
+              'border-red-500': passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)
             }"
           />
           <button
@@ -64,7 +64,7 @@
             Caps Lock is active
           </small>
         }
-        @if (passwordControl?.invalid && (passwordControl?.dirty || passwordControl?.touched)) {
+        @if (passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)) {
           <small class="text-red-600">Password must have at least 7 characters.</small>
         }
       </div>
