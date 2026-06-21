@@ -4,8 +4,8 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import {
   DashboardAuditAction,
   DashboardOverview,
@@ -17,7 +17,7 @@ import {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, UxStateComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

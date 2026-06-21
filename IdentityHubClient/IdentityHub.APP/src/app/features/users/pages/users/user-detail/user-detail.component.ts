@@ -4,14 +4,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
+import { CriticalActionConfirmationService } from '../../../../../shared/services/critical-action-confirmation.service';
 import { UserAuditItem, UserListItem, UserSessionItem, UsersService } from '../../../users.service';
 
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, UxStateComponent],
   templateUrl: './user-detail.component.html',
   styleUrl: './user-detail.component.css'
 })
@@ -39,6 +40,7 @@ export class UserDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canEditUser = this.authService.hasPermission('Users.Update');
@@ -136,7 +138,7 @@ export class UserDetailComponent implements OnInit {
       return;
     }
 
-    if (!window.confirm(`Revoke all active sessions for ${this.user.email}?`)) {
+    if (!this.criticalActionConfirmationService.confirmRevokeUserSessions(this.user.email ?? 'this user')) {
       return;
     }
 

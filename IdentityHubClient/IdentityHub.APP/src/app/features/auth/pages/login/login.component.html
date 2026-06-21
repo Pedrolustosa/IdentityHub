@@ -6,6 +6,15 @@
         <p class="text-sm text-slate-500">Sign in to continue to your workspace.</p>
     </div>
 
+    <app-ux-state
+      [state]="isLoading ? 'in-progress' : requestError ? 'error' : successMessage.length > 0 ? 'success' : 'loaded'"
+      [error]="requestError"
+      title="Sign-in successful"
+      description="You are now signed in and being redirected to your dashboard."
+      [busyLabel]="'Signing in...'
+      "
+      (retry)="submit()"
+    >
     <form [formGroup]="loginForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1">
         <label for="email" class="text-sm font-medium text-slate-700">Email</label>
@@ -77,14 +86,6 @@
         <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
       </div>
 
-      @if (requestError) {
-        <app-load-error-banner [error]="requestError" (retry)="submit()" />
-      }
-
-      @if (successMessage.length > 0) {
-        <p class="rounded-lg border border-green-200 bg-green-50 text-green-700 px-3 py-2 text-sm">{{ successMessage }}</p>
-      }
-
       <button
         type="submit"
         [disabled]="isLoading || loginForm.invalid"
@@ -102,6 +103,7 @@
         }
       </button>
     </form>
+    </app-ux-state>
 
     @if (emailRequiresConfirmation) {
       <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">

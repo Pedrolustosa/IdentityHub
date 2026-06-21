@@ -4,16 +4,14 @@
     <p class="text-slate-600">A read-only view of your roles, effective permissions, and current session.</p>
   </header>
 
-  @if (isLoading) {
-    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
-      <div class="h-6 w-40 rounded bg-slate-100 animate-pulse"></div>
-      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
-    </div>
-  } @else if (loadError) {
-    <div class="bg-white rounded-xl border shadow-sm p-4">
-      <app-load-error-banner [error]="loadError" (retry)="load()" />
-    </div>
-  } @else if (me) {
+  <app-ux-state
+    [state]="isLoading ? 'loading' : loadError ? 'error' : me ? 'loaded' : 'empty'"
+    [error]="loadError"
+    title="Access data unavailable"
+    description="We could not load your access details right now."
+    (retry)="load()"
+  >
+    @if (me) {
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div class="bg-white rounded-xl border shadow-sm p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Account</h2>
@@ -42,6 +40,11 @@
 
       <div class="bg-white rounded-xl border shadow-sm p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Current session</h2>
+        <app-ux-state
+          [state]="currentSession ? 'loaded' : 'empty'"
+          title="No current session metadata"
+          description="Session details are not available for the current sign-in."
+        >
         @if (currentSession) {
           <dl class="mt-4 space-y-3 text-sm">
             <div class="flex justify-between gap-3">
@@ -65,23 +68,26 @@
               <dd class="text-slate-900 text-right">{{ currentSession.operatingSystem }}</dd>
             </div>
           </dl>
-        } @else {
-          <p class="mt-4 text-sm text-slate-500">No current session metadata is available.</p>
         }
+        </app-ux-state>
       </div>
     </div>
 
     <div class="bg-white rounded-xl border shadow-sm p-6">
       <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Roles</h2>
-      @if (me.roles.length === 0) {
-        <p class="mt-4 text-sm text-slate-500">No roles are assigned to your account.</p>
-      } @else {
+      <app-ux-state
+        [state]="me.roles.length === 0 ? 'empty' : 'loaded'"
+        title="No roles assigned"
+        description="Your account does not currently have any roles assigned."
+      >
+      @if (me.roles.length > 0) {
         <ul class="mt-4 flex flex-wrap gap-2">
           @for (role of me.roles; track role) {
             <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800">{{ role }}</li>
           }
         </ul>
       }
+      </app-ux-state>
     </div>
 
     <div class="bg-white rounded-xl border shadow-sm p-6">
@@ -90,36 +96,47 @@
       @if (lastPermissionsUpdateAt) {
         <p class="mt-2 text-xs text-slate-500">Last permissions update: {{ lastPermissionsUpdateAt | date:'medium' }}</p>
       }
-      @if (me.permissions.length === 0) {
-        <p class="mt-4 text-sm text-slate-500">No permissions are granted to your account.</p>
-      } @else {
+      <app-ux-state
+        [state]="me.permissions.length === 0 ? 'empty' : 'loaded'"
+        title="No permissions granted"
+        description="No effective permissions are currently granted to your account."
+      >
+      @if (me.permissions.length > 0) {
         <ul class="mt-4 flex flex-wrap gap-2">
           @for (permission of me.permissions; track permission) {
             <li class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono text-slate-800">{{ permission }}</li>
           }
         </ul>
       }
+      </app-ux-state>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <div class="bg-white rounded-xl border shadow-sm p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Screens you can access</h2>
-        @if (allowedRoutes().length === 0) {
-          <p class="mt-3 text-sm text-slate-500">No application screens are currently available.</p>
-        } @else {
+        <app-ux-state
+          [state]="allowedRoutes().length === 0 ? 'empty' : 'loaded'"
+          title="No available screens"
+          description="No application screens are currently available for your permissions."
+        >
+        @if (allowedRoutes().length > 0) {
           <ul class="mt-3 space-y-2 text-sm">
             @for (entry of allowedRoutes(); track entry.route) {
               <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-800">{{ entry.label }}</li>
             }
           </ul>
         }
+        </app-ux-state>
       </div>
 
       <div class="bg-white rounded-xl border shadow-sm p-6">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Blocked screens</h2>
-        @if (blockedRoutes().length === 0) {
-          <p class="mt-3 text-sm text-slate-500">No blocked screens detected.</p>
-        } @else {
+        <app-ux-state
+          [state]="blockedRoutes().length === 0 ? 'empty' : 'loaded'"
+          title="No blocked screens"
+          description="Your current permissions allow access to every screen in this catalog."
+        >
+        @if (blockedRoutes().length > 0) {
           <ul class="mt-3 space-y-2 text-sm">
             @for (entry of blockedRoutes(); track entry.label) {
               <li class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
@@ -129,7 +146,9 @@
             }
           </ul>
         }
+        </app-ux-state>
       </div>
     </div>
-  }
+    }
+  </app-ux-state>
 </section>

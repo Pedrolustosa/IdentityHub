@@ -8,19 +8,17 @@
       </p>
     </div>
 
-    @if (submitted) {
-      <div class="rounded-lg border border-green-200 bg-green-50 text-green-800 px-3 py-3 text-sm space-y-3">
-        <p>✓ Request processed. Check your inbox (and spam folder) for the confirmation link.</p>
-        @if (cooldownSeconds > 0) {
-          <p class="text-xs text-green-700">You can request another email in {{ cooldownSeconds }}s</p>
-        }
-        <a routerLink="/login" class="inline-block text-blue-600 font-medium hover:text-blue-500">Back to sign in</a>
-      </div>
-    } @else {
+    <app-ux-state
+      [state]="submitted ? 'success' : requestError ? 'error' : 'loaded'"
+      [error]="requestError"
+      title="Request processed"
+      [description]="cooldownSeconds > 0 ? 'Check your inbox (and spam folder) for the confirmation link. You can request another email in ' + cooldownSeconds + 's.' : 'Check your inbox (and spam folder) for the confirmation link.'"
+      actionLabel="Back to sign in"
+      [actionRoute]="['/login']"
+      (retry)="submit()"
+    >
+      @if (!submitted) {
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
-        @if (requestError) {
-          <app-load-error-banner [error]="requestError" (retry)="submit()" />
-        }
         <div class="flex flex-col gap-1">
           <label for="rc-email" class="text-sm font-medium text-slate-700">Email</label>
           <input
@@ -57,7 +55,8 @@
           }
         </button>
       </form>
-    }
+      }
+    </app-ux-state>
 
     <div class="pt-4 text-center text-sm text-slate-500">
       <a routerLink="/login" class="text-blue-600 hover:text-blue-500 transition-colors duration-150">Back to sign in</a>

@@ -6,14 +6,15 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
+import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
 import { UserListItem, UsersService } from '../../users.service';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UxStateComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.css'
 })
@@ -38,6 +39,7 @@ export class UsersComponent implements OnInit {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canCreateUsers = this.authService.hasPermission('Users.Create');
@@ -236,6 +238,10 @@ export class UsersComponent implements OnInit {
 
   runBulkActivation(isActive: boolean): void {
     if (!this.canUpdateUsers || this.isBulkProcessing || this.selectedUserIds.size === 0) {
+      return;
+    }
+
+    if (!isActive && !this.criticalActionConfirmationService.confirmBulkInactivateUsers(this.selectedUserIds.size)) {
       return;
     }
 

@@ -4,14 +4,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
+import { CriticalActionConfirmationService } from '../../../../../shared/services/critical-action-confirmation.service';
 import { SecurityAlertItem, SecurityAlertsService } from '../../../security-alerts.service';
 
 @Component({
   selector: 'app-security-alert-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, UxStateComponent],
   templateUrl: './security-alert-detail.component.html',
   styleUrl: './security-alert-detail.component.css'
 })
@@ -28,6 +29,7 @@ export class SecurityAlertDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly securityAlertsService: SecurityAlertsService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canManageAlerts = this.authService.hasPermission('SecurityEvents.Manage');
@@ -66,6 +68,13 @@ export class SecurityAlertDetailComponent implements OnInit {
   updateStatus(status: string): void {
     if (!this.canManageAlerts || !this.alert || this.isUpdating || this.alert.status === status) {
       return;
+    }
+
+    if (this.alert.severity.toLowerCase() === 'critical' && status.toLowerCase() === 'resolved') {
+      const confirmed = this.criticalActionConfirmationService.confirmResolveCriticalAlert(this.alert.type);
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isUpdating = true;

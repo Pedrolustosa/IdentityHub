@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { UsersService } from '../../../users.service';
 import { RoleListItem, RolesService } from '../../../../role-claims/roles.service';
@@ -13,7 +13,7 @@ import { RoleListItem, RolesService } from '../../../../role-claims/roles.servic
 @Component({
   selector: 'app-user-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
   templateUrl: './user-create.component.html',
   styleUrl: './user-create.component.css'
 })

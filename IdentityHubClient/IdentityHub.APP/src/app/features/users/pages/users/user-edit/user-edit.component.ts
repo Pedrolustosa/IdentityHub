@@ -6,8 +6,9 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
+import { CriticalActionConfirmationService } from '../../../../../shared/services/critical-action-confirmation.service';
 import { RoleListItem, RolesService } from '../../../../role-claims/roles.service';
 import { UserListItem, UsersService } from '../../../users.service';
 
@@ -18,7 +19,7 @@ function sortedRoles(roles: string[]): string {
 @Component({
   selector: 'app-user-edit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
   templateUrl: './user-edit.component.html',
   styleUrl: './user-edit.component.css'
 })
@@ -54,6 +55,7 @@ export class UserEditComponent implements OnInit {
     private readonly usersService: UsersService,
     private readonly rolesService: RolesService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canUpdateUserRoles = this.authService.hasPermission('Users.Roles.Update');
@@ -136,9 +138,8 @@ export class UserEditComponent implements OnInit {
   }
 
   private promptRevokeSessionsAfterRoleChange(): void {
-    const revoke = window.confirm(
-      'Roles updated. Revoke all active sessions for this user so the new permissions take effect immediately?'
-    );
+    const userLabel = this.user?.email ?? 'this user';
+    const revoke = this.criticalActionConfirmationService.confirmUpdateUserRoles(userLabel);
     if (revoke) {
       this.authService
         .revokeUserSessions(this.userId)

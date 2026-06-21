@@ -8,13 +8,13 @@ import {
   MeResponse,
   UserSessionResponse
 } from '../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 
 @Component({
   selector: 'app-my-access',
   standalone: true,
-  imports: [CommonModule, LoadErrorBannerComponent],
+  imports: [CommonModule, UxStateComponent],
   templateUrl: './my-access.component.html',
   styleUrl: './my-access.component.css'
 })

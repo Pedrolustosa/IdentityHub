@@ -106,29 +106,16 @@
         </div>
     </section>
 
-    @if (isLoading) {
-      <div class="space-y-3">
-        @for (_ of [1,2,3,4,5,6]; track $index) {
-          <div class="grid grid-cols-12 gap-3 items-center">
-            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-6 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-          </div>
-        }
-      </div>
-    } @else if (loadError) {
-      <app-load-error-banner [error]="loadError" (retry)="loadAuditLogs()" />
-    } @else if (items.length === 0) {
-      <div class="flex flex-col items-center text-center py-10 gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75h6.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H7.5A2.25 2.25 0 0 1 5.25 18V6a2.25 2.25 0 0 1 2.25-2.25Z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25h6m-6 3h6m-6 3h3"/>
-        </svg>
-        <p class="text-slate-900 font-medium">No audit entries found</p>
-        <p class="text-slate-500 text-sm max-w-sm">Administrative events will appear here as users, roles, and claims are changed.</p>
-      </div>
-    } @else {
+    <app-ux-state
+      [state]="isLoading ? 'loading' : loadError ? 'error' : items.length === 0 ? 'empty' : 'loaded'"
+      [error]="loadError"
+      [title]="activeFiltersCount() > 0 ? 'No audit entries match your current filters' : 'No audit entries found'"
+      [description]="activeFiltersCount() > 0 ? 'Try different filters or reset them to see more audit activity.' : 'Administrative events will appear here as users, roles, and claims are changed.'"
+      [actionLabel]="activeFiltersCount() > 0 ? 'Reset filters' : ''"
+      (action)="resetFilters()"
+      (retry)="loadAuditLogs()"
+    >
+    @if (items.length > 0) {
       <div class="hidden lg:block overflow-x-auto">
         <table class="w-full min-w-[980px] text-sm audit-table">
           <thead>
@@ -218,5 +205,6 @@
         </div>
       </footer>
     }
+    </app-ux-state>
   </div>
 </section>

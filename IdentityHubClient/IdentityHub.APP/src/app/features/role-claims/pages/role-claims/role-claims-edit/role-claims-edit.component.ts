@@ -7,7 +7,7 @@ import { catchError, finalize, map } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { PERMISSION_CATALOG } from '../../../../../shared/constants/permissions-catalog';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { RoleListItem, RolesService } from '../../../roles.service';
 
@@ -20,7 +20,7 @@ function uniqueSorted(values: string[]): string[] {
 @Component({
   selector: 'app-role-claims-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UxStateComponent],
   templateUrl: './role-claims-edit.component.html',
   styleUrl: './role-claims-edit.component.css'
 })

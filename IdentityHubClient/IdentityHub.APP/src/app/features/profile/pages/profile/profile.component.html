@@ -38,7 +38,13 @@
         </div>
         <form [formGroup]="form" (ngSubmit)="submit()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
           @if (profileSubmitError) {
-            <app-load-error-banner [error]="profileSubmitError" (retry)="submit()" />
+            <app-ux-state
+              state="error"
+              [error]="profileSubmitError"
+              title="Could not save profile"
+              description="Review the error details and try again."
+              (retry)="submit()"
+            />
           }
           <div class="flex flex-col gap-1">
             <label for="pf-fullname" class="text-sm font-medium text-slate-700">Full name</label>
@@ -131,7 +137,13 @@
         </div>
         <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
           @if (passwordSubmitError) {
-            <app-load-error-banner [error]="passwordSubmitError" (retry)="submitPassword()" />
+            <app-ux-state
+              state="error"
+              [error]="passwordSubmitError"
+              title="Could not update password"
+              description="Review the error details and try again."
+              (retry)="submitPassword()"
+            />
           }
           <div class="flex flex-col gap-1">
             <label for="pf-curr" class="text-sm font-medium text-slate-700">Current password</label>
@@ -285,19 +297,16 @@
       </div>
 
       <div class="p-5 sm:p-6 space-y-4">
-        @if (sessionsLoadError) {
-          <app-load-error-banner [error]="sessionsLoadError" (retry)="loadSessions()" />
-        }
-
-        @if (isSessionsLoading) {
-          <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-            Loading active sessions...
-          </div>
-        } @else if (sessions.length === 0) {
-          <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-sm text-slate-500">
-            No active sessions were found for this account.
-          </div>
-        } @else {
+        <app-ux-state
+          [state]="isSessionsLoading ? 'loading' : sessionsLoadError ? 'error' : sessions.length === 0 ? 'empty' : 'loaded'"
+          [error]="sessionsLoadError"
+          title="No active sessions found"
+          description="No active sessions were found for this account."
+          actionLabel="Reload sessions"
+          (action)="loadSessions()"
+          (retry)="loadSessions()"
+        >
+        @if (sessions.length > 0) {
           <div class="space-y-3">
             @for (session of sessions; track session.id) {
               <article class="session-card relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 sm:px-5 sm:py-5 sm:flex-row sm:items-start sm:justify-between">
@@ -356,6 +365,7 @@
             }
           </div>
         }
+        </app-ux-state>
 
         <section class="pt-2 border-t border-slate-100 space-y-3">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -375,19 +385,16 @@
             </div>
           </div>
 
-          @if (sessionsHistoryLoadError) {
-            <app-load-error-banner [error]="sessionsHistoryLoadError" (retry)="loadSessionsHistory()" />
-          }
-
-          @if (isSessionsHistoryLoading) {
-            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-              Loading login history...
-            </div>
-          } @else if (sessionsHistory.length === 0) {
-            <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-6 text-sm text-slate-500">
-              No session history was found for this account.
-            </div>
-          } @else {
+          <app-ux-state
+            [state]="isSessionsHistoryLoading ? 'loading' : sessionsHistoryLoadError ? 'error' : sessionsHistory.length === 0 ? 'empty' : 'loaded'"
+            [error]="sessionsHistoryLoadError"
+            title="No session history found"
+            description="No recent login history was found for this account."
+            actionLabel="Reload history"
+            (action)="loadSessionsHistory()"
+            (retry)="loadSessionsHistory()"
+          >
+          @if (sessionsHistory.length > 0) {
             <div class="space-y-2">
               @for (entry of sessionsHistory; track entry.id) {
                 <article class="rounded-xl border border-slate-200 bg-white px-4 py-3">
@@ -411,6 +418,7 @@
               }
             </div>
           }
+          </app-ux-state>
         </section>
       </div>
     </section>
@@ -419,40 +427,52 @@
     @if (selectedTab === 'access') {
       <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
         <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
-          <h2 class="text-sm font-semibold text-slate-800">Meu acesso</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Roles e permissões efetivas da sessão atual.</p>
+          <h2 class="text-sm font-semibold text-slate-800">My access</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Roles and effective permissions for the current session.</p>
         </div>
 
         <div class="p-5 sm:p-6 space-y-5">
+          <app-ux-state
+            [state]="me ? 'loaded' : 'empty'"
+            title="Access data unavailable"
+            description="We could not load your access data for this tab."
+          >
           @if (me) {
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Roles</h3>
-              @if (me.roles.length === 0) {
-                <p class="mt-2 text-sm text-slate-500">Nenhuma role atribuída.</p>
-              } @else {
+              <app-ux-state
+                [state]="me.roles.length === 0 ? 'empty' : 'loaded'"
+                title="No roles assigned"
+                description="No roles are currently assigned to your account."
+              >
+              @if (me.roles.length > 0) {
                 <div class="mt-2 flex flex-wrap gap-2">
                   @for (role of me.roles; track role) {
                     <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800">{{ role }}</span>
                   }
                 </div>
               }
+              </app-ux-state>
             </div>
 
             <div>
-              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Permissões efetivas</h3>
-              @if (me.permissions.length === 0) {
-                <p class="mt-2 text-sm text-slate-500">Nenhuma permissão efetiva encontrada.</p>
-              } @else {
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective permissions</h3>
+              <app-ux-state
+                [state]="me.permissions.length === 0 ? 'empty' : 'loaded'"
+                title="No effective permissions"
+                description="No effective permissions are currently available for your account."
+              >
+              @if (me.permissions.length > 0) {
                 <div class="mt-2 flex flex-wrap gap-2">
                   @for (permission of me.permissions; track permission) {
                     <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono text-slate-800">{{ permission }}</span>
                   }
                 </div>
               }
+              </app-ux-state>
             </div>
-          } @else {
-            <p class="text-sm text-slate-500">Não foi possível carregar seus dados de acesso.</p>
           }
+          </app-ux-state>
         </div>
       </section>
     }

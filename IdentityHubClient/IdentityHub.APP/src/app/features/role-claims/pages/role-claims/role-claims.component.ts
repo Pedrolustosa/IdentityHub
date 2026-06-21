@@ -6,8 +6,9 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
+import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
 import { RoleListItem, RolesService } from '../../roles.service';
 
 export interface RoleWithPermissionMeta {
@@ -18,7 +19,7 @@ export interface RoleWithPermissionMeta {
 @Component({
   selector: 'app-role-claims',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UxStateComponent],
   templateUrl: './role-claims.component.html',
   styleUrl: './role-claims.component.css'
 })
@@ -38,6 +39,7 @@ export class RoleClaimsComponent implements OnInit {
   constructor(
     private readonly rolesService: RolesService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canAssignRolePermissions = this.authService.canAssignRolePermissions();
@@ -125,7 +127,7 @@ export class RoleClaimsComponent implements OnInit {
   deleteRole(row: RoleWithPermissionMeta): void {
     if (this.deletingRoleId || !row.role.name) return;
 
-    if (!window.confirm(`Delete role "${row.role.name}"? This cannot be undone.`)) return;
+    if (!this.criticalActionConfirmationService.confirmDeleteRole(row.role.name)) return;
 
     this.deletingRoleId = row.role.id;
     this.rolesService
