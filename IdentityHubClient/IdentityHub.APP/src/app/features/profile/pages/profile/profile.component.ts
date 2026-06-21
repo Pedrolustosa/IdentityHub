@@ -11,8 +11,9 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
+import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService, MeResponse, ProfileResponse, UserSessionResponse } from '../../../../core/services/auth.service';
@@ -82,7 +83,7 @@ function profilePasswordMatchValidator(): ValidatorFn {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
@@ -126,6 +127,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {}
 
@@ -331,9 +333,9 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    const confirmed = typeof window === 'undefined'
-      ? true
-      : window.confirm(session.isCurrent ? 'Sign out this current session now?' : 'Revoke this session now?');
+    const confirmed = session.isCurrent
+      ? this.criticalActionConfirmationService.confirmRevokeCurrentSession()
+      : this.criticalActionConfirmationService.confirmRevokeSession();
     if (!confirmed) {
       return;
     }
@@ -387,9 +389,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    const confirmed = typeof window === 'undefined'
-      ? true
-      : window.confirm('Revoke all other active sessions for your account?');
+    const confirmed = this.criticalActionConfirmationService.confirmRevokeOtherSessions();
     if (!confirmed) {
       return;
     }

@@ -4,13 +4,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuditLogItem, AuditLogsService } from '../../../audit-logs.service';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 
 @Component({
   selector: 'app-audit-log-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, UxStateComponent],
   templateUrl: './audit-log-detail.component.html',
   styleUrl: './audit-log-detail.component.css'
 })

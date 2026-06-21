@@ -9,28 +9,18 @@
     Back to role permissions
   </a>
 
-  @if (isLoading) {
-    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
-      <div class="h-8 w-48 rounded-md bg-slate-100 animate-pulse"></div>
-      <div class="h-24 rounded-lg bg-slate-100 animate-pulse"></div>
-    </div>
-  } @else if (loadError) {
-    <div class="bg-white rounded-xl border shadow-sm p-4">
-      <app-load-error-banner
-        [error]="loadError"
-        [notFoundBackLink]="['/app/roles']"
-        notFoundBackLabel="Back to role permissions"
-        (retry)="loadRoleData()"
-      />
-    </div>
-  } @else if (!role) {
-    <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
-      <p class="text-slate-900 font-medium">Role unavailable</p>
-      <a routerLink="/app/roles" class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
-        Return to list
-      </a>
-    </div>
-  } @else {
+  <app-ux-state
+    [state]="isLoading ? 'loading' : loadError ? 'error' : !role ? 'empty' : 'loaded'"
+    [error]="loadError"
+    [notFoundBackLink]="['/app/roles']"
+    notFoundBackLabel="Back to role permissions"
+    title="Role unavailable"
+    description="This role could not be loaded or is no longer available."
+    actionLabel="Return to role permissions"
+    [actionRoute]="['/app/roles']"
+    (retry)="loadRoleData()"
+  >
+  @if (role) {
     <header>
       <h1 class="text-2xl font-semibold text-slate-900">Role permissions</h1>
       <p class="text-slate-500 mt-1">{{ role.name || 'Unnamed role' }}</p>
@@ -50,11 +40,12 @@
         }
       </div>
 
-      @if (permissions.length === 0) {
-        <p class="text-sm text-slate-500">No permission claims on this role.</p>
-      } @else if (domainGroups.length === 0) {
-        <p class="text-sm text-slate-500">No permissions match your search.</p>
-      } @else {
+      <app-ux-state
+        [state]="permissions.length === 0 || domainGroups.length === 0 ? 'empty' : 'loaded'"
+        [title]="permissions.length === 0 ? 'No permission claims on this role' : 'No permissions match your search'"
+        [description]="permissions.length === 0 ? 'This role does not currently have any permission claims assigned.' : 'Try a different search term to see available permissions.'"
+      >
+      @if (domainGroups.length > 0) {
         <div class="space-y-4">
           @for (domain of domainGroups; track domain) {
             <div>
@@ -68,6 +59,7 @@
           }
         </div>
       }
+      </app-ux-state>
     </div>
 
     <div class="flex flex-wrap gap-3">
@@ -91,4 +83,5 @@
       }
     </div>
   }
+  </app-ux-state>
 </section>

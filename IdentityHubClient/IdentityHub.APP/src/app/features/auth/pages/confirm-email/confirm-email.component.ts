@@ -5,13 +5,13 @@ import { take } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth.service';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 
 @Component({
   selector: 'app-confirm-email',
   standalone: true,
-  imports: [CommonModule, RouterLink, BrandLogoComponent, LoadErrorBannerComponent],
+  imports: [CommonModule, RouterLink, BrandLogoComponent, UxStateComponent],
   templateUrl: './confirm-email.component.html',
   styleUrl: './confirm-email.component.css'
 })

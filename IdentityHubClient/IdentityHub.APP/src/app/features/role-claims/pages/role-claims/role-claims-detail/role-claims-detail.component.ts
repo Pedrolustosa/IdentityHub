@@ -6,14 +6,14 @@ import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { LoadErrorBannerComponent } from '../../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { RoleListItem, RolesService } from '../../../roles.service';
 
 @Component({
   selector: 'app-role-claims-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, UxStateComponent],
   templateUrl: './role-claims-detail.component.html',
   styleUrl: './role-claims-detail.component.css'
 })

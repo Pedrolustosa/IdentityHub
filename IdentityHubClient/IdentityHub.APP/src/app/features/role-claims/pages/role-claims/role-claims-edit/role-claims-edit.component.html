@@ -13,26 +13,16 @@
     }
   </a>
 
-  @if (isLoading) {
-    <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
-      <div class="h-8 w-56 rounded-md bg-slate-100 animate-pulse"></div>
-      <div class="h-32 rounded-lg bg-slate-100 animate-pulse"></div>
-    </div>
-  } @else if (loadError) {
-    <div class="bg-white rounded-xl border shadow-sm p-4">
-      <app-load-error-banner
-        [error]="loadError"
-        [notFoundBackLink]="['/app/roles']"
-        notFoundBackLabel="Back to role permissions"
-        (retry)="loadRoleEditData()"
-      />
-    </div>
-  } @else if (!role) {
-    <div class="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
-      <p class="text-slate-900 font-medium">Cannot edit this role</p>
-      <a routerLink="/app/roles" class="text-sm text-blue-600 hover:text-blue-500 font-medium">Go to role permissions</a>
-    </div>
-  } @else {
+  <app-ux-state
+    [state]="isLoading ? 'loading' : loadError ? 'error' : !role ? 'empty' : 'loaded'"
+    [error]="loadError"
+    title="Cannot edit this role"
+    description="This role could not be loaded or is no longer available."
+    actionLabel="Return to role permissions"
+    (action)="cancel()"
+    (retry)="loadRoleEditData()"
+  >
+    @if (role) {
     <header>
       <h1 class="text-2xl font-semibold text-slate-900">
         {{ canAssignRolePermissions ? 'Edit role permissions' : 'Role permissions' }}
@@ -62,11 +52,12 @@
             class="w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
           />
         </div>
-        @if (permissionRows.length === 0) {
-          <p class="mt-2 text-sm text-slate-500">No permission keys available for this role yet.</p>
-        } @else if (domainGroups.length === 0) {
-          <p class="mt-2 text-sm text-slate-500">No permissions match your search.</p>
-        } @else {
+        <app-ux-state
+          [state]="permissionRows.length === 0 || domainGroups.length === 0 ? 'empty' : 'loaded'"
+          [title]="permissionRows.length === 0 ? 'No permission keys available' : 'No permissions match your search'"
+          [description]="permissionRows.length === 0 ? 'No permission keys are available for this role yet.' : 'Try a different search term to find permission keys.'"
+        >
+        @if (domainGroups.length > 0) {
           <div class="space-y-4 max-h-96 overflow-y-auto pr-1">
             @for (domain of domainGroups; track domain) {
               <div class="rounded-lg border border-slate-200 p-3">
@@ -102,6 +93,7 @@
             }
           </div>
         }
+        </app-ux-state>
       </div>
 
       @if (hasCriticalAdditions()) {
@@ -112,7 +104,13 @@
 
       @if (saveError) {
         <div class="border-t border-slate-100 pt-4">
-          <app-load-error-banner [error]="saveError" (retry)="submit()" />
+          <app-ux-state
+            state="error"
+            [error]="saveError"
+            title="Could not save permissions"
+            description="Review the error details and try again."
+            (retry)="submit()"
+          />
         </div>
       }
 
@@ -170,5 +168,6 @@
         </div>
       </div>
     }
-  }
+    }
+  </app-ux-state>
 </section>

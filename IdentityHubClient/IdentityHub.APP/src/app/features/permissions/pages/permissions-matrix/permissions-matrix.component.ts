@@ -4,13 +4,13 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { RolesService } from '../../../role-claims/roles.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 
 @Component({
   selector: 'app-permissions-matrix',
   standalone: true,
-  imports: [CommonModule, LoadErrorBannerComponent],
+  imports: [CommonModule, UxStateComponent],
   template: `
     <section class="space-y-5">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
@@ -18,15 +18,13 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
         <p class="text-slate-600">Quick view of role versus permission coverage.</p>
       </header>
 
-      @if (isLoading) {
-        <div class="rounded-xl border bg-white p-6 shadow-sm">
-          <div class="h-8 w-64 animate-pulse rounded bg-slate-100"></div>
-        </div>
-      } @else if (loadError) {
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
-          <app-load-error-banner [error]="loadError" (retry)="load()" />
-        </div>
-      } @else {
+      <app-ux-state
+        [state]="isLoading ? 'loading' : loadError ? 'error' : permissionCatalog.length === 0 || roleNames.length === 0 ? 'empty' : 'loaded'"
+        [error]="loadError"
+        title="Permissions matrix is empty"
+        description="Roles or permissions are unavailable, so there is no matrix to display yet."
+        (retry)="load()"
+      >
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table class="min-w-[760px] w-full text-sm">
             <thead>
@@ -54,7 +52,7 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
             </tbody>
           </table>
         </div>
-      }
+      </app-ux-state>
     </section>
   `
 })

@@ -2,14 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { UsersService, UserListItem } from '../../../users/users.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sessions',
   standalone: true,
-  imports: [CommonModule, LoadErrorBannerComponent],
+  imports: [CommonModule, UxStateComponent],
   template: `
     <section class="space-y-5">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
@@ -21,15 +21,13 @@ import { finalize } from 'rxjs/operators';
         Detailed session metadata (IP, browser, OS, revoke by session) depends on backend endpoint <span class="font-mono">GET /api/sessions</span>.
       </div>
 
-      @if (isLoading) {
-        <div class="rounded-xl border bg-white p-6 shadow-sm">
-          <div class="h-8 w-64 animate-pulse rounded bg-slate-100"></div>
-        </div>
-      } @else if (loadError) {
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
-          <app-load-error-banner [error]="loadError" (retry)="load()" />
-        </div>
-      } @else {
+      <app-ux-state
+        [state]="isLoading ? 'loading' : loadError ? 'error' : users.length === 0 ? 'empty' : 'loaded'"
+        [error]="loadError"
+        title="No sessions available"
+        description="No user sessions were returned by the backend."
+        (retry)="load()"
+      >
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table class="w-full min-w-[980px] text-sm">
             <thead>
@@ -65,7 +63,7 @@ import { finalize } from 'rxjs/operators';
             </tbody>
           </table>
         </div>
-      }
+      </app-ux-state>
     </section>
   `
 })

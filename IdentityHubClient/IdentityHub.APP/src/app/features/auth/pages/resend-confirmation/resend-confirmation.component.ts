@@ -6,14 +6,14 @@ import { finalize, take } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../core/services/auth.service';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 
 @Component({
   selector: 'app-resend-confirmation',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, LoadErrorBannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, UxStateComponent],
   templateUrl: './resend-confirmation.component.html',
   styleUrl: './resend-confirmation.component.css'
 })

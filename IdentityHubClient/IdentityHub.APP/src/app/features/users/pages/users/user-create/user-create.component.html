@@ -98,7 +98,13 @@
 
       @if (submitError) {
         <div class="border-t border-slate-100 pt-4">
-          <app-load-error-banner [error]="submitError" (retry)="submit()" />
+          <app-ux-state
+            state="error"
+            [error]="submitError"
+            title="Could not create user"
+            description="Review the error details and try again."
+            (retry)="submit()"
+          />
         </div>
       }
 

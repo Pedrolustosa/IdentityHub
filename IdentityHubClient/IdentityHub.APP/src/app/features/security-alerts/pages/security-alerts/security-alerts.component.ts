@@ -12,13 +12,14 @@ import {
   SecurityAlertsService
 } from '../../security-alerts.service';
 import { SECURITY_ALERT_EVENT_TYPE_OPTIONS } from '../../../../shared/constants/security-alert-event-types';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
 
 @Component({
   selector: 'app-security-alerts',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LoadErrorBannerComponent],
+  imports: [CommonModule, FormsModule, RouterModule, UxStateComponent],
   templateUrl: './security-alerts.component.html',
   styleUrl: './security-alerts.component.css'
 })
@@ -48,6 +49,7 @@ export class SecurityAlertsComponent implements OnInit {
   constructor(
     private readonly securityAlertsService: SecurityAlertsService,
     private readonly authService: AuthService,
+    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {
     this.canManageAlerts = this.authService.hasPermission('SecurityEvents.Manage');
@@ -96,6 +98,13 @@ export class SecurityAlertsComponent implements OnInit {
   updateStatus(item: SecurityAlertItem, status: string): void {
     if (!this.canManageAlerts || this.updatingAlertId || item.status === status) {
       return;
+    }
+
+    if (item.severity.toLowerCase() === 'critical' && status.toLowerCase() === 'resolved') {
+      const confirmed = this.criticalActionConfirmationService.confirmResolveCriticalAlert(item.type);
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.updatingAlertId = item.id;

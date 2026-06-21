@@ -33,33 +33,17 @@
     </div>
   </header>
 
-  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5 md:p-5">
-    @if (isLoading) {
-      <div class="space-y-3">
-        @for (_ of [1, 2, 3, 4, 5]; track $index) {
-          <div class="grid grid-cols-12 gap-3 items-center">
-            <div class="col-span-4 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-2 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-            <div class="col-span-4 h-9 rounded-md bg-slate-100 animate-pulse"></div>
-          </div>
-        }
-      </div>
-    } @else if (loadError) {
-      <app-load-error-banner [error]="loadError" (retry)="load()" />
-    } @else if (rows.length === 0) {
-      <div class="flex flex-col items-center text-center py-10 gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H9.375v-1.125l3.223-3.223a1.125 1.125 0 0 0 .43-1.563A6 6 0 1 1 21.75 8.25Z"/>
-        </svg>
-        <p class="text-slate-900 font-medium">No roles found</p>
-        @if (canCreateRole) {
-          <button type="button" (click)="showCreateModal = true"
-            class="inline-flex rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-500 transition-colors duration-150">
-            Create first role
-          </button>
-        }
-      </div>
+  <app-ux-state
+    [state]="isLoading ? 'loading' : loadError ? 'error' : rows.length === 0 ? 'empty' : 'loaded'"
+    [error]="loadError"
+    title="No roles found"
+    description="There are no roles yet. Create the first role to start assigning permissions."
+    [actionLabel]="canCreateRole ? 'Create first role' : ''"
+    (action)="showCreateModal = true"
+    (retry)="load()"
+  >
+    @if (rows.length === 0) {
+      <div class="sr-only">No roles exist in this view.</div>
     } @else {
       <div class="mb-4">
         <input [(ngModel)]="searchTerm" type="text" placeholder="Search by role name…"
@@ -167,7 +151,7 @@
         }
       </div>
     }
-  </div>
+  </app-ux-state>
 
   @if (showCreateModal) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

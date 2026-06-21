@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { RolesService } from '../../../role-claims/roles.service';
-import { LoadErrorBannerComponent } from '../../../../shared/components/load-error-banner/load-error-banner.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 
 @Component({
   selector: 'app-permissions-catalog',
   standalone: true,
-  imports: [CommonModule, LoadErrorBannerComponent],
+  imports: [CommonModule, UxStateComponent],
   template: `
     <section class="space-y-5">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
@@ -17,15 +17,13 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
         <p class="text-slate-600">Reference list for available permissions and impact review.</p>
       </header>
 
-      @if (isLoading) {
-        <div class="rounded-xl border bg-white p-6 shadow-sm">
-          <div class="h-8 w-56 animate-pulse rounded bg-slate-100"></div>
-        </div>
-      } @else if (loadError) {
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
-          <app-load-error-banner [error]="loadError" (retry)="load()" />
-        </div>
-      } @else {
+      <app-ux-state
+        [state]="isLoading ? 'loading' : loadError ? 'error' : permissions.length === 0 ? 'empty' : 'loaded'"
+        [error]="loadError"
+        title="No permissions in catalog"
+        description="No permissions were returned by the backend catalog endpoint."
+        (retry)="load()"
+      >
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           @for (permission of permissions; track permission) {
             <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-2">
@@ -35,7 +33,7 @@ import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '.
             </article>
           }
         </div>
-      }
+      </app-ux-state>
     </section>
   `
 })
