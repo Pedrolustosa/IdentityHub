@@ -40,8 +40,9 @@ describe('SidebarComponent permission flow', () => {
       'Sessions.View',
       'Activity.View',
       'SecuritySettings.View',
-      'Users.Invites.View',
-      'Roles.Permissions.View',
+      'UserInvites.View',
+      'Permissions.Matrix.View',
+      'Permissions.Catalog.View',
       'SecurityEvents.Manage'
     ]);
 

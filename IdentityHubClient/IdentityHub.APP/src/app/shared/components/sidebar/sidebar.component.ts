@@ -3,17 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { SecurityAlertsService } from '../../../features/security-alerts/security-alerts.service';
 import { BrandLogoComponent } from '../brand-logo/brand-logo.component';
-
-type SidebarMenuItem = {
-  label: string;
-  route: string;
-  icon: string;
-  permission?: string;
-  permissions?: string[];
-  requireAll?: boolean;
-  badge?: 'securityAlerts';
-  group: 'overview' | 'administration' | 'security' | 'account';
-};
+import { NAVIGATION_ITEMS, NavigationItem } from '../../constants/navigation-catalog';
 
 @Component({
   selector: 'app-sidebar',
@@ -28,41 +18,7 @@ export class SidebarComponent implements OnInit {
   readonly securityAlertsCount = signal<number>(0);
   readonly showBlockedItems = signal<boolean>(false);
 
-  readonly menuItems: SidebarMenuItem[] = [
-    // Overview
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard', permission: 'Dashboard.View', group: 'overview' },
-
-    // Administration
-    { label: 'Users', route: '/app/users', icon: 'users', permission: 'Users.View', group: 'administration' },
-    {
-      label: 'Roles & Permissions',
-      route: '/app/roles',
-      icon: 'roleClaims',
-      permission: 'Roles.View',
-      group: 'administration'
-    },
-
-    // Security
-    { label: 'My Sessions', route: '/app/profile', icon: 'sessions', permission: '', group: 'security' },
-    {
-      label: 'Security Alerts',
-      route: '/app/security-alerts',
-      icon: 'securityAlerts',
-      permission: 'SecurityEvents.View',
-      badge: 'securityAlerts',
-      group: 'security'
-    },
-    { label: 'Audit Logs', route: '/app/audit-logs', icon: 'auditLogs', permission: 'Audit.View', group: 'security' },
-    { label: 'System Sessions', route: '/app/sessions', icon: 'sessions', permissions: ['Sessions.View', 'Users.View'], group: 'security' },
-    { label: 'Recent Activity', route: '/app/activity', icon: 'auditLogs', permissions: ['Activity.View', 'Audit.View'], group: 'security' },
-    { label: 'Security Settings', route: '/app/security-settings', icon: 'securityAlerts', permissions: ['SecuritySettings.View', 'SecurityEvents.Manage'], group: 'security' },
-
-    // Account
-    { label: 'My Access', route: '/app/my-access', icon: 'access', permission: '', group: 'account' },
-    { label: 'User Invites', route: '/app/user-invites', icon: 'users', permissions: ['Users.Invites.View', 'Users.View'], group: 'account' },
-    { label: 'Permissions Matrix', route: '/app/permissions/matrix', icon: 'roleClaims', permission: 'Roles.Permissions.View', group: 'account' },
-    { label: 'Permissions Catalog', route: '/app/permissions/catalog', icon: 'roleClaims', permission: 'Roles.Permissions.View', group: 'account' }
-  ];
+  readonly menuItems: NavigationItem[] = NAVIGATION_ITEMS;
 
   readonly groupLabels: Record<string, string> = {
     overview: 'Overview',
@@ -95,28 +51,20 @@ export class SidebarComponent implements OnInit {
     this.showBlockedItems.set(isAdmin);
   }
 
-  badgeCount(item: SidebarMenuItem): number {
+  badgeCount(item: NavigationItem): number {
     return item.badge === 'securityAlerts' ? this.securityAlertsCount() : 0;
   }
 
-  canAccessItem(item: SidebarMenuItem): boolean {
-    const single = item.permission ? [item.permission] : [];
-    const many = item.permissions ?? [];
-    const required = [...new Set([...single, ...many])];
-
-    if (!required.length) {
+  canAccessItem(item: NavigationItem): boolean {
+    if (!item.requiredAny.length) {
       return true;
     }
 
-    if (item.requireAll) {
-      return required.every((permission) => this.authService.hasPermission(permission));
-    }
-
-    return required.some((permission) => this.authService.hasPermission(permission));
+    return item.requiredAny.some((permission) => this.authService.hasPermission(permission));
   }
 
-  get groupedMenuItems(): Record<string, SidebarMenuItem[]> {
-    const groups: Record<string, SidebarMenuItem[]> = {
+  get groupedMenuItems(): Record<string, NavigationItem[]> {
+    const groups: Record<string, NavigationItem[]> = {
       overview: [],
       administration: [],
       security: [],

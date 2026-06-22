@@ -63,11 +63,19 @@ namespace IdentityHub.Infrastructure.Data.Seed
 
                     AppPermissions.Dashboard.View,
                     AppPermissions.Sessions.View,
+                    AppPermissions.Sessions.Revoke,
                     AppPermissions.Activity.View,
                     AppPermissions.Audit.View,
                     AppPermissions.SecurityEvents.View,
                     AppPermissions.SecurityEvents.Manage,
-                    AppPermissions.SecuritySettings.View
+                    AppPermissions.SecuritySettings.View,
+                    AppPermissions.SecuritySettings.Update,
+                    AppPermissions.Permissions.CatalogView,
+                    AppPermissions.Permissions.MatrixView,
+                    AppPermissions.UserInvites.View,
+                    AppPermissions.UserInvites.Create,
+                    AppPermissions.UserInvites.Cancel,
+                    AppPermissions.UserInvites.Resend
                 },
 
                 ["Manager"] = new()
@@ -81,7 +89,12 @@ namespace IdentityHub.Infrastructure.Data.Seed
 
                     AppPermissions.Dashboard.View,
                     AppPermissions.Sessions.View,
-                    AppPermissions.Activity.View
+                    AppPermissions.Activity.View,
+                    AppPermissions.Permissions.CatalogView,
+                    AppPermissions.Permissions.MatrixView,
+                    AppPermissions.UserInvites.View,
+                    AppPermissions.UserInvites.Create,
+                    AppPermissions.UserInvites.Resend
                 },
 
                 ["User"] = new()

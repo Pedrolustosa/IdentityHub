@@ -20,11 +20,19 @@
 
             Dashboard.View,
             Sessions.View,
+            Sessions.Revoke,
             Activity.View,
             Audit.View,
             SecurityEvents.View,
             SecurityEvents.Manage,
-            SecuritySettings.View
+            SecuritySettings.View,
+            SecuritySettings.Update,
+            Permissions.CatalogView,
+            Permissions.MatrixView,
+            UserInvites.View,
+            UserInvites.Create,
+            UserInvites.Cancel,
+            UserInvites.Resend
         ];
 
         public static class Users
@@ -55,6 +63,7 @@
         public static class Sessions
         {
             public const string View = "Sessions.View";
+            public const string Revoke = "Sessions.Revoke";
         }
 
         public static class Activity
@@ -76,6 +85,21 @@
         public static class SecuritySettings
         {
             public const string View = "SecuritySettings.View";
+            public const string Update = "SecuritySettings.Update";
+        }
+
+        public static class Permissions
+        {
+            public const string CatalogView = "Permissions.Catalog.View";
+            public const string MatrixView = "Permissions.Matrix.View";
+        }
+
+        public static class UserInvites
+        {
+            public const string View = "UserInvites.View";
+            public const string Create = "UserInvites.Create";
+            public const string Cancel = "UserInvites.Cancel";
+            public const string Resend = "UserInvites.Resend";
         }
     }
 }

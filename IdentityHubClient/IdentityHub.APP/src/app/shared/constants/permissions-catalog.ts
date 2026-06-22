@@ -9,6 +9,7 @@ export const PERMISSION_CATALOG: readonly string[] = [
   'Users.Update',
   'Users.Delete',
   'Users.Roles.Update',
+  'Users.Invites.View',
   'Roles.View',
   'Roles.Create',
   'Roles.Update',
@@ -16,7 +17,18 @@ export const PERMISSION_CATALOG: readonly string[] = [
   'Roles.Permissions.View',
   'Roles.Permissions.Update',
   'Dashboard.View',
+  'Sessions.View',
+  'Sessions.Revoke',
+  'Activity.View',
   'Audit.View',
   'SecurityEvents.View',
-  'SecurityEvents.Manage'
+  'SecurityEvents.Manage',
+  'SecuritySettings.View',
+  'SecuritySettings.Update',
+  'Permissions.Catalog.View',
+  'Permissions.Matrix.View',
+  'UserInvites.View',
+  'UserInvites.Create',
+  'UserInvites.Cancel',
+  'UserInvites.Resend'
 ];

@@ -44,7 +44,7 @@ export class UserDetailComponent implements OnInit {
     private readonly toastr: ToastrService
   ) {
     this.canEditUser = this.authService.hasPermission('Users.Update');
-    this.canRevokeUserSessions = this.authService.hasPermission('Users.Update');
+    this.canRevokeUserSessions = this.authService.hasPermission('Sessions.Revoke');
     this.currentUserId = this.authService.getCurrentUserId();
   }
 

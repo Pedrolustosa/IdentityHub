@@ -48,7 +48,7 @@ public sealed class UsersController(
     }
 
     [HttpPost("invite")]
-    [Authorize(Policy = "Users.Create")]
+    [Authorize(Policy = "UserInvites.Create")]
     public async Task<IActionResult> Invite(
         InviteUserRequest request,
         CancellationToken cancellationToken)
@@ -113,7 +113,7 @@ public sealed class UsersController(
     }
 
     [HttpDelete("{id}/sessions/{sessionId:guid}")]
-    [Authorize(Policy = "Users.Update")]
+    [Authorize(Policy = "Sessions.Revoke")]
     public async Task<IActionResult> RevokeUserSession(
         string id,
         Guid sessionId,

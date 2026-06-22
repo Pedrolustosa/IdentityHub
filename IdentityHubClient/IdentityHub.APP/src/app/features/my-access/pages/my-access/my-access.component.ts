@@ -10,6 +10,7 @@ import {
 } from '../../../../core/services/auth.service';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
+import { ACCESS_SCREEN_CATALOG } from '../../../../shared/constants/navigation-catalog';
 
 @Component({
   selector: 'app-my-access',
@@ -25,19 +26,7 @@ export class MyAccessComponent implements OnInit {
   currentSession: UserSessionResponse | null = null;
   lastPermissionsUpdateAt: string | null = null;
 
-  readonly routeCatalog: Array<{ label: string; route: string; requiredAny: string[] }> = [
-    { label: 'Dashboard', route: '/app/dashboard', requiredAny: ['Dashboard.View'] },
-    { label: 'Users', route: '/app/users', requiredAny: ['Users.View'] },
-    { label: 'Roles & Permissions', route: '/app/roles', requiredAny: ['Roles.View'] },
-    { label: 'Audit Logs', route: '/app/audit-logs', requiredAny: ['Audit.View'] },
-    { label: 'Security Alerts', route: '/app/security-alerts', requiredAny: ['SecurityEvents.View'] },
-    { label: 'Permissions Matrix', route: '/app/permissions/matrix', requiredAny: ['Roles.Permissions.View'] },
-    { label: 'Permissions Catalog', route: '/app/permissions/catalog', requiredAny: ['Roles.Permissions.View'] },
-    { label: 'System Sessions', route: '/app/sessions', requiredAny: ['Sessions.View', 'Users.View'] },
-    { label: 'User Invites', route: '/app/user-invites', requiredAny: ['Users.Invites.View', 'Users.View'] },
-    { label: 'Security Settings', route: '/app/security-settings', requiredAny: ['SecuritySettings.View', 'SecurityEvents.Manage'] },
-    { label: 'Recent Activity', route: '/app/activity', requiredAny: ['Activity.View', 'Audit.View'] }
-  ];
+  readonly routeCatalog = ACCESS_SCREEN_CATALOG;
 
   constructor(
     private readonly authService: AuthService,

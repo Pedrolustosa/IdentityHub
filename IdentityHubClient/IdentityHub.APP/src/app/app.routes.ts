@@ -109,7 +109,7 @@ export const routes: Routes = [
         component: PermissionsMatrixComponent,
         canActivate: [permissionGuard],
         data: {
-          permission: 'Roles.Permissions.View',
+          permission: 'Permissions.Matrix.View',
           title: 'Permissions matrix',
           breadcrumbs: [{ label: 'Permissions matrix' }]
         }
@@ -119,7 +119,7 @@ export const routes: Routes = [
         component: PermissionsCatalogComponent,
         canActivate: [permissionGuard],
         data: {
-          permission: 'Roles.Permissions.View',
+          permission: 'Permissions.Catalog.View',
           title: 'Permissions catalog',
           breadcrumbs: [{ label: 'Permissions catalog' }]
         }
@@ -129,7 +129,7 @@ export const routes: Routes = [
         component: SessionsComponent,
         canActivate: [permissionGuard],
         data: {
-          permissions: ['Sessions.View', 'Users.View'],
+          permission: 'Sessions.View',
           title: 'System sessions',
           breadcrumbs: [{ label: 'System sessions' }]
         }
@@ -139,7 +139,7 @@ export const routes: Routes = [
         component: UserInvitesComponent,
         canActivate: [permissionGuard],
         data: {
-          permissions: ['Users.Invites.View', 'Users.View'],
+          permissions: ['UserInvites.View', 'Users.Invites.View'],
           title: 'User invites',
           breadcrumbs: [{ label: 'User invites' }]
         }
@@ -149,7 +149,7 @@ export const routes: Routes = [
         component: SecuritySettingsComponent,
         canActivate: [permissionGuard],
         data: {
-          permissions: ['SecuritySettings.View', 'SecurityEvents.Manage'],
+          permission: 'SecuritySettings.View',
           title: 'Security settings',
           breadcrumbs: [{ label: 'Security settings' }]
         }
@@ -159,7 +159,7 @@ export const routes: Routes = [
         component: ActivityComponent,
         canActivate: [permissionGuard],
         data: {
-          permissions: ['Activity.View', 'Audit.View'],
+          permission: 'Activity.View',
           title: 'Recent activity',
           breadcrumbs: [{ label: 'Recent activity' }]
         }

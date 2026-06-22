@@ -145,7 +145,7 @@ public sealed class AuthController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "Users.Update")]
+    [Authorize(Policy = "Sessions.Revoke")]
     [HttpDelete("sessions/users/{targetUserId}")]
     public async Task<IActionResult> RevokeUserSessions(
         string targetUserId,

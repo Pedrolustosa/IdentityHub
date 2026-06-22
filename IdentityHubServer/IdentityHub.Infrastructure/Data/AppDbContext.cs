@@ -10,6 +10,8 @@ namespace IdentityHub.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
         public DbSet<SecurityEvent> SecurityEvents { get; set; }
+        public DbSet<UserInvite> UserInvites { get; set; }
+        public DbSet<SecuritySetting> SecuritySettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
