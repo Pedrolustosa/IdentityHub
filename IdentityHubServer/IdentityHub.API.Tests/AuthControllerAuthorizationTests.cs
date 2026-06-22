@@ -22,4 +22,19 @@ public sealed class AuthControllerAuthorizationTests
         Assert.NotNull(authorize);
         Assert.True(string.IsNullOrWhiteSpace(authorize!.Policy));
     }
+
+    [Fact]
+    public void RevokeUserSessions_ShouldRequireSessionsRevokePolicy()
+    {
+        var method = typeof(AuthController).GetMethod("RevokeUserSessions");
+
+        Assert.NotNull(method);
+
+        var authorize = method!.GetCustomAttributes(typeof(AuthorizeAttribute), inherit: false)
+            .Cast<AuthorizeAttribute>()
+            .SingleOrDefault();
+
+        Assert.NotNull(authorize);
+        Assert.Equal("Sessions.Revoke", authorize!.Policy);
+    }
 }

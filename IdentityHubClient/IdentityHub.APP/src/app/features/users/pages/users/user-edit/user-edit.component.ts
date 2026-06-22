@@ -138,6 +138,11 @@ export class UserEditComponent implements OnInit {
   }
 
   private promptRevokeSessionsAfterRoleChange(): void {
+    if (!this.authService.hasPermission('Sessions.Revoke')) {
+      void this.router.navigate(['/app/users', this.userId]);
+      return;
+    }
+
     const userLabel = this.user?.email ?? 'this user';
     const revoke = this.criticalActionConfirmationService.confirmUpdateUserRoles(userLabel);
     if (revoke) {

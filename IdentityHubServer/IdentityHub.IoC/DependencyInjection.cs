@@ -7,6 +7,7 @@ using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Repositories;
 using IdentityHub.Infrastructure.Security;
+using IdentityHub.Infrastructure.Services;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,8 @@ namespace IdentityHub.IoC
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IEmailTemplateBuilder, EmailTemplateBuilder>();
             services.AddScoped<ISecurityAlertService, SecurityAlertService>();
+            services.AddScoped<IUserInvitesService, UserInvitesService>();
+            services.AddScoped<ISecuritySettingsService, SecuritySettingsService>();
 
             return services;
         }
