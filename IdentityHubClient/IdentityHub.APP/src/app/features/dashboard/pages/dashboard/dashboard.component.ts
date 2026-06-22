@@ -38,8 +38,7 @@ export class DashboardComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly toastr: ToastrService
   ) {
-    this.canViewSecurityAlerts =
-      this.authService.hasPermission('SecurityEvents.View') || this.authService.hasPermission('Audit.View');
+    this.canViewSecurityAlerts = this.authService.hasPermission('SecurityEvents.View');
     this.canViewAudit = this.authService.hasPermission('Audit.View');
     this.canCreateUsers = this.authService.hasPermission('Users.Create');
     this.canManagePermissions = this.authService.hasPermission('Roles.Permissions.Update');

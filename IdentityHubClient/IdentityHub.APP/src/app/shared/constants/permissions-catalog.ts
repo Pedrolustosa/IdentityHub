@@ -9,7 +9,6 @@ export const PERMISSION_CATALOG: readonly string[] = [
   'Users.Update',
   'Users.Delete',
   'Users.Roles.Update',
-  'Users.Invites.View',
   'Roles.View',
   'Roles.Create',
   'Roles.Update',
