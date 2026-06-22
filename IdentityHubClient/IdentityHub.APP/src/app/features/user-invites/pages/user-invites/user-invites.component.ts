@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs/operators';
@@ -76,7 +76,7 @@ export class UserInvitesComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly userInvitesService: UserInvitesService,
+    @Inject(UserInvitesService) private readonly userInvitesService: UserInvitesService,
     private readonly toastr: ToastrService
   ) {
     this.canResendInvites = this.authService.hasPermission('UserInvites.Resend');
