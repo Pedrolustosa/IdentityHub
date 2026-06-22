@@ -139,7 +139,7 @@ export const routes: Routes = [
         component: UserInvitesComponent,
         canActivate: [permissionGuard],
         data: {
-          permissions: ['UserInvites.View', 'Users.Invites.View'],
+          permission: 'UserInvites.View',
           title: 'User invites',
           breadcrumbs: [{ label: 'User invites' }]
         }

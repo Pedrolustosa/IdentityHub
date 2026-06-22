@@ -43,7 +43,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     label: 'User Invites',
     route: '/app/user-invites',
     icon: 'users',
-    requiredAny: ['UserInvites.View', 'Users.Invites.View'],
+    requiredAny: ['UserInvites.View'],
     group: 'account'
   },
   {
@@ -71,7 +71,7 @@ export const ACCESS_SCREEN_CATALOG = [
   { label: 'Permissions Matrix', route: '/app/permissions/matrix', requiredAny: ['Permissions.Matrix.View'] },
   { label: 'Permissions Catalog', route: '/app/permissions/catalog', requiredAny: ['Permissions.Catalog.View'] },
   { label: 'System Sessions', route: '/app/sessions', requiredAny: ['Sessions.View'] },
-  { label: 'User Invites', route: '/app/user-invites', requiredAny: ['UserInvites.View', 'Users.Invites.View'] },
+  { label: 'User Invites', route: '/app/user-invites', requiredAny: ['UserInvites.View'] },
   { label: 'Security Settings', route: '/app/security-settings', requiredAny: ['SecuritySettings.View'] },
   { label: 'Recent Activity', route: '/app/activity', requiredAny: ['Activity.View'] }
 ];
