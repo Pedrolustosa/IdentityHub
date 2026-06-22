@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
@@ -77,7 +77,7 @@ export class SecuritySettingsComponent implements OnInit {
   constructor(
     private readonly toastr: ToastrService,
     private readonly authService: AuthService,
-    private readonly securitySettingsService: SecuritySettingsService
+    @Inject(SecuritySettingsService) private readonly securitySettingsService: SecuritySettingsService
   ) {
     this.canUpdateSettings = this.authService.hasPermission('SecuritySettings.Update');
   }
