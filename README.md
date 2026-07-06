@@ -9,82 +9,113 @@
 ![JWT](https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white)
 ![License](https://img.shields.io/badge/License-Public-informational)
 
-User management platform with an admin panel: accounts, roles, per-role permissions (`permission` claims), and dashboard metrics. Backend: **ASP.NET Core** + **Identity**. Frontend: **Angular** (standalone, Tailwind).
+IdentityHub is an Identity and Access Management (IAM) platform focused on secure user administration and operational visibility.
 
----
+Backend: ASP.NET Core + Identity + EF Core (SQLite).
+Frontend: Angular standalone + Tailwind.
 
-## Quick start (local)
+## 1. Objectives
 
-**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download), Node.js + npm (compatible with Angular 18).
+- Provide a complete account lifecycle: registration, email confirmation, password recovery, profile updates, and password change.
+- Offer robust administration of users, roles, and permission claims.
+- Enforce fine-grained authorization using policy-permission mapping.
+- Strengthen session security with token/session validation and permission versioning.
+- Expose security observability through audit logs, alerts, and activity timelines.
 
-1. **API** (HTTPS profile, matches the URL used by the Angular app):
+## 2. Repository Structure
 
-   ```bash
-   cd IdentityHubServer/IdentityHub.API
-   dotnet run --launch-profile https
-   ```
+Top-level:
 
-   API at **`https://localhost:7039`**. Apply EF migrations when needed (from the API or Infrastructure project, following your usual `dotnet ef` workflow).
+- `IdentityHubServer/`: .NET backend solution and projects.
+- `IdentityHubClient/IdentityHub.APP/`: Angular frontend application.
+- `README.md`: complete project documentation.
 
-2. **SPA:**
+Backend projects (`IdentityHubServer`):
 
-   ```bash
-   cd IdentityHubClient/IdentityHub.APP
-   npm install
-   npm start
-   ```
+- `IdentityHub.API`: controllers, middleware, authentication, authorization, Swagger, rate limiting.
+- `IdentityHub.Application`: application services, CQRS handlers, DTOs, contracts.
+- `IdentityHub.Domain`: entities, domain constants, interfaces.
+- `IdentityHub.Infrastructure`: EF Core data access, repositories, migrations, security and infrastructure services.
+- `IdentityHub.IoC`: dependency injection composition.
+- `IdentityHub.API.Tests`: integration, authorization, and unit tests.
 
-   App at **`http://localhost:4200`**.
+## 3. Architecture
 
-3. Open the browser, sign in with a seeded account (see table below), or use **Register** when signed out.
+### 3.1 Backend architecture
 
-**Swagger:** while the API is running, open the Swagger UI on the same origin (e.g. `https://localhost:7039/swagger`) to inspect the contract and try authenticated calls with a JWT.
+The backend follows layered architecture:
 
----
+- API layer orchestrates HTTP concerns and middleware pipeline.
+- Application layer holds use cases and business orchestration.
+- Domain layer defines the business model and rules.
+- Infrastructure layer implements persistence and external integrations.
 
-## Repository layout
+### 3.2 Backend request flow
 
-| Path | Description |
-|------|-------------|
-| **`IdentityHubServer/`** | Layered .NET 10 solution: Web API, application, domain, infrastructure (EF Core + SQLite), IoC. Startup project: **`IdentityHub.API`**. |
-| **`IdentityHubClient/IdentityHub.APP/`** | Angular 18 (standalone components), Tailwind, ngx-toastr, HTTP + guards; optional **SSR** build (Express). |
+1. ASP.NET middleware pipeline receives request.
+2. JWT is validated.
+3. Session and permission version are validated against the database.
+4. Permission policy is evaluated through claim-based authorization.
+5. Controller delegates to application services/CQRS handlers.
+6. Infrastructure persists/retrieves data via EF Core.
 
-### Recent additions
+### 3.3 Frontend architecture
 
-- Dedicated pages for **Audit Log detail** and **Security Alert detail**.
-- New modules for **Security Settings**, **User Invites**, **System Sessions**, **Recent Activity**, **Permissions Matrix**, and **Permissions Catalog**.
-- Global **breadcrumbs**, explicit **Access Denied** screen, and centralized navigation/access catalogs.
-- Permission hardening for session-revocation and invite flows, with explicit route-level permission checks.
+The frontend uses feature-oriented modularization with Angular standalone components.
 
----
+Layout zones:
 
-## Backend — `IdentityHubServer`
+- `auth-layout`: public/authentication shell (`/login`, `/register`, `/forgot-password`, and related auth pages).
+- `main-layout`: authenticated shell under `/app`.
 
-### Projects
+## 4. Core Rules
 
-| Project | Role |
-|---------|------|
-| **`IdentityHub.API`** | Controllers, JWT, CORS, Swagger, authorization handlers (`PermissionHandler`, `PermissionPolicyProvider`), startup seed when no users exist. |
-| **`IdentityHub.Application`** | DTOs, service interfaces, application services (auth, users, roles, dashboard, email, tokens). |
-| **`IdentityHub.Domain`** | Entities (`ApplicationUser`, `RefreshToken`, `UserSession`, `SecurityEvent`, …) and repository interfaces. |
-| **`IdentityHub.Infrastructure`** | `AppDbContext`, repositories, EF migrations, `UserSeed`. |
-| **`IdentityHub.IoC`** | DI registration (`AddInfrastructure`). |
+### 4.1 Authentication
 
-### Configuration (`IdentityHub.API/appsettings.json`)
+- Access token is JWT-based and short-lived.
+- Refresh token is stored as `ih_refresh` cookie (`HttpOnly`, `Secure`, `SameSite=Strict`).
+- Refresh token is rotated on refresh requests.
+
+### 4.2 Authorization
+
+- Policies are dynamically mapped to permission names (for example, `Users.View`).
+- Effective permissions are provided as `permission` claims (primarily role-based).
+- Frontend route access is enforced by permission guards and navigation catalog rules.
+
+### 4.3 Session and token hardening
+
+- JWT includes `sid` (session id).
+- JWT includes `permission_version`.
+- API validates active session state and permission version on authenticated requests.
+- Permission updates invalidate previously issued tokens by version increment.
+
+### 4.4 Abuse protection
+
+Rate limiting is applied to sensitive auth endpoints:
+
+- Login.
+- Forgot password.
+- Resend confirmation.
+
+### 4.5 Data and environment
+
+- API applies pending migrations automatically on startup, except in `Testing` environment.
+- Development/test seed is idempotent and only runs in non-production contexts.
+- Sensitive values (JWT key, SMTP credentials) must be supplied through User Secrets or environment variables.
+
+## 5. Backend Details
+
+### 5.1 Configuration (`IdentityHub.API/appsettings.json`)
 
 | Section | Purpose |
 |---------|---------|
-| **`ConnectionStrings:DefaultConnection`** | SQLite (default `Data Source=identityhub.db` next to the API process). |
-| **`Jwt`** | Signing key, issuer, audience, access token lifetime (`ExpireMinutes`, default **15**). |
-| **`Frontend:BaseUrl`** | Public SPA base URL used when generating links for email/user-facing flows. |
-| **`Smtp`** | Outbound email (account confirmation, password reset, etc.) when configured. |
-| **`RateLimiting:Auth:*`** | Optional per-endpoint auth throttling settings (`Login`, `ForgotPassword`, `ResendConfirmation`) with sensible defaults. |
+| `ConnectionStrings:DefaultConnection` | SQLite connection (`Data Source=identityhub.db`). |
+| `Jwt` | Signing key, issuer, audience, access token lifetime (`ExpireMinutes`, default 15). |
+| `Frontend:BaseUrl` | Public SPA base URL used when generating links for user-facing flows. |
+| `Smtp` | Outbound email settings for confirmation/reset flows. |
+| `RateLimiting:Auth:*` | Optional per-endpoint auth throttling settings. |
 
-> The **refresh token** is delivered as an **HttpOnly / Secure / SameSite=Strict cookie** (`ih_refresh`); it is not exposed to JavaScript. The SPA keeps only the short-lived **access token** in `localStorage`/`sessionStorage` and refreshes via the cookie with `withCredentials`.
-
-For non-local environments, **do not** commit real secrets; use [User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets), environment variables, or a secret store.
-
-Recommended local setup for secrets (from `IdentityHubServer/IdentityHub.API`):
+Recommended local secrets setup (from `IdentityHubServer/IdentityHub.API`):
 
 ```bash
 dotnet user-secrets set "Jwt:Key" "your-long-random-jwt-key"
@@ -93,24 +124,26 @@ dotnet user-secrets set "Smtp:Password" "your-smtp-password"
 dotnet user-secrets set "Smtp:From" "no-reply@your-domain.com"
 ```
 
-### Authentication and authorization
+### 5.2 Permission model
 
-- **Authentication:** JWT Bearer; users and passwords via **ASP.NET Core Identity**.
-- **Authorization:** dynamic policies aligned with **permissions** (e.g. `Users.View`). `PermissionPolicyProvider` maps the policy name to `PermissionRequirement`; `PermissionHandler` checks user claims of type **`permission`** (typically from roles).
-- **Sessions:** the JWT carries `sid` (session id) and `permission_version`. Every authenticated request validates that the session is still active and that the token's `permission_version` matches the user's current value; changing a role's permissions increments `PermissionVersion` for affected users, invalidating their existing tokens.
-- **Refresh tokens:** rotated on every use; reusing a revoked refresh token raises a `Security.Alert.RefreshTokenReuse` event and revokes the affected session.
-- **Reference permissions** (`IdentityHub.Domain.Constants.AppPermissions`):
-   - `Users.View`, `Users.Create`, `Users.Update`, `Users.Delete`, `Users.Roles.Update`
-   - `Roles.View`, `Roles.Create`, `Roles.Update`, `Roles.Delete`, `Roles.Permissions.View`, `Roles.Permissions.Update`
-   - `Dashboard.View`, `Sessions.View`, `Sessions.Revoke`, `Activity.View`
-   - `Audit.View`, `SecurityEvents.View`, `SecurityEvents.Manage`
-   - `SecuritySettings.View`, `SecuritySettings.Update`
-   - `Permissions.Catalog.View`, `Permissions.Matrix.View`
-   - `UserInvites.View`, `UserInvites.Create`, `UserInvites.Cancel`, `UserInvites.Resend`
+Permission domains include:
 
-> Note: `Users.Invites.View` still exists as a legacy permission constant on the server for compatibility. Current frontend routes/navigation use `UserInvites.View`.
+- `Users.*`
+- `Roles.*`
+- `Dashboard.View`
+- `Sessions.*` and `Activity.View`
+- `Audit.View`
+- `SecurityEvents.*`
+- `SecuritySettings.*`
+- `Permissions.Catalog.View`, `Permissions.Matrix.View`
+- `UserInvites.*`
 
-### Access matrix by endpoint
+Compatibility note:
+
+- `Users.Invites.View` remains as legacy backend constant.
+- Frontend navigation and access catalogs use `UserInvites.View`.
+
+### 5.3 Access matrix by endpoint
 
 | Method & route | Required access |
 |----------------|------------------|
@@ -144,7 +177,48 @@ dotnet user-secrets set "Smtp:From" "no-reply@your-domain.com"
 | `GET /api/auth/me`, `GET /api/auth/sessions`, `GET /api/auth/sessions/recent`, `DELETE /api/auth/sessions/{sessionId}`, `DELETE /api/auth/sessions/others`, `POST /api/auth/logout`, `POST /api/auth/change-password`, `PUT /api/auth/profile` | Authenticated |
 | `DELETE /api/auth/sessions/users/{targetUserId}` | `Sessions.Revoke` |
 
-### Access matrix by screen
+### 5.4 Database and seed
+
+- Database: SQLite with migrations under `IdentityHub.Infrastructure/Migrations`.
+- Startup migration: `Database.MigrateAsync()` in all environments except `Testing`.
+- Seed: roles `Admin`, `Manager`, `User` and development users.
+- Seeding behavior: idempotent, only in Development and Testing.
+
+Seeded development users:
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@identityhub.com` | `Admin@123` | Admin |
+| `manager@identityhub.com` | `Manager@123` | Manager |
+| `user@identityhub.com` | `User@123` | User |
+
+## 6. Frontend Details
+
+### 6.1 Stack
+
+| Area | Technology |
+|------|------------|
+| Framework | Angular 18 (standalone, router, forms, `HttpClient`). |
+| UI | Tailwind CSS 3.4, PostCSS, Autoprefixer. |
+| Feedback | ngx-toastr 18. |
+| SSR (optional) | `@angular/ssr` + Express. |
+| Tests | Karma + Jasmine. |
+| Language | TypeScript ~5.5. |
+
+### 6.2 Frontend code layout
+
+| Area | Location |
+|------|----------|
+| Authenticated shell | `src/app/layouts/main-layout/` |
+| Public shell | `src/app/layouts/auth-layout/` |
+| Features | `src/app/features/` |
+| Shared chrome/components | `src/app/shared/components/` |
+| Routing | `src/app/app.routes.ts` and `src/app/features/auth/auth.routes.ts` |
+| Core services/guards/interceptors | `src/app/core/` |
+| UI error mapping/state | `src/app/shared/http/ui-load-error.ts` and `src/app/shared/components/ux-state/` |
+| Permission and navigation catalogs | `src/app/shared/constants/` |
+
+### 6.3 Frontend routes by access
 
 | Screen (route) | Minimum permission |
 |----------------|--------------------|
@@ -166,65 +240,40 @@ dotnet user-secrets set "Smtp:From" "no-reply@your-domain.com"
 | `/app/permissions/matrix` | `Permissions.Matrix.View` |
 | `/app/permissions/catalog` | `Permissions.Catalog.View` |
 
-### REST API (summary)
+### 6.4 Profile and password UX
 
-Typical local base: **`https://localhost:7039`**. Common prefix: **`/api/...`**.
+- Full name is editable; email is read-only in profile UI.
+- Password form includes local validation and strength feedback.
+- API remains source of truth for final password policy enforcement.
 
-| Area | Main routes | Notes |
-|------|-------------|--------|
-| **Auth** | `POST /api/auth/register`, `GET /api/auth/confirm-email`, `POST /api/auth/resend-confirmation`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`, `POST /api/auth/change-password`, `PUT /api/auth/profile`, `GET /api/auth/me`, `GET /api/auth/sessions`, `GET /api/auth/sessions/recent`, `DELETE /api/auth/sessions/{sessionId}`, `DELETE /api/auth/sessions/others`, `DELETE /api/auth/sessions/users/{targetUserId}` | `login` and `refresh` rotate/set the `ih_refresh` HttpOnly cookie. `DELETE /api/auth/sessions/users/{targetUserId}` requires `Sessions.Revoke`. |
-| **Users** | `GET/POST /api/users`, `POST /api/users/invite`, `GET/PUT/DELETE /api/users/{id}`, `PUT /api/users/{id}/roles`, `GET /api/users/{id}/sessions`, `DELETE /api/users/{id}/sessions/{sessionId}`, `GET /api/users/{id}/audit-logs` | Supports CRUD, invite creation, role assignments, per-user sessions, and per-user audit history. |
-| **Roles** | `GET/POST /api/roles`, `GET/PUT/DELETE /api/roles/{id}`, **`GET/PUT /api/roles/{id}/permissions`** | List of permission strings; `PUT` body `{ "permissions": [ "Users.View", ... ] }`. |
-| **Role claims** (alternate) | `GET/POST/PUT/DELETE /api/role-claims/{roleId}` | Same `permission` claim model; the SPA primarily uses **Roles** + `.../permissions`. |
-| **Dashboard** | `GET /api/dashboard` | Aggregates (totals, 7-day windows, growth). The Angular app maps the API DTO to the UI model. |
-| **Audit Logs** | `GET /api/audit-logs`, `GET /api/audit-logs/{id}`, `GET /api/audit-logs/export` | Filtered paging plus CSV export. |
-| **Security Alerts** | `GET /api/security-alerts`, `GET /api/security-alerts/{id}`, `PUT /api/security-alerts/{id}/status` | View requires `SecurityEvents.View`; status updates require `SecurityEvents.Manage`. |
-| **Security Settings** | `GET /api/security-settings`, `PUT /api/security-settings` | Managed via CQRS + MediatR and permission-scoped endpoints. |
-| **User Invites** | `GET /api/user-invites`, `POST /api/user-invites/{id}/resend`, `DELETE /api/user-invites/{id}` | Invite lifecycle operations with explicit `UserInvites.*` permissions. |
+## 7. Build, Run, and Test
 
-### Database and seed
+### 7.1 Quick start (local)
 
-- **SQLite** + versioned migrations under **`IdentityHub.Infrastructure/Migrations`**. The API applies pending migrations on startup (`Database.MigrateAsync()`) for every environment except `Testing` (integration tests use an in-memory SQLite created via `EnsureCreated`).
-- **Seed** (`UserSeed`): roles `Admin`, `Manager`, `User` and development accounts. Seeding only runs in **Development** (and the test environment) and is **idempotent** — default accounts are **never** created automatically in Production.
+Prerequisites: .NET 10 SDK, Node.js + npm compatible with Angular 18.
 
-#### EF Core migration commands
-
-Package Manager Console:
-
-```powershell
-Add-Migration <Name> -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
-Update-Database -StartupProject IdentityHub.API -Project IdentityHub.Infrastructure
-```
-
-.NET CLI (from `IdentityHubServer`):
-
-```bash
-dotnet ef migrations add <Name> --project IdentityHub.Infrastructure --startup-project IdentityHub.API
-dotnet ef database update --project IdentityHub.Infrastructure --startup-project IdentityHub.API
-```
-
-> The running API applies pending migrations automatically on startup, so a manual `database update` is only needed for tooling or CI scenarios.
-
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@identityhub.com` | `Admin@123` | Admin |
-| `manager@identityhub.com` | `Manager@123` | Manager |
-| `user@identityhub.com` | `User@123` | User |
-
-### Run the API only
+1. Start API:
 
 ```bash
 cd IdentityHubServer/IdentityHub.API
-dotnet run --launch-profile https   # https://localhost:7039 (+ http://localhost:5081)
-# or
-dotnet run --launch-profile http    # http://localhost:5081
+dotnet run --launch-profile https
 ```
 
-**CORS** (`Program.cs`): allows `http://localhost:4200` and `https://localhost:4200` for local Angular development.
+2. Start SPA:
 
-### Build and test commands
+```bash
+cd IdentityHubClient/IdentityHub.APP
+npm install
+npm start
+```
 
-Server (`IdentityHubServer`):
+3. Open browser:
+
+- API: `https://localhost:7039`
+- Swagger: `https://localhost:7039/swagger`
+- SPA: `http://localhost:4200`
+
+### 7.2 Backend commands
 
 ```bash
 cd IdentityHubServer
@@ -233,7 +282,14 @@ dotnet build IdentityHub.slnx
 dotnet test IdentityHub.API.Tests
 ```
 
-Client (`IdentityHubClient/IdentityHub.APP`):
+EF migration examples:
+
+```bash
+dotnet ef migrations add <Name> --project IdentityHub.Infrastructure --startup-project IdentityHub.API
+dotnet ef database update --project IdentityHub.Infrastructure --startup-project IdentityHub.API
+```
+
+### 7.3 Frontend commands
 
 ```bash
 cd IdentityHubClient/IdentityHub.APP
@@ -242,94 +298,80 @@ npm run build
 npm test
 ```
 
-> Note: `IdentityHub.slnx` currently includes API/application/domain/infrastructure/IoC projects. The API test project is executed separately via `dotnet test IdentityHub.API.Tests`.
+SSR serve command:
 
----
+```bash
+npm run serve:ssr:IdentityHub.APP
+```
 
-## Frontend — `IdentityHubClient/IdentityHub.APP`
+## 8. Current Status and Known Gaps
 
-### Stack
+### 8.1 Current alignment
 
-| Area | Technology |
-|------|------------|
-| Framework | Angular **18** (standalone, router, forms, `HttpClient`). |
-| UI | **Tailwind CSS** 3.4, PostCSS, Autoprefixer. |
-| Feedback | **ngx-toastr** 18. |
-| SSR (optional) | **@angular/ssr**, Express — `npm run serve:ssr:IdentityHub.APP` after `ng build`. |
-| Tests | Karma + Jasmine. |
-| Language | TypeScript ~5.5. |
+The current codebase aligns with this README for:
 
-### Code layout
+- Layered backend architecture and modular frontend structure.
+- Dynamic permission-policy authorization.
+- Session hardening with `sid` and `permission_version`.
+- Environment-specific migration and seed behavior.
 
-| Area | Location |
-|------|----------|
-| Authenticated shell | `src/app/layouts/main-layout/` |
-| Public shell | `src/app/layouts/auth-layout/` |
-| Pages | `src/app/features/` — auth, dashboard, users, role-claims, audit-logs, security-alerts, sessions, activity, security-settings, user-invites, permissions, profile, my-access, access-denied |
-| Shared chrome | `src/app/shared/components/` (sidebar, top-navbar, breadcrumbs, ux-state) |
-| Routing | `src/app/app.routes.ts` — `/app` uses `authGuard`; public routes use `guestGuard` where applicable |
-| HTTP / core | `src/app/core/services/` and `src/app/core/interceptors/`; feature services under `features/**` |
-| Shared UI (errors/loading/empty) | `src/app/shared/http/ui-load-error.ts` + `src/app/shared/components/ux-state/` |
-| Known permissions (UI) | `src/app/shared/constants/permissions-catalog.ts` — aligned with server (checkboxes on role-claims edit) |
-| Navigation/access catalogs | `src/app/shared/constants/navigation-catalog.ts` |
-| Guards / interceptor | `src/app/core/guards/`, `src/app/core/interceptors/auth.interceptor.ts` (adds `Authorization: Bearer` from the stored access token) and `auth-refresh.interceptor.ts` (single retry per 401: refreshes via the HttpOnly cookie, then replays the request; on failure clears the session and redirects to login) |
+### 8.2 Known API/frontend contract gaps
 
-### API integration
+These route contracts are currently inconsistent and should be fixed:
 
-Services use `environment.apiUrl` (default local value: **`https://localhost:7039/api`**, matching `src/environments/environment.development.ts`). Keep CORS and origins consistent between SPA and API across environments.
+1. Current user session history
+- Frontend call: `GET /api/auth/sessions/history`
+- Backend route: `GET /api/auth/sessions/recent`
 
-### Profile and password (SPA)
+2. Admin user session history
+- Frontend call: `GET /api/users/{id}/sessions/history`
+- Backend route: `GET /api/users/{id}/sessions`
 
-- **Account:** **Full name** is editable; **email** is read-only in the UI (sign-in email is sent unchanged on save for API contract compatibility). Save calls **`PUT /api/auth/profile`** then refreshes the session when possible.
-- **Password:** Client-side rules (**7–12** characters, one **uppercase**, **two digits**, one **special** character), confirmation must match, strength **progress bar** and contextual **suggestions**, plus a **help** (?) tooltip on the password card. **`POST /api/auth/change-password`** still enforces server-side Identity rules — align API password options with the SPA if you tighten policy in production.
-- **Errors:** Failed loads and form submissions show a shared **load-error banner** (403 / 401 / 404 / network / server / unknown) with **ngx-toastr** as secondary feedback; **Retry** appears only when it is useful (not for 403/401).
+3. User audit history
+- Frontend call: `GET /api/users/{id}/audit`
+- Backend route: `GET /api/users/{id}/audit-logs`
 
-### NPM scripts
+4. Security alert unread count
+- Frontend call: `GET /api/security-alerts/unread-count`
+- Backend route: not implemented.
 
-| Script | Command |
-|--------|---------|
-| `npm start` | `ng serve` — defaults to `http://localhost:4200`. |
-| `npm run build` | Production build → `dist/identity-hub.app`. |
-| `npm test` | `ng test` (Karma). |
-| `npm run serve:ssr:IdentityHub.APP` | Serve the SSR bundle from `dist/identity-hub.app/server/server.mjs`. |
+Impact:
 
-### Navigation (summary)
+- Can cause runtime `404 Not Found` in profile, user detail, and top navbar scenarios.
 
-- **Public:** login, registration, password and email confirmation flows (see `app.routes.ts`); forms use the same structured error UX as the app shell where applicable.
-- **Authenticated (`/app`):** dashboard, users, role claims, profile, my-access, audit logs (list + detail), security alerts (list + detail), system sessions, recent activity, security settings, user invites, permissions matrix/catalog, and access-denied.
+Recommended action:
 
----
+- Standardize one contract source (prefer backend routes), then update frontend service paths and add route-compatibility tests.
 
-## Goals and business rules
+### 8.3 Dependency security snapshot
 
-**Goal:** Centralize identity and access for internal systems — administrators manage users and permissions with a consistent model.
+- Backend build currently raises NuGet advisory warning `NU1903` for transitive SQLite package chain.
+- Frontend dependency audit currently reports multiple Angular advisories, including SSR-related critical severity in current version range.
 
-**Core rules:**
+Recommended action:
 
-- Accounts are created and maintained by authorized processes (per your production API policies).
-- Users have one or more **roles**; effective permissions come from **`permission`** claims on roles (and appear in the JWT after login).
-- Sensitive operations (role/permission updates, invite lifecycle, session revocation, security alert status changes, security settings updates) require dedicated fine-grained permissions.
-- Token flow: access + refresh; logout and state rotation per `AuthService` / API implementation.
+1. Remediate backend transitive advisory via package updates.
+2. Upgrade Angular dependencies to patched compatible versions.
+3. Re-run build and test suites, including SSR smoke checks.
 
-**Product features:**
+## 9. Extension Checklist
 
-- User CRUD, listing with **roles**, invite creation, admin user edit, role updates, per-user session revocation, and per-user audit history.
-- **Self-service profile:** update **full name** via auth API; **change password** revokes sessions server-side.
-- Role listing and **per-role permission** editing (via the Roles API).
-- Dashboard with aggregate metrics, trends, security/audit widgets, and permission-scoped quick actions.
-- Security alerts management, audit logs export/detail, security settings management, user invites management, permissions matrix/catalog, and activity/sessions modules.
-- JWT, refresh tokens, and sessions persisted in the API data model.
+When implementing a new feature:
 
----
+1. Define or extend permission constants in backend and frontend catalogs.
+2. Protect backend endpoints with matching policies.
+3. Add or update frontend routes with permission metadata.
+4. Add navigation entries with `requiredAny` rules.
+5. Reuse shared UI components and state patterns.
+6. Add tests (authorization, integration, and frontend where applicable).
+7. Update this README.
 
-## Security notes
+## 10. Security Notes
 
-- Change seeded passwords and accounts before any public deployment.
-- Keep JWT and SMTP secrets out of source control in production.
-- Ensure administrative endpoints are protected with `[Authorize]` and permission policies appropriate to your threat model.
+- Change seeded accounts/passwords before any public deployment.
+- Keep JWT and SMTP secrets out of source control.
+- Ensure sensitive endpoints remain protected by `[Authorize]` and proper permission policies.
 
----
+## 11. License
 
-## License
-
-Public / reference use — adjust the license to your organization’s legal model if you fork the project.
+Public/reference use. Adjust license terms to your organization if you fork this project.
