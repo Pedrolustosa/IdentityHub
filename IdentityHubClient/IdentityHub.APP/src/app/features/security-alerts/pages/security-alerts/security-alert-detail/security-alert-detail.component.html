@@ -1,5 +1,5 @@
-<section class="max-w-4xl space-y-6">
-  <a routerLink="/app/security-alerts" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
+<section class="ih-page max-w-4xl">
+  <a routerLink="/app/security-alerts" class="inline-flex items-center gap-2 text-sm font-medium text-ink-secondary hover:text-ink transition-colors duration-150">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
     </svg>
@@ -18,10 +18,10 @@
     (retry)="loadAlert(alertId)"
   >
   @if (alert) {
-    <div class="rounded-xl border bg-white shadow-sm overflow-hidden">
-      <div class="border-b border-slate-100 p-6 space-y-4">
+    <div class="ih-panel overflow-hidden">
+      <div class="border-b border-line p-6 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <h1 class="text-xl font-semibold tracking-tight text-slate-900">{{ alert.type }}</h1>
+          <h1 class="text-xl font-semibold tracking-tight text-ink">{{ alert.type }}</h1>
           <div class="flex flex-wrap items-center gap-2">
             <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold" [ngClass]="severityBadgeClass(alert.severity)">
               {{ alert.severity }}
@@ -31,42 +31,42 @@
             </span>
           </div>
         </div>
-        <p class="text-sm text-slate-500">Created at {{ alert.createdAt | date:'medium' }}</p>
+        <p class="text-sm text-soft">Created at {{ alert.createdAt | date:'medium' }}</p>
       </div>
 
       <dl class="grid gap-5 p-6 sm:grid-cols-2">
         <div>
-          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Alert ID</dt>
-          <dd class="mt-1 text-xs font-mono text-slate-700 break-all">{{ alert.id }}</dd>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-soft">Alert ID</dt>
+          <dd class="mt-1 text-xs font-mono text-ink-secondary break-all">{{ alert.id }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">User ID</dt>
-          <dd class="mt-1 text-xs font-mono text-slate-700 break-all">{{ alert.userId }}</dd>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-soft">User ID</dt>
+          <dd class="mt-1 text-xs font-mono text-ink-secondary break-all">{{ alert.userId }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt>
-          <dd class="mt-1 text-sm text-slate-700">{{ alert.status }}</dd>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-soft">Status</dt>
+          <dd class="mt-1 text-sm text-ink-secondary">{{ alert.status }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Timestamp</dt>
-          <dd class="mt-1 text-sm text-slate-700">{{ alert.createdAt | date:'yyyy-MM-dd HH:mm:ss' }} UTC</dd>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-soft">Timestamp</dt>
+          <dd class="mt-1 text-sm text-ink-secondary">{{ alert.createdAt | date:'yyyy-MM-dd HH:mm:ss' }} UTC</dd>
         </div>
         <div class="sm:col-span-2">
-          <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Description</dt>
-          <dd class="mt-1 text-sm text-slate-800">{{ alert.description }}</dd>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-soft">Description</dt>
+          <dd class="mt-1 text-sm text-ink">{{ alert.description }}</dd>
         </div>
       </dl>
 
       @if (canManageAlerts) {
-        <div class="border-t border-slate-100 bg-slate-50 p-6">
-          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Change status</p>
+        <div class="border-t border-line bg-panel-muted p-6">
+          <p class="text-xs font-semibold uppercase tracking-wide text-soft">Change status</p>
           <div class="mt-3 flex flex-wrap gap-2">
             <button type="button" (click)="updateStatus('Reviewed')" [disabled]="isUpdating || alert.status === 'Reviewed'"
-              class="rounded border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 disabled:opacity-50">Reviewed</button>
+              class="rounded border border-warning-200 bg-warning-50 px-3 py-1.5 text-xs font-medium text-warning-700 disabled:opacity-50 dark:border-warning-800 dark:bg-warning-900/40 dark:text-warning-300">Reviewed</button>
             <button type="button" (click)="updateStatus('Resolved')" [disabled]="isUpdating || alert.status === 'Resolved'"
-              class="rounded border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 disabled:opacity-50">Resolved</button>
+              class="rounded border border-success-200 bg-success-50 px-3 py-1.5 text-xs font-medium text-success-700 disabled:opacity-50 dark:border-success-800 dark:bg-success-900/40 dark:text-success-300">Resolved</button>
             <button type="button" (click)="updateStatus('Ignored')" [disabled]="isUpdating || alert.status === 'Ignored'"
-              class="rounded border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-50">Ignored</button>
+              class="rounded border border-line bg-panel px-3 py-1.5 text-xs font-medium text-ink-secondary disabled:opacity-50">Ignored</button>
           </div>
         </div>
       }

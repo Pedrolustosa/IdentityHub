@@ -20,7 +20,8 @@ export class BrandLogoComponent {
 
   get imageSrc(): string {
     if (this.variant === 'sidebar') {
-      return '/logo_e_texto.png';
+      // Mark-only fits the narrow rail better when collapsed.
+      return this.collapsed ? '/logo.png' : '/logo_e_texto.png';
     }
     return this.wordmark ? '/logo_e_texto.png' : '/logo.png';
   }

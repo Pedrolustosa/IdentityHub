@@ -9,6 +9,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
+import { isDateOfBirthToday } from '../../../../shared/utils/birthday.util';
 import { UserListItem, UsersService } from '../../users.service';
 
 @Component({
@@ -49,6 +50,14 @@ export class UsersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+  }
+
+  isBirthdayToday(user: UserListItem): boolean {
+    return isDateOfBirthToday(user.dateOfBirth);
+  }
+
+  birthdayUsersCount(): number {
+    return this.users.filter((user) => this.isBirthdayToday(user)).length;
   }
 
   loadUsers(): void {
@@ -131,6 +140,12 @@ export class UsersComponent implements OnInit {
   }
 
   compareUsers(a: UserListItem, b: UserListItem): number {
+    // Birthday users float to the top so the team notices them.
+    const birthdayDelta = Number(this.isBirthdayToday(b)) - Number(this.isBirthdayToday(a));
+    if (birthdayDelta !== 0) {
+      return birthdayDelta;
+    }
+
     let result = 0;
 
     if (this.sortBy === 'status') {
@@ -285,10 +300,7 @@ export class UsersComponent implements OnInit {
           }
 
           if (failedCount > 0) {
-            this.toastr.warning(
-              `${failedCount} user(s) could not be updated.`,
-              'Users'
-            );
+            this.toastr.warning(`${failedCount} user(s) could not be updated.`, 'Users');
           }
 
           this.selectedUserIds = failedIds;

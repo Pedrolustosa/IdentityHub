@@ -14,7 +14,7 @@ type InviteStatus = 'Pending' | 'Accepted' | 'Expired' | 'Canceled';
   standalone: true,
   imports: [CommonModule, UxStateComponent],
   template: `
-    <section class="space-y-5">
+    <section class="ih-page">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">User invites</h1>
         <p class="text-slate-600">Track pending, accepted, expired and canceled invites.</p>

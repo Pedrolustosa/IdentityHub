@@ -11,7 +11,7 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
   standalone: true,
   imports: [CommonModule, UxStateComponent],
   template: `
-    <section class="space-y-5">
+    <section class="ih-page">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Recent activity</h1>
         <p class="text-slate-600">Friendly timeline of recent audit events.</p>
@@ -24,10 +24,10 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
         description="No audit events were returned for the selected period."
         (retry)="load()"
       >
-        <div class="space-y-2">
+        <div class="ih-stack-loose">
           @for (item of items; track item.id) {
-            <article class="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-              <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <article class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p class="text-sm font-semibold text-slate-900">{{ item.type }}</p>
                   <p class="text-sm text-slate-700">{{ item.description }}</p>

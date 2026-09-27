@@ -1,175 +1,111 @@
 :host {
-	display: block;
-}
-
-.dashboard-header {
-	background:
-		radial-gradient(circle at 82% 18%, rgba(14, 165, 233, 0.11), transparent 40%),
-		linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0.75));
-}
-
-.dashboard-kpi {
-	display: inline-flex;
-	flex-direction: column;
-	border: 1px solid rgba(148, 163, 184, 0.28);
-	border-radius: 0.75rem;
-	background: rgba(255, 255, 255, 0.86);
-	padding: 0.35rem 0.65rem;
-	min-width: 4.75rem;
-}
-
-.dashboard-kpi-label {
-	font-size: 0.66rem;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	color: rgb(100 116 139);
-}
-
-.dashboard-kpi-value {
-	font-size: 0.95rem;
-	font-weight: 700;
-	color: rgb(15 23 42);
-	line-height: 1.2;
+  display: block;
 }
 
 .dashboard-card {
-	border: 1px solid rgba(148, 163, 184, 0.35);
-	border-radius: 1rem;
-	background: rgba(255, 255, 255, 0.95);
-	padding: 1rem;
-	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-	transition: border-color 150ms ease, box-shadow 150ms ease;
-
+  border: 1px solid rgb(var(--ih-line));
+  border-radius: 1rem;
+  background: rgb(var(--ih-panel) / 0.96);
+  padding: 1.25rem;
+  box-shadow: var(--ih-shadow-panel);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .dashboard-card:hover {
-	border-color: rgba(148, 163, 184, 0.55);
-	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-	transform: translateY(-1px);
+  border-color: rgb(var(--ih-line-strong));
+  box-shadow: var(--ih-shadow-lift);
+  transform: translateY(-1px);
 }
 
 .dashboard-card-heading {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .dashboard-card-kicker {
-	font-size: 0.68rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.18em;
-	color: rgb(100 116 139);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgb(var(--ih-ink-muted));
 }
 
 .dashboard-card-title {
-	margin-top: 0.2rem;
-	font-size: 1rem;
-	font-weight: 700;
-	color: rgb(15 23 42);
+  margin-top: 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgb(var(--ih-ink));
 }
 
 .dashboard-card-number {
-	margin-top: 0.8rem;
-	font-size: 1.9rem;
-	font-weight: 800;
-	line-height: 1;
-	letter-spacing: -0.04em;
-	color: rgb(15 23 42);
+  margin-top: 0.8rem;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgb(var(--ih-ink));
 }
 
 .dashboard-card-subtext {
-	margin-top: 0.45rem;
-	font-size: 0.8rem;
-	color: rgb(100 116 139);
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  color: rgb(var(--ih-ink-muted));
 }
 
 .dashboard-pill {
-	border-radius: 9999px;
-	padding: 0.22rem 0.55rem;
-	font-size: 0.69rem;
-	font-weight: 700;
-	line-height: 1;
-	white-space: nowrap;
+  border-radius: 9999px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.69rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  background: rgb(var(--ih-panel-muted));
+  color: rgb(var(--ih-ink-secondary));
 }
 
 .dashboard-action-primary,
 .dashboard-action-secondary {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 0.875rem;
-	padding: 0.75rem 1rem;
-	font-size: 0.875rem;
-	font-weight: 700;
-	transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
 }
 
 .dashboard-action-primary {
-	background: rgb(37 99 235);
-	color: white;
-	box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
+  background: rgb(var(--ih-accent));
+  color: white;
+  box-shadow: 0 6px 14px rgb(var(--ih-focus) / 0.22);
 }
 
 .dashboard-action-primary:hover {
-	background: rgb(59 130 246);
-	transform: translateY(-1px);
+  background: rgb(var(--ih-accent-strong));
+  transform: translateY(-1px);
 }
 
 .dashboard-action-secondary {
-	border: 1px solid rgba(148, 163, 184, 0.35);
-	background: rgba(248, 250, 252, 0.9);
-	color: rgb(51 65 85);
+  border: 1px solid rgb(var(--ih-line));
+  background: rgb(var(--ih-panel-muted));
+  color: rgb(var(--ih-ink-secondary));
 }
 
 .dashboard-action-secondary:hover {
-	border-color: rgba(148, 163, 184, 0.55);
-	background: rgba(241, 245, 249, 1);
-	transform: translateY(-1px);
+  border-color: rgb(var(--ih-line-strong));
+  background: rgb(var(--ih-canvas-subtle));
+  transform: translateY(-1px);
 }
 
-:host-context(.dark) .dashboard-header {
-	background:
-		radial-gradient(circle at 82% 18%, rgba(14, 165, 233, 0.18), transparent 40%),
-		linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+.dark .dashboard-action-primary {
+  background: rgb(var(--ih-accent));
+  color: rgb(15 23 42);
 }
 
-:host-context(.dark) .dashboard-kpi,
-:host-context(.dark) .dashboard-card {
-	background: rgba(15, 23, 42, 0.9);
-	border-color: rgba(51, 65, 85, 0.8);
+.dark .dashboard-action-primary:hover {
+  background: rgb(var(--ih-accent-strong));
+  color: rgb(15 23 42);
 }
-
-:host-context(.dark) .dashboard-kpi-label,
-:host-context(.dark) .dashboard-card-kicker,
-:host-context(.dark) .dashboard-card-subtext,
-:host-context(.dark) .dashboard-chart-description,
-:host-context(.dark) .dashboard-chart-subtitle,
-:host-context(.dark) .dashboard-chart-label {
-	color: rgb(148 163 184);
-}
-
-:host-context(.dark) .dashboard-kpi-value,
-:host-context(.dark) .dashboard-card-title,
-:host-context(.dark) .dashboard-card-number {
-	color: rgb(241 245 249);
-}
-
-:host-context(.dark) .dashboard-pill {
-	background: rgba(30, 41, 59, 0.9);
-	color: rgb(203 213 225);
-}
-
-:host-context(.dark) .dashboard-action-primary {
-	background: rgb(37 99 235);
-	color: white;
-}
-
-:host-context(.dark) .dashboard-action-secondary {
-	border-color: rgba(71, 85, 105, 0.9);
-	background: rgba(30, 41, 59, 0.9);
-	color: rgb(226 232 240);
-}
-

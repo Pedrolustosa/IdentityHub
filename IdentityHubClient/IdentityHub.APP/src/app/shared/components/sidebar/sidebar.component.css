@@ -1,1 +1,22 @@
+:host {
+  display: block;
+  height: 100%;
+}
 
+.ih-sidebar-icon {
+  color: rgb(var(--ih-sidebar-soft));
+  transition: color 150ms ease;
+}
+
+.ih-sidebar-link:hover .ih-sidebar-icon {
+  color: rgb(var(--ih-sidebar-ink));
+}
+
+.ih-sidebar-link.is-active .ih-sidebar-icon {
+  color: rgb(var(--ih-sidebar-accent));
+}
+
+/* Keep scaled logo from spilling into nav */
+.ih-sidebar-brand {
+  overflow: hidden;
+}

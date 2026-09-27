@@ -69,6 +69,12 @@ public sealed class SecurityAlertsService : ISecurityAlertsService
         });
     }
 
+    public async Task<Result<int>> GetUnreadCountAsync(CancellationToken cancellationToken)
+    {
+        var count = await _repository.CountUnreadAsync(cancellationToken);
+        return Result<int>.Success(count);
+    }
+
     public async Task<Result> UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken)
     {
         var normalizedStatus = (status ?? string.Empty).Trim();

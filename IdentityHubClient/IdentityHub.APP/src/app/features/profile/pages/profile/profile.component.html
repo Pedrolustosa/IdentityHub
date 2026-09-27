@@ -1,480 +1,265 @@
-<div class="w-full flex justify-center px-2 sm:px-4 pb-12">
-  <div class="w-full max-w-5xl mx-auto space-y-8">
-    <div class="space-y-4">
-      <a
-        routerLink="/app/dashboard"
-        class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
-        </svg>
-        Back to dashboard
-      </a>
-
-      <header class="text-center">
-        <h1 class="text-2xl font-semibold text-slate-900">Profile and security</h1>
-        <p class="text-slate-500 mt-1 max-w-xl mx-auto">Update your account details and password.</p>
-      </header>
-
-      <div class="inline-flex w-full flex-wrap items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-1">
-        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('personal')" (click)="setTab('personal')">Dados pessoais</button>
-        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('security')" (click)="setTab('security')">Segurança</button>
-        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('sessions')" (click)="setTab('sessions')">Sessões</button>
-        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors" [ngClass]="tabClass('access')" (click)="setTab('access')">Meu acesso</button>
-      </div>
+<section class="ih-page profile-page">
+  <header class="ih-page-header">
+    <div>
+      <h1 class="text-2xl font-semibold tracking-tight text-ink">Profile</h1>
+      <p class="text-soft">Update your account details and password.</p>
     </div>
+  </header>
 
-    @if (selectedTab === 'personal' || selectedTab === 'security') {
-    <div
-      class="grid w-full grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch justify-items-center lg:justify-items-stretch"
-    >
-      @if (selectedTab === 'personal') {
-      <div
-        class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
-      >
-        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3 shrink-0">
-          <h2 class="text-sm font-semibold text-slate-800">Account</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Display name. Sign-in email cannot be changed here.</p>
+  <div class="profile-layout">
+    <section class="ih-panel profile-card">
+      <div class="profile-card-head">
+        <div>
+          <h2 class="profile-card-title">Account</h2>
+          <p class="profile-card-subtitle">Personal details used across IdentityHub.</p>
         </div>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
-          @if (profileSubmitError) {
-            <app-ux-state
-              state="error"
-              [error]="profileSubmitError"
-              title="Could not save profile"
-              description="Review the error details and try again."
-              (retry)="submit()"
-            />
-          }
-          <div class="flex flex-col gap-1">
-            <label for="pf-fullname" class="text-sm font-medium text-slate-700">Full name</label>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="profile-card-body">
+        @if (profileSubmitError) {
+          <app-ux-state
+            state="error"
+            [error]="profileSubmitError"
+            title="Could not save profile"
+            description="Review the error details and try again."
+            (retry)="submit()"
+          />
+        }
+
+        <div class="profile-grid profile-grid-account">
+          <div class="profile-field profile-span-6">
+            <label for="pf-fullname" class="ih-label">Full name</label>
             <input
               id="pf-fullname"
               type="text"
               formControlName="fullName"
               autocomplete="name"
-              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+              class="ih-input"
+              placeholder="Your display name"
             />
           </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="pf-email" class="text-sm font-medium text-slate-700">Email</label>
+          <div class="profile-field profile-span-6">
+            <label for="pf-email" class="ih-label">Email</label>
             <input
               id="pf-email"
               type="email"
               formControlName="email"
               autocomplete="email"
-              class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 cursor-not-allowed"
+              class="ih-input profile-input-readonly"
             />
-            <p class="text-xs text-slate-500">Read-only. Contact an administrator if you need a different sign-in email.</p>
+            <p class="profile-hint">Read-only sign-in email.</p>
           </div>
 
-          <div class="flex-1 min-h-[0.5rem]"></div>
+          <div class="profile-field profile-span-8">
+            <label for="pf-phone" class="ih-label">Phone number</label>
+            <app-phone-input
+              inputId="pf-phone"
+              formControlName="phoneNumber"
+              defaultCountryIso2="BR"
+            />
+            @if (form.controls.phoneNumber.invalid && (form.controls.phoneNumber.dirty || form.controls.phoneNumber.touched)) {
+              <small class="profile-error">
+                @if (form.controls.phoneNumber.errors?.['phoneNumberIncomplete']) {
+                  Complete the local number for the selected country.
+                } @else {
+                  Enter a valid phone number.
+                }
+              </small>
+            }
+            <p class="profile-hint">Country first, then local number only.</p>
+          </div>
 
+          <div class="profile-field profile-span-4">
+            <label for="pf-dob" class="ih-label">Date of birth</label>
+            <input
+              id="pf-dob"
+              type="date"
+              formControlName="dateOfBirth"
+              autocomplete="bday"
+              class="ih-input"
+            />
+            @if (form.controls.dateOfBirth.invalid && (form.controls.dateOfBirth.dirty || form.controls.dateOfBirth.touched)) {
+              <small class="profile-error">Enter a valid date of birth.</small>
+            }
+          </div>
+        </div>
+
+        <div class="profile-card-footer">
           <button
             type="submit"
             [disabled]="isLoading || form.invalid || !initialEmail"
-            class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 disabled:opacity-60 transition-colors duration-150 mt-auto"
+            class="btn btn-primary btn-md"
           >
             {{ isLoading ? 'Please wait…' : 'Save profile' }}
           </button>
-        </form>
-      </div>
-      }
+        </div>
+      </form>
+    </section>
 
-      @if (selectedTab === 'security') {
-      <div
-        class="w-full max-w-md lg:max-w-none rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden flex flex-col"
-      >
-        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3 shrink-0">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <h2 class="text-sm font-semibold text-slate-800">Password</h2>
-              <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                You will be signed out everywhere after a successful change.
-              </p>
-            </div>
-            <div class="relative shrink-0 group pt-0.5">
-              <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/90 bg-white text-slate-500 shadow-sm ring-1 ring-slate-900/5 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50"
-                aria-label="Password change help"
-                aria-describedby="password-card-help-tooltip"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.75"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
-                  />
-                </svg>
-              </button>
-              <div
-                id="password-card-help-tooltip"
-                role="tooltip"
-                class="invisible absolute right-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2.5rem)] rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-left text-xs text-slate-600 shadow-lg ring-1 ring-slate-900/5 opacity-0 transition-[opacity,visibility] duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-              >
-                <p class="font-semibold text-slate-900">About this card</p>
-                <ul class="mt-2 list-disc space-y-1.5 pl-4 leading-relaxed text-slate-600">
-                  <li>After you save, <strong class="text-slate-800">all sessions end</strong> — sign in again on each device.</li>
-                  <li>
-                    New password: <strong class="text-slate-800">7–12 characters</strong>, one uppercase letter,
-                    <strong class="text-slate-800">two digits</strong>, and one <strong class="text-slate-800">special character</strong>.
-                  </li>
-                  <li>The bar and suggestions update as you type. Confirmation must match the new password exactly.</li>
-                </ul>
-              </div>
-            </div>
+    <section class="ih-panel profile-card">
+      <div class="profile-card-head">
+        <div class="min-w-0">
+          <h2 class="profile-card-title">Password</h2>
+          <p class="profile-card-subtitle">Changing it signs you out on every device.</p>
+        </div>
+        <div class="relative shrink-0 group">
+          <button
+            type="button"
+            class="profile-help-btn"
+            aria-label="Password change help"
+            aria-describedby="password-card-help-tooltip"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
+            </svg>
+          </button>
+          <div
+            id="password-card-help-tooltip"
+            role="tooltip"
+            class="profile-help-tip"
+          >
+            <p class="font-semibold text-ink">Password change</p>
+            <ul class="mt-2 list-disc space-y-1.5 pl-4 leading-relaxed">
+              <li>All sessions end after a successful save.</li>
+              <li>Use 7–12 characters with uppercase, two digits, and one special character.</li>
+            </ul>
           </div>
         </div>
-        <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="p-5 sm:p-6 space-y-4 flex flex-col flex-1">
-          @if (passwordSubmitError) {
-            <app-ux-state
-              state="error"
-              [error]="passwordSubmitError"
-              title="Could not update password"
-              description="Review the error details and try again."
-              (retry)="submitPassword()"
-            />
-          }
-          <div class="flex flex-col gap-1">
-            <label for="pf-curr" class="text-sm font-medium text-slate-700">Current password</label>
-            <input
-              id="pf-curr"
-              type="password"
-              formControlName="currentPassword"
-              autocomplete="current-password"
-              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
-          </div>
+      </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="pf-new" class="text-sm font-medium text-slate-700">New password</label>
-            <input
-              id="pf-new"
-              type="password"
-              formControlName="newPassword"
-              autocomplete="new-password"
-              maxlength="12"
-              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
+      <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="profile-card-body">
+        @if (passwordSubmitError) {
+          <app-ux-state
+            state="error"
+            [error]="passwordSubmitError"
+            title="Could not update password"
+            description="Review the error details and try again."
+            (retry)="submitPassword()"
+          />
+        }
 
-            <div class="space-y-1.5 pt-0.5">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-xs font-medium text-slate-600">Account password security</span>
-                <span
-                  class="text-xs font-semibold tabular-nums"
-                  [ngClass]="{
-                    'text-slate-400': newPasswordStrengthPercent() === 0,
-                    'text-rose-600': newPasswordStrengthPercent() > 0 && newPasswordStrengthPercent() < 40,
-                    'text-amber-700': newPasswordStrengthPercent() >= 40 && newPasswordStrengthPercent() < 70,
-                    'text-lime-700': newPasswordStrengthPercent() >= 70 && newPasswordStrengthPercent() < 100,
-                    'text-emerald-700': newPasswordStrengthPercent() === 100
-                  }"
-                >
-                  {{ newPasswordStrengthLabel() }}
-                </span>
-              </div>
-              <div class="h-2.5 w-full rounded-full bg-slate-200 overflow-hidden ring-1 ring-slate-900/5">
-                <div
-                  class="h-full rounded-full min-w-0 transition-[width] duration-200 ease-out"
-                  [ngClass]="newPasswordStrengthBarClass()"
-                  [style.width.%]="newPasswordStrengthPercent()"
-                ></div>
-              </div>
-              <p class="text-[11px] text-slate-500">
-                @if (newPasswordStrengthPercent() === 0) {
-                  Strength updates as you type.
-                } @else if (newPasswordStrongEnough()) {
-                  All rules met — this password meets the strong policy for this account.
-                } @else {
-                  {{ newPasswordStrengthPercent() }}% of the way to a strong password — see suggestions below.
-                }
-              </p>
+        <div class="profile-grid profile-grid-password">
+          <div class="profile-password-main">
+            <div class="profile-field">
+              <label for="pf-curr" class="ih-label">Current password</label>
+              <input
+                id="pf-curr"
+                type="password"
+                formControlName="currentPassword"
+                autocomplete="current-password"
+                class="ih-input"
+              />
             </div>
 
-            @if (showNewPasswordSuggestions()) {
-              <div class="rounded-lg border border-amber-200/90 bg-amber-50 px-3 py-2.5 space-y-2">
-                <p class="text-xs font-semibold text-amber-950">Suggestions</p>
-                <ul class="text-xs text-amber-900/95 space-y-1.5 list-disc pl-4 leading-relaxed">
-                  @for (tip of newPasswordSuggestions(); track tip) {
-                    <li>{{ tip }}</li>
-                  }
-                </ul>
-                <p class="text-[11px] text-amber-900/80 border-t border-amber-200/80 pt-2">
-                  <span class="font-medium text-amber-950">Example pattern:</span>
-                  <code class="ml-1 rounded bg-white/80 px-1.5 py-0.5 font-mono text-amber-950 ring-1 ring-amber-200/80">{{ exampleStrongPassword }}</code>
-                  <span class="text-amber-800/90"> — use your own words; do not reuse this exact password.</span>
-                </p>
+            <div class="profile-field">
+              <label for="pf-new" class="ih-label">New password</label>
+              <input
+                id="pf-new"
+                type="password"
+                formControlName="newPassword"
+                autocomplete="new-password"
+                maxlength="12"
+                class="ih-input"
+              />
+
+              <div class="profile-strength">
+                <div class="profile-strength-meta">
+                  <span>Strength</span>
+                  <span
+                    class="font-semibold tabular-nums"
+                    [ngClass]="{
+                      'text-soft': newPasswordStrengthPercent() === 0,
+                      'text-danger-600 dark:text-danger-400': newPasswordStrengthPercent() > 0 && newPasswordStrengthPercent() < 40,
+                      'text-warning-700 dark:text-warning-400': newPasswordStrengthPercent() >= 40 && newPasswordStrengthPercent() < 70,
+                      'text-success-600 dark:text-success-400': newPasswordStrengthPercent() >= 70
+                    }"
+                  >
+                    {{ newPasswordStrengthLabel() }}
+                  </span>
+                </div>
+                <div class="profile-strength-track">
+                  <div
+                    class="profile-strength-fill"
+                    [ngClass]="newPasswordStrengthBarClass()"
+                    [style.width.%]="newPasswordStrengthPercent()"
+                  ></div>
+                </div>
               </div>
-            }
 
-            <ul class="text-xs space-y-1 text-slate-500">
-              <li [ngClass]="{ 'text-green-600': passwordLengthRuleMet() }">7–12 characters</li>
-              <li [ngClass]="{ 'text-green-600': passwordUppercaseMet() }">At least one uppercase letter</li>
-              <li [ngClass]="{ 'text-green-600': passwordTwoDigitsMet() }">At least two digits</li>
-              <li [ngClass]="{ 'text-green-600': passwordSpecialMet() }">At least one special character (not a letter or digit)</li>
+              @if (showNewPasswordSuggestions()) {
+                <div class="profile-suggestions">
+                  <p class="font-semibold">Suggestions</p>
+                  <ul>
+                    @for (tip of newPasswordSuggestions(); track tip) {
+                      <li>{{ tip }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (
+                passwordForm.controls.newPassword.touched &&
+                passwordForm.controls.newPassword.errors?.['profilePasswordStrength']
+              ) {
+                <small class="profile-error">New password must meet every rule.</small>
+              }
+            </div>
+
+            <div class="profile-field">
+              <label for="pf-confirm" class="ih-label">Confirm new password</label>
+              <input
+                id="pf-confirm"
+                type="password"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                maxlength="12"
+                class="ih-input"
+              />
+              @if (
+                passwordForm.touched &&
+                passwordForm.hasError('profilePasswordMismatch') &&
+                passwordForm.controls.confirmPassword.value
+              ) {
+                <small class="profile-error">Passwords do not match.</small>
+              }
+            </div>
+          </div>
+
+          <aside class="profile-password-aside" aria-label="Password requirements">
+            <p class="profile-aside-title">Requirements</p>
+            <ul class="profile-rules">
+              <li [class.is-met]="passwordLengthRuleMet()">
+                <span class="profile-rule-mark" aria-hidden="true"></span>
+                7–12 characters
+              </li>
+              <li [class.is-met]="passwordUppercaseMet()">
+                <span class="profile-rule-mark" aria-hidden="true"></span>
+                One uppercase letter
+              </li>
+              <li [class.is-met]="passwordTwoDigitsMet()">
+                <span class="profile-rule-mark" aria-hidden="true"></span>
+                Two digits
+              </li>
+              <li [class.is-met]="passwordSpecialMet()">
+                <span class="profile-rule-mark" aria-hidden="true"></span>
+                One special character
+              </li>
             </ul>
-            @if (
-              passwordForm.controls.newPassword.touched &&
-              passwordForm.controls.newPassword.errors?.['profilePasswordStrength']
-            ) {
-              <small class="text-red-600 text-xs">New password must meet every rule above.</small>
-            }
-          </div>
+            <p class="profile-aside-note">Example pattern: <code>{{ exampleStrongPassword }}</code></p>
+          </aside>
+        </div>
 
-          <div class="flex flex-col gap-1">
-            <label for="pf-confirm" class="text-sm font-medium text-slate-700">Confirm new password</label>
-            <input
-              id="pf-confirm"
-              type="password"
-              formControlName="confirmPassword"
-              autocomplete="new-password"
-              maxlength="12"
-              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
-            @if (
-              passwordForm.touched &&
-              passwordForm.hasError('profilePasswordMismatch') &&
-              passwordForm.controls.confirmPassword.value
-            ) {
-              <small class="text-red-600 text-xs">New password and confirmation do not match.</small>
-            }
-          </div>
-
-          <div class="flex-1 min-h-[0.5rem]"></div>
-
+        <div class="profile-card-footer">
           <button
             type="submit"
             [disabled]="isPasswordLoading || passwordForm.invalid"
-            class="w-full rounded-lg bg-slate-800 text-white font-medium py-2.5 text-sm hover:bg-slate-700 disabled:opacity-60 transition-colors duration-150 mt-auto"
+            class="btn btn-primary btn-md"
           >
             {{ isPasswordLoading ? 'Please wait…' : 'Update password' }}
           </button>
-        </form>
-      </div>
-      }
-    </div>
-    }
-
-    @if (selectedTab === 'sessions') {
-    <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
-      <div class="sessions-header border-b border-slate-100 px-5 py-4 sm:px-6">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 class="text-sm font-semibold text-slate-800">Active sessions</h2>
-            <p class="text-xs text-slate-600 mt-1">Review where you are signed in and revoke one session at a time.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              (click)="revokeAllOtherSessions()"
-              [disabled]="revokingOtherSessions || isSessionsLoading"
-              class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:opacity-60"
-            >
-              {{ revokingOtherSessions ? 'Revoking...' : 'End all other sessions' }}
-            </button>
-          </div>
-          <div class="grid grid-cols-2 gap-2 sm:w-auto">
-            <div class="session-kpi">
-              <span class="session-kpi-label">Total</span>
-              <span class="session-kpi-value">{{ sessions.length }}</span>
-            </div>
-            <div class="session-kpi">
-              <span class="session-kpi-label">Current</span>
-              <span class="session-kpi-value">{{ currentSessionsCount() }}</span>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div class="p-5 sm:p-6 space-y-4">
-        <app-ux-state
-          [state]="isSessionsLoading ? 'loading' : sessionsLoadError ? 'error' : sessions.length === 0 ? 'empty' : 'loaded'"
-          [error]="sessionsLoadError"
-          title="No active sessions found"
-          description="No active sessions were found for this account."
-          actionLabel="Reload sessions"
-          (action)="loadSessions()"
-          (retry)="loadSessions()"
-        >
-        @if (sessions.length > 0) {
-          <div class="space-y-3">
-            @for (session of sessions; track session.id) {
-              <article class="session-card relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 sm:px-5 sm:py-5 sm:flex-row sm:items-start sm:justify-between">
-                @if (session.isCurrent) {
-                  <div class="session-current-glow" aria-hidden="true"></div>
-                }
-
-                <div class="min-w-0 space-y-2.5">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-sm font-semibold tracking-tight text-slate-900">Session {{ session.id.slice(0, 8) }}</h3>
-                    @if (session.isCurrent) {
-                      <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                        Current device
-                      </span>
-                    }
-                  </div>
-
-                  <div class="session-meta-grid">
-                    <p class="session-meta-item">
-                      <span class="session-meta-label">Started</span>
-                      <span class="session-meta-value">{{ session.createdAt | date:'medium' }}</span>
-                    </p>
-                    <p class="session-meta-item">
-                      <span class="session-meta-label">Last access</span>
-                      <span class="session-meta-value">{{ session.lastAccessAt ? (session.lastAccessAt | date:'medium') : 'Not used yet' }}</span>
-                    </p>
-                    <p class="session-meta-item">
-                      <span class="session-meta-label">IP</span>
-                      <span class="session-meta-value">{{ session.ipAddress }}</span>
-                    </p>
-                  </div>
-
-                  <div class="flex flex-wrap items-center gap-2 pt-0.5">
-                    <span class="session-pill session-pill-browser">Browser: {{ session.browser }}</span>
-                    <span class="session-pill session-pill-os">OS: {{ session.operatingSystem }}</span>
-                  </div>
-
-                  <p class="text-xs text-slate-500 leading-relaxed">
-                    @if (session.isCurrent) {
-                      Revoking this session signs you out on this device immediately.
-                    } @else {
-                      Revoking this session blocks the linked refresh token from being used again.
-                    }
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  [disabled]="!!revokingSessionId"
-                  (click)="revokeSession(session)"
-                  class="session-revoke-btn inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition-colors duration-150 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {{ isRevokingSession(session.id) ? 'Revoking...' : (session.isCurrent ? 'Sign out this device' : 'Revoke session') }}
-                </button>
-              </article>
-            }
-          </div>
-        }
-        </app-ux-state>
-
-        <section class="pt-2 border-t border-slate-100 space-y-3">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-slate-800">Recent login history</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Last 20 sessions for this account, including revoked entries.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-2 sm:w-auto">
-              <div class="session-kpi">
-                <span class="session-kpi-label">Active</span>
-                <span class="session-kpi-value">{{ historyActiveCount() }}</span>
-              </div>
-              <div class="session-kpi">
-                <span class="session-kpi-label">Revoked</span>
-                <span class="session-kpi-value">{{ historyRevokedCount() }}</span>
-              </div>
-            </div>
-          </div>
-
-          <app-ux-state
-            [state]="isSessionsHistoryLoading ? 'loading' : sessionsHistoryLoadError ? 'error' : sessionsHistory.length === 0 ? 'empty' : 'loaded'"
-            [error]="sessionsHistoryLoadError"
-            title="No session history found"
-            description="No recent login history was found for this account."
-            actionLabel="Reload history"
-            (action)="loadSessionsHistory()"
-            (retry)="loadSessionsHistory()"
-          >
-          @if (sessionsHistory.length > 0) {
-            <div class="space-y-2">
-              @for (entry of sessionsHistory; track entry.id) {
-                <article class="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0 space-y-1.5">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-semibold tracking-wide text-slate-700">{{ entry.id.slice(0, 8) }}</span>
-                        <span class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold" [ngClass]="sessionStatusClass(entry)">
-                          {{ sessionStatusText(entry) }}
-                        </span>
-                      </div>
-                      <p class="text-xs text-slate-600">{{ entry.browser }} on {{ entry.operatingSystem }} • IP {{ entry.ipAddress }}</p>
-                      <p class="text-xs text-slate-500">Started: {{ entry.createdAt | date:'medium' }}</p>
-                      <p class="text-xs text-slate-500">Last access: {{ entry.lastAccessAt ? (entry.lastAccessAt | date:'medium') : 'Not used yet' }}</p>
-                      @if (!entry.isActive && entry.revokedAt) {
-                        <p class="text-xs text-slate-500">Revoked: {{ entry.revokedAt | date:'medium' }}</p>
-                      }
-                    </div>
-                  </div>
-                </article>
-              }
-            </div>
-          }
-          </app-ux-state>
-        </section>
-      </div>
+      </form>
     </section>
-    }
-
-    @if (selectedTab === 'access') {
-      <section class="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
-        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
-          <h2 class="text-sm font-semibold text-slate-800">My access</h2>
-          <p class="text-xs text-slate-500 mt-0.5">Roles and effective permissions for the current session.</p>
-        </div>
-
-        <div class="p-5 sm:p-6 space-y-5">
-          <app-ux-state
-            [state]="me ? 'loaded' : 'empty'"
-            title="Access data unavailable"
-            description="We could not load your access data for this tab."
-          >
-          @if (me) {
-            <div>
-              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Roles</h3>
-              <app-ux-state
-                [state]="me.roles.length === 0 ? 'empty' : 'loaded'"
-                title="No roles assigned"
-                description="No roles are currently assigned to your account."
-              >
-              @if (me.roles.length > 0) {
-                <div class="mt-2 flex flex-wrap gap-2">
-                  @for (role of me.roles; track role) {
-                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-800">{{ role }}</span>
-                  }
-                </div>
-              }
-              </app-ux-state>
-            </div>
-
-            <div>
-              <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective permissions</h3>
-              <app-ux-state
-                [state]="me.permissions.length === 0 ? 'empty' : 'loaded'"
-                title="No effective permissions"
-                description="No effective permissions are currently available for your account."
-              >
-              @if (me.permissions.length > 0) {
-                <div class="mt-2 flex flex-wrap gap-2">
-                  @for (permission of me.permissions; track permission) {
-                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-mono text-slate-800">{{ permission }}</span>
-                  }
-                </div>
-              }
-              </app-ux-state>
-            </div>
-          }
-          </app-ux-state>
-        </div>
-      </section>
-    }
   </div>
-</div>
+</section>

@@ -1,5 +1,6 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
@@ -42,7 +43,9 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Re
         {
             Email = email,
             UserName = email,
-            FullName = command.Request.FullName,
+            FullName = command.Request.FullName?.Trim(),
+            PhoneNumber = UserContactValidation.NormalizePhoneNumber(command.Request.PhoneNumber),
+            DateOfBirth = command.Request.DateOfBirth,
             CreatedAt = DateTime.UtcNow,
             IsActive = true,
             EmailConfirmed = false

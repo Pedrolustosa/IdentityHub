@@ -1,4 +1,4 @@
-<section class="max-w-2xl space-y-6">
+<section class="ih-page max-w-2xl">
   <a routerLink="/app/users" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
@@ -72,7 +72,33 @@
           <input id="fullName" type="text" formControlName="fullName" autocomplete="name" placeholder="Jane Doe"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
         </div>
-        <div class="flex items-center gap-3 pt-6">
+        <div>
+          <label for="phoneNumber" class="block text-sm font-medium text-slate-700 mb-1.5">Phone (optional)</label>
+          <app-phone-input
+            inputId="phoneNumber"
+            formControlName="phoneNumber"
+            defaultCountryIso2="BR"
+          />
+          @if (createForm.controls.phoneNumber.invalid && (createForm.controls.phoneNumber.touched || createForm.controls.phoneNumber.dirty)) {
+            <small class="text-red-600">
+              @if (createForm.controls.phoneNumber.errors?.['phoneNumberIncomplete']) {
+                Complete the local phone number for the selected country.
+              } @else {
+                Enter a valid phone number.
+              }
+            </small>
+          }
+          <p class="mt-1 text-xs text-slate-500">Select the country, then enter only the local number.</p>
+        </div>
+        <div>
+          <label for="dateOfBirth" class="block text-sm font-medium text-slate-700 mb-1.5">Date of birth (optional)</label>
+          <input id="dateOfBirth" type="date" formControlName="dateOfBirth" autocomplete="bday"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+          @if (createForm.controls.dateOfBirth.invalid && (createForm.controls.dateOfBirth.touched || createForm.controls.dateOfBirth.dirty)) {
+            <small class="text-red-600">Enter a valid date of birth.</small>
+          }
+        </div>
+        <div class="flex items-center gap-3 sm:col-span-2">
           <input id="isActive" type="checkbox" formControlName="isActive"
             class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"/>
           <label for="isActive" class="text-sm font-medium text-slate-700">Account active on creation</label>

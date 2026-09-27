@@ -1,4 +1,4 @@
-<section class="max-w-3xl space-y-6">
+<section class="ih-page max-w-3xl">
   <a routerLink="/app/users" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
@@ -47,6 +47,14 @@
           <div>
             <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Full name</dt>
             <dd class="mt-1 text-slate-900">{{ user.fullName || 'Not provided' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phone number</dt>
+            <dd class="mt-1 text-slate-900">{{ user.phoneNumber || 'Not provided' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Date of birth</dt>
+            <dd class="mt-1 text-slate-900">{{ user.dateOfBirth ? (user.dateOfBirth | date:'mediumDate') : 'Not provided' }}</dd>
           </div>
           <div>
             <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Email confirmed</dt>

@@ -101,26 +101,26 @@ export class SecurityAlertDetailComponent implements OnInit {
   statusBadgeClass(status: string): string {
     switch (status.toLowerCase()) {
       case 'open':
-        return 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80';
+        return 'bg-danger-50 text-danger-700 ring-1 ring-danger-200/80 dark:bg-danger-900/40 dark:text-danger-300 dark:ring-danger-800/80';
       case 'reviewed':
-        return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80';
+        return 'bg-warning-50 text-warning-700 ring-1 ring-warning-200/80 dark:bg-warning-900/40 dark:text-warning-300 dark:ring-warning-800/80';
       case 'resolved':
-        return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80';
+        return 'bg-success-50 text-success-700 ring-1 ring-success-200/80 dark:bg-success-900/40 dark:text-success-300 dark:ring-success-800/80';
       default:
-        return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200/80';
+        return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
     }
   }
 
   severityBadgeClass(severity: string): string {
     switch (severity.toLowerCase()) {
       case 'critical':
-        return 'bg-rose-100 text-rose-800 ring-1 ring-rose-300/90';
+        return 'bg-danger-100 text-danger-800 ring-1 ring-danger-300/90 dark:bg-danger-900/50 dark:text-danger-200 dark:ring-danger-700/80';
       case 'high':
-        return 'bg-orange-100 text-orange-800 ring-1 ring-orange-300/90';
+        return 'bg-warning-100 text-warning-800 ring-1 ring-warning-300/90 dark:bg-warning-900/50 dark:text-warning-200 dark:ring-warning-700/80';
       case 'medium':
-        return 'bg-amber-100 text-amber-800 ring-1 ring-amber-300/90';
+        return 'bg-warning-50 text-warning-700 ring-1 ring-warning-200/80 dark:bg-warning-900/40 dark:text-warning-300 dark:ring-warning-800/80';
       default:
-        return 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300/90';
+        return 'bg-success-100 text-success-800 ring-1 ring-success-300/90 dark:bg-success-900/50 dark:text-success-200 dark:ring-success-700/80';
     }
   }
 }

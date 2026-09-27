@@ -1,1 +1,7 @@
+main.ih-auth-stage {
+  /* Local accent motion on brand panel */
+}
 
+.ih-auth-brand-mark img {
+  filter: drop-shadow(0 8px 18px rgb(0 0 0 / 0.25));
+}

@@ -113,22 +113,22 @@ export class DashboardComponent implements OnInit {
   signupTrendBadgeClass(value: number): string {
     switch (this.growthTone(value)) {
       case 'positive':
-        return 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80';
+        return 'bg-success-50 text-success-800 ring-1 ring-success-200/80 dark:bg-success-900/40 dark:text-success-300 dark:ring-success-800/80';
       case 'negative':
-        return 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80';
+        return 'bg-danger-50 text-danger-800 ring-1 ring-danger-200/80 dark:bg-danger-900/40 dark:text-danger-300 dark:ring-danger-800/80';
       default:
-        return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200/80';
+        return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
     }
   }
 
   alertsTrendBadgeClass(value: number): string {
     switch (this.growthTone(value)) {
       case 'positive':
-        return 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80';
+        return 'bg-danger-50 text-danger-800 ring-1 ring-danger-200/80 dark:bg-danger-900/40 dark:text-danger-300 dark:ring-danger-800/80';
       case 'negative':
-        return 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80';
+        return 'bg-success-50 text-success-800 ring-1 ring-success-200/80 dark:bg-success-900/40 dark:text-success-300 dark:ring-success-800/80';
       default:
-        return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200/80';
+        return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
     }
   }
 
@@ -155,7 +155,7 @@ export class DashboardComponent implements OnInit {
   }
 
   sessionsBadgeClass(): string {
-    return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200/80';
+    return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
   }
 
   sessionsTrendCaption(growth: number): string {
@@ -224,24 +224,24 @@ export class DashboardComponent implements OnInit {
 
   statusBadgeClass(value: boolean): string {
     return value
-      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80'
-      : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80';
+      ? 'bg-success-50 text-success-700 ring-1 ring-success-200/80 dark:bg-success-900/40 dark:text-success-300 dark:ring-success-800/80'
+      : 'bg-danger-50 text-danger-700 ring-1 ring-danger-200/80 dark:bg-danger-900/40 dark:text-danger-300 dark:ring-danger-800/80';
   }
 
   statusDotClass(value: boolean): string {
-    return value ? 'bg-emerald-500' : 'bg-rose-500';
+    return value ? 'bg-success-500' : 'bg-danger-500';
   }
 
   severityBadgeClass(severity: string): string {
     switch (severity.toLowerCase()) {
       case 'critical':
-        return 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80';
+        return 'bg-danger-50 text-danger-700 ring-1 ring-danger-200/80 dark:bg-danger-900/40 dark:text-danger-300 dark:ring-danger-800/80';
       case 'high':
-        return 'bg-orange-50 text-orange-700 ring-1 ring-orange-200/80';
+        return 'bg-warning-50 text-warning-700 ring-1 ring-warning-200/80 dark:bg-warning-900/40 dark:text-warning-300 dark:ring-warning-800/80';
       case 'medium':
-        return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80';
+        return 'bg-warning-50 text-warning-700 ring-1 ring-warning-200/80 dark:bg-warning-900/40 dark:text-warning-300 dark:ring-warning-800/80';
       default:
-        return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200/80';
+        return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
     }
   }
 
@@ -258,33 +258,33 @@ export class DashboardComponent implements OnInit {
   actionIconClass(action: DashboardAuditAction): string {
     switch (this.actionTone(action)) {
       case 'positive':
-        return 'bg-emerald-50 text-emerald-600';
+        return 'bg-success-50 text-success-600 dark:bg-success-900/40 dark:text-success-300';
       case 'negative':
-        return 'bg-rose-50 text-rose-600';
+        return 'bg-danger-50 text-danger-600 dark:bg-danger-900/40 dark:text-danger-300';
       default:
-        return 'bg-slate-100 text-slate-500';
+        return 'bg-panel-muted text-soft';
     }
   }
 
   permissionCardClass(card: DashboardPermissionCard): string {
     if (!this.overview?.totalRoles) {
-      return 'bg-slate-50 text-slate-700';
+      return 'bg-panel-muted text-ink-secondary';
     }
 
     const share = card.rolesGranted / this.overview.totalRoles;
 
     if (share >= 0.75) {
-      return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80';
+      return 'bg-success-50 text-success-700 ring-1 ring-success-200/80 dark:bg-success-900/40 dark:text-success-300 dark:ring-success-800/80';
     }
 
     if (share >= 0.4) {
-      return 'bg-blue-50 text-blue-700 ring-1 ring-blue-200/80';
+      return 'bg-primary-50 text-primary-700 ring-1 ring-primary-200/80 dark:bg-primary-900/40 dark:text-primary-300 dark:ring-primary-800/80';
     }
 
     if (share > 0) {
-      return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80';
+      return 'bg-warning-50 text-warning-700 ring-1 ring-warning-200/80 dark:bg-warning-900/40 dark:text-warning-300 dark:ring-warning-800/80';
     }
 
-    return 'bg-slate-100 text-slate-600 ring-1 ring-slate-200/80';
+    return 'bg-panel-muted text-ink-secondary ring-1 ring-line';
   }
 }

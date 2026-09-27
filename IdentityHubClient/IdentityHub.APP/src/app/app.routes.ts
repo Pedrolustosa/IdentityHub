@@ -3,6 +3,7 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
 import { ProfileComponent } from './features/profile/pages/profile/profile.component';
+import { MySessionsComponent } from './features/my-sessions/pages/my-sessions/my-sessions.component';
 import { MyAccessComponent } from './features/my-access/pages/my-access/my-access.component';
 import { UsersComponent } from './features/users/pages/users/users.component';
 import { UserCreateComponent } from './features/users/pages/users/user-create/user-create.component';
@@ -51,14 +52,24 @@ export const routes: Routes = [
         data: { title: 'Profile', breadcrumbs: [{ label: 'Profile' }] }
       },
       {
+        path: 'my-sessions',
+        component: MySessionsComponent,
+        data: { title: 'My Sessions', breadcrumbs: [{ label: 'My Sessions' }] }
+      },
+      {
         path: 'my-access',
         component: MyAccessComponent,
         data: { title: 'My Access', breadcrumbs: [{ label: 'My Access' }] }
       },
       {
         path: 'profile/access',
-        component: MyAccessComponent,
-        data: { title: 'My Access', breadcrumbs: [{ label: 'Profile', link: '/app/profile' }, { label: 'Access' }] }
+        redirectTo: 'my-access',
+        pathMatch: 'full'
+      },
+      {
+        path: 'profile/sessions',
+        redirectTo: 'my-sessions',
+        pathMatch: 'full'
       },
       {
         path: 'access-denied',

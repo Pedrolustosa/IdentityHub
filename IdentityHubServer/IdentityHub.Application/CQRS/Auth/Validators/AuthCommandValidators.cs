@@ -1,4 +1,5 @@
 using FluentValidation;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Auth.Commands;
 
 namespace IdentityHub.Application.CQRS.Auth.Validators;
@@ -10,6 +11,8 @@ public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand
         RuleFor(x => x.Request.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Request.Password).NotEmpty().MinimumLength(7).MaximumLength(128);
         RuleFor(x => x.Request.FullName).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.Request.PhoneNumber).OptionalPhoneNumber();
+        RuleFor(x => x.Request.DateOfBirth).OptionalDateOfBirth();
     }
 }
 
@@ -90,6 +93,8 @@ public sealed class UpdateProfileCommandValidator : AbstractValidator<UpdateProf
         RuleFor(x => x.UserId).NotEmpty();
         RuleFor(x => x.Request.FullName).NotEmpty().MaximumLength(120);
         RuleFor(x => x.Request.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Request.PhoneNumber).OptionalPhoneNumber();
+        RuleFor(x => x.Request.DateOfBirth).OptionalDateOfBirth();
     }
 }
 

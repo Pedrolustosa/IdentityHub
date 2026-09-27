@@ -11,6 +11,10 @@ namespace IdentityHub.Application.DTOs
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [MaxLength(32)]
+        public string? PhoneNumber { get; set; }
+
+        public DateOnly? DateOfBirth { get; set; }
     }
 }
-

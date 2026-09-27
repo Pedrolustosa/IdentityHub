@@ -1,126 +1,149 @@
-<main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-  <section class="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
-    <div class="flex flex-col items-center gap-3 pb-4">
-        <app-brand-logo variant="auth" [wordmark]="false" />
-        <h1 class="text-2xl font-semibold text-slate-900">Welcome back</h1>
-        <p class="text-sm text-slate-500">Sign in to continue to your workspace.</p>
+<main class="ih-auth-stage">
+  <aside class="ih-auth-brand" aria-label="IdentityHub">
+    <div class="ih-auth-brand-mark">
+      <app-brand-logo variant="auth" [wordmark]="true" />
     </div>
 
-    <app-ux-state
-      [state]="isLoading ? 'in-progress' : requestError ? 'error' : successMessage.length > 0 ? 'success' : 'loaded'"
-      [error]="requestError"
-      title="Sign-in successful"
-      description="You are now signed in and being redirected to your dashboard."
-      [busyLabel]="'Signing in...'
-      "
-      (retry)="submit()"
-    >
-    <form [formGroup]="loginForm" (ngSubmit)="submit()" class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <label for="email" class="text-sm font-medium text-slate-700">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@example.com"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          [ngClass]="{
-            'border-red-500': emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)
-          }"
-        />
-        @if (emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)) {
-          <small class="text-red-600">Please enter a valid email address.</small>
-        }
-      </div>
+    <div class="ih-auth-brand-copy">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-primary-300">Identity &amp; access</p>
+      <h1 class="ih-auth-brand-title">IdentityHub</h1>
+      <p class="ih-auth-brand-text">
+        Secure sign-in for people, roles, and permissions — with session control and operational visibility.
+      </p>
+    </div>
 
-      <div class="flex flex-col gap-1">
-        <label for="password" class="text-sm font-medium text-slate-700">Password</label>
-        <div class="relative">
-          <input
-            id="password"
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="Your password"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            (keydown)="onPasswordKeyDown($event)"
-            [ngClass]="{
-              'border-red-500': passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)
-            }"
-          />
-          <button
-            type="button"
-            (click)="togglePasswordVisibility()"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-600 hover:text-slate-800 transition-colors"
-            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-          >
-            @if (showPassword) {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-4.753 4.753m4.753-4.753L3.596 3.039m10.318 10.318L21.597 21"/>
-              </svg>
+    <p class="relative z-10 mt-8 hidden text-xs text-rail-soft lg:block">Admin workspace · JWT sessions · RBAC</p>
+  </aside>
+
+  <div class="ih-auth-form-wrap">
+    <section class="ih-auth-card">
+      <header class="mb-6 space-y-1.5">
+        <h2 class="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Welcome back</h2>
+        <p class="text-sm text-soft">Sign in to continue to your workspace.</p>
+      </header>
+
+      <app-ux-state
+        [state]="isLoading ? 'in-progress' : requestError ? 'error' : successMessage.length > 0 ? 'success' : 'loaded'"
+        [error]="requestError"
+        title="Sign-in successful"
+        description="You are now signed in and being redirected to your dashboard."
+        [busyLabel]="'Signing in...'"
+        (retry)="submit()"
+      >
+        <form [formGroup]="loginForm" (ngSubmit)="submit()" class="flex flex-col gap-5">
+          <div class="flex flex-col gap-1.5">
+            <label for="email" class="ih-label">Email</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="username"
+              class="ih-input"
+              [ngClass]="{
+                'border-danger-500': emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)
+              }"
+            />
+            @if (emailControl!.invalid && (emailControl!.dirty || emailControl!.touched)) {
+              <small class="text-danger-600 dark:text-danger-400">Please enter a valid email address.</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="password" class="ih-label">Password</label>
+            <div class="relative">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Your password"
+                autocomplete="current-password"
+                class="ih-input pr-11"
+                (keydown)="onPasswordKeyDown($event)"
+                [ngClass]="{
+                  'border-danger-500': passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)
+                }"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-soft transition-colors hover:text-ink"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                @if (showPassword) {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-4.753 4.753m4.753-4.753L3.596 3.039m10.318 10.318L21.597 21"/>
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                }
+              </button>
+            </div>
+            @if (capsLockActive) {
+              <small class="flex items-center gap-1 text-warning-600 dark:text-warning-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4v2m0 5v1m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Caps Lock is active
+              </small>
+            }
+            @if (passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)) {
+              <small class="text-danger-600 dark:text-danger-400">Password must have at least 7 characters.</small>
+            }
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <label class="inline-flex items-center gap-2 text-sm text-ink-secondary">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                formControlName="rememberMe"
+                class="h-4 w-4 rounded border-line-strong text-primary-600 focus:ring-primary-500/40 dark:text-primary-400"
+              />
+              Remember me
+            </label>
+            <a routerLink="/forgot-password" class="text-sm ih-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" [disabled]="isLoading || loginForm.invalid" class="btn btn-primary btn-md btn-full">
+            @if (isLoading) {
+              <span class="inline-flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Signing in...
+              </span>
             } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-              </svg>
+              Sign in
             }
           </button>
+        </form>
+      </app-ux-state>
+
+      @if (emailRequiresConfirmation) {
+        <div class="mt-5 rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-900 dark:border-warning-700/50 dark:bg-warning-950/40 dark:text-warning-100">
+          <p class="mb-1 font-medium">Email confirmation required</p>
+          <p class="mb-3 text-warning-800/90 dark:text-warning-200/90">
+            Check your inbox for a confirmation link, or request a new one.
+          </p>
+          <a routerLink="/resend-confirmation" class="ih-link font-medium">Resend confirmation email</a>
         </div>
-        @if (capsLockActive) {
-          <small class="text-amber-600 flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4v2m0 5v1m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Caps Lock is active
-          </small>
-        }
-        @if (passwordControl!.invalid && (passwordControl!.dirty || passwordControl!.touched)) {
-          <small class="text-red-600">Password must have at least 7 characters.</small>
-        }
-      </div>
+      }
 
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <input id="rememberMe" type="checkbox" formControlName="rememberMe" class="h-4 w-4 rounded border-slate-300 text-blue-600" />
-          <label for="rememberMe" class="text-sm text-slate-600">Remember me</label>
-        </div>
-        <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors duration-150">Forgot password?</a>
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="isLoading || loginForm.invalid"
-        class="w-full rounded-lg bg-blue-600 text-white font-medium py-2.5 transition-all duration-150 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        @if (isLoading) {
-          <span class="flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Signing in...
-          </span>
-        } @else {
-          Sign in
-        }
-      </button>
-    </form>
-    </app-ux-state>
-
-    @if (emailRequiresConfirmation) {
-      <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-        <p class="font-medium mb-2">Email confirmation required</p>
-        <p class="mb-3">Your email address needs to be confirmed. Check your inbox for a confirmation link.</p>
-        <a routerLink="/resend-confirmation" class="inline-block text-blue-600 hover:text-blue-500 font-medium">Resend confirmation email</a>
-      </div>
-    }
-
-    <div class="pt-4 text-center text-sm text-slate-500 space-y-2">
-      <div>
-        No account yet?
-        <a class="text-blue-600 hover:text-blue-500 transition-colors duration-150 ml-1" routerLink="/register">Create account</a>
-      </div>
-      <div>
-        <a routerLink="/resend-confirmation" class="text-slate-600 hover:text-slate-800">Resend email confirmation</a>
-      </div>
-    </div>
-  </section>
+      <footer class="mt-6 space-y-2 border-t border-line pt-5 text-center text-sm text-soft">
+        <p>
+          No account yet?
+          <a class="ih-link ml-1 font-medium" routerLink="/register">Create account</a>
+        </p>
+        <p>
+          <a routerLink="/resend-confirmation" class="text-ink-secondary transition-colors hover:text-ink">
+            Resend email confirmation
+          </a>
+        </p>
+      </footer>
+    </section>
+  </div>
 </main>

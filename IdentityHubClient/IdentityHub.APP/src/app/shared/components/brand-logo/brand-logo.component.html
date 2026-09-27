@@ -1,11 +1,11 @@
 @if (variant === 'sidebar') {
   <img
     [src]="imageSrc"
-    [attr.alt]="collapsed ? 'IdentityHub' : ''"
+    [attr.alt]="collapsed ? 'IdentityHub' : 'IdentityHub'"
     width="320"
     height="80"
-    class="block h-auto w-full min-w-0 object-contain object-center"
-    [ngClass]="collapsed ? 'max-h-9' : 'max-h-14 md:max-h-16'"
+    class="ih-brand-sidebar block h-auto w-full min-w-0 object-contain object-center"
+    [class.ih-brand-sidebar--collapsed]="collapsed"
     decoding="async"
   />
 } @else {

@@ -9,14 +9,18 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
-import { CriticalActionConfirmationService } from '../../../../shared/services/critical-action-confirmation.service';
-import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService, MeResponse, ProfileResponse, UserSessionResponse } from '../../../../core/services/auth.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
+import {
+  normalizeOptionalDate,
+  normalizeOptionalText,
+  optionalDateOfBirthValidator
+} from '../../../../shared/validation/user-contact.validators';
 
 function profileUpdateErrorMessage(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) {
@@ -83,7 +87,7 @@ function profilePasswordMatchValidator(): ValidatorFn {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, UxStateComponent, PhoneInputComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
@@ -95,25 +99,17 @@ export class ProfileComponent implements OnInit {
 
   isLoading = false;
   isPasswordLoading = false;
-  isSessionsLoading = false;
   profileSubmitError: UiLoadError | null = null;
   passwordSubmitError: UiLoadError | null = null;
-  sessionsLoadError: UiLoadError | null = null;
-  sessions: UserSessionResponse[] = [];
-  sessionsHistory: UserSessionResponse[] = [];
-  isSessionsHistoryLoading = false;
-  sessionsHistoryLoadError: UiLoadError | null = null;
-  revokingSessionId: string | null = null;
-  revokingOtherSessions = false;
-  me: MeResponse | null = null;
-  selectedTab: 'personal' | 'security' | 'sessions' | 'access' = 'personal';
 
   /** Sign-in email from the session; sent on profile save and not editable in the UI. */
   initialEmail = '';
 
   readonly form = this.formBuilder.nonNullable.group({
     fullName: [''],
-    email: [{ value: '', disabled: true }, [Validators.required, Validators.email]]
+    email: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
+    phoneNumber: [''],
+    dateOfBirth: ['', [optionalDateOfBirthValidator()]]
   });
 
   readonly passwordForm = this.formBuilder.nonNullable.group(
@@ -127,7 +123,6 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly criticalActionConfirmationService: CriticalActionConfirmationService,
     private readonly toastr: ToastrService
   ) {}
 
@@ -156,7 +151,6 @@ export class ProfileComponent implements OnInit {
     return hasPasswordSpecialChar(this.newPasswordValue);
   }
 
-  /** All profile password rules satisfied (same bar as “strong”). */
   newPasswordStrongEnough(): boolean {
     return (
       this.passwordLengthRuleMet() &&
@@ -166,10 +160,6 @@ export class ProfileComponent implements OnInit {
     );
   }
 
-  /**
-   * 0–100: length (up to 25), uppercase (25), two digits (25), special (25).
-   * Partial credit for length below 7 and for a single digit.
-   */
   newPasswordStrengthPercent(): number {
     const v = this.newPasswordValue;
     if (!v) {
@@ -217,21 +207,20 @@ export class ProfileComponent implements OnInit {
   newPasswordStrengthBarClass(): string {
     const p = this.newPasswordStrengthPercent();
     if (p === 0) {
-      return 'bg-slate-300';
+      return 'bg-panel-muted';
     }
     if (p < 40) {
-      return 'bg-rose-500';
+      return 'bg-danger-500';
     }
     if (p < 70) {
-      return 'bg-amber-500';
+      return 'bg-warning-500';
     }
     if (p < 100) {
-      return 'bg-lime-500';
+      return 'bg-success-400';
     }
-    return 'bg-emerald-600';
+    return 'bg-success-600';
   }
 
-  /** Actionable tips when the new password field has text but rules are not all met. */
   newPasswordSuggestions(): string[] {
     const v = this.newPasswordValue;
     if (!v || this.newPasswordStrongEnough()) {
@@ -274,186 +263,18 @@ export class ProfileComponent implements OnInit {
 
     this.authService.getMe().subscribe({
       next: (me) => {
-        this.me = me;
         this.form.patchValue(
           {
             fullName: me.fullName ?? '',
-            email: me.email ?? ''
+            email: me.email ?? '',
+            phoneNumber: me.phoneNumber ?? '',
+            dateOfBirth: me.dateOfBirth ?? ''
           },
           { emitEvent: false }
         );
         this.initialEmail = (me.email ?? '').trim().toLowerCase();
       }
     });
-
-    this.loadSessions();
-    this.loadSessionsHistory();
-  }
-
-  loadSessions(): void {
-    this.isSessionsLoading = true;
-    this.sessionsLoadError = null;
-
-    this.authService
-      .getSessions()
-      .pipe(finalize(() => (this.isSessionsLoading = false)))
-      .subscribe({
-        next: (sessions) => {
-          this.sessions = sessions;
-        },
-        error: (err: unknown) => {
-          const mapped = mapHttpToUiLoadError(err);
-          this.sessionsLoadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
-        }
-      });
-  }
-
-  loadSessionsHistory(): void {
-    this.isSessionsHistoryLoading = true;
-    this.sessionsHistoryLoadError = null;
-
-    this.authService
-      .getSessionsHistory(20)
-      .pipe(finalize(() => (this.isSessionsHistoryLoading = false)))
-      .subscribe({
-        next: (history) => {
-          this.sessionsHistory = history;
-        },
-        error: (err: unknown) => {
-          const mapped = mapHttpToUiLoadError(err);
-          this.sessionsHistoryLoadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Login history');
-        }
-      });
-  }
-
-  revokeSession(session: UserSessionResponse): void {
-    if (this.revokingSessionId) {
-      return;
-    }
-
-    const confirmed = session.isCurrent
-      ? this.criticalActionConfirmationService.confirmRevokeCurrentSession()
-      : this.criticalActionConfirmationService.confirmRevokeSession();
-    if (!confirmed) {
-      return;
-    }
-
-    this.revokingSessionId = session.id;
-    this.sessionsLoadError = null;
-
-    this.authService
-      .revokeSession(session.id)
-      .pipe(finalize(() => (this.revokingSessionId = null)))
-      .subscribe({
-        next: () => {
-          if (session.isCurrent) {
-            this.toastr.success('Session revoked. Please sign in again.', 'Sessions');
-            this.authService.clearClientSessionAndNavigateToLogin();
-            return;
-          }
-
-          this.sessions = this.sessions.filter((entry) => entry.id !== session.id);
-          this.sessionsHistory = this.sessionsHistory.map((entry) =>
-            entry.id === session.id
-              ? {
-                  ...entry,
-                  isActive: false,
-                  revokedAt: new Date().toISOString()
-                }
-              : entry
-          );
-          this.toastr.success('Session revoked.', 'Sessions');
-        },
-        error: (err: unknown) => {
-          const mapped = mapHttpToUiLoadError(err);
-          this.sessionsLoadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
-        }
-      });
-  }
-
-  isRevokingSession(sessionId: string): boolean {
-    return this.revokingSessionId === sessionId;
-  }
-
-  revokeAllOtherSessions(): void {
-    if (this.revokingOtherSessions) {
-      return;
-    }
-
-    const hasOtherSessions = this.sessions.some((session) => !session.isCurrent);
-    if (!hasOtherSessions) {
-      this.toastr.info('No other active sessions to revoke.', 'Sessions');
-      return;
-    }
-
-    const confirmed = this.criticalActionConfirmationService.confirmRevokeOtherSessions();
-    if (!confirmed) {
-      return;
-    }
-
-    this.revokingOtherSessions = true;
-    this.sessionsLoadError = null;
-
-    this.authService
-      .revokeOtherSessions()
-      .pipe(finalize(() => (this.revokingOtherSessions = false)))
-      .subscribe({
-        next: () => {
-          this.sessions = this.sessions.filter((session) => session.isCurrent);
-          this.loadSessionsHistory();
-          this.toastr.success('All other sessions were revoked.', 'Sessions');
-        },
-        error: (err: unknown) => {
-          const mapped = mapHttpToUiLoadError(err);
-          this.sessionsLoadError = mapped;
-          this.toastr.error(toastMessageForUiLoadError(mapped), 'Sessions');
-        }
-      });
-  }
-
-  setTab(tab: 'personal' | 'security' | 'sessions' | 'access'): void {
-    this.selectedTab = tab;
-  }
-
-  tabClass(tab: 'personal' | 'security' | 'sessions' | 'access'): string {
-    return this.selectedTab === tab
-      ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-50'
-      : 'text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50';
-  }
-
-  currentSessionsCount(): number {
-    return this.sessions.filter((session) => session.isCurrent).length;
-  }
-
-  historyActiveCount(): number {
-    return this.sessionsHistory.filter((session) => session.isActive).length;
-  }
-
-  historyRevokedCount(): number {
-    return this.sessionsHistory.filter((session) => !session.isActive).length;
-  }
-
-  sessionStatusClass(session: UserSessionResponse): string {
-    if (session.isCurrent) {
-      return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
-    }
-
-    if (session.isActive) {
-      return 'bg-sky-50 text-sky-700 ring-1 ring-sky-200';
-    }
-
-    return 'bg-slate-100 text-slate-700 ring-1 ring-slate-200';
-  }
-
-  sessionStatusText(session: UserSessionResponse): string {
-    if (session.isCurrent) {
-      return 'Current';
-    }
-
-    return session.isActive ? 'Active' : 'Revoked';
   }
 
   submit(): void {
@@ -468,35 +289,35 @@ export class ProfileComponent implements OnInit {
     }
 
     const rawFullName = this.form.controls.fullName.value.trim();
+    const phoneNumber = normalizeOptionalText(this.form.controls.phoneNumber.value);
+    const dateOfBirth = normalizeOptionalDate(this.form.controls.dateOfBirth.value);
 
     this.isLoading = true;
     this.profileSubmitError = null;
     this.authService
-      .updateProfile({ fullName: rawFullName, email: this.initialEmail })
+      .updateProfile({
+        fullName: rawFullName,
+        email: this.initialEmail,
+        phoneNumber,
+        dateOfBirth
+      })
       .pipe(
-        switchMap((profile: ProfileResponse) =>
-          this.authService.refreshSession().pipe(
-            map(() => profile),
-            catchError(() => {
-              this.toastr.warning(
-                'Profile was saved, but your session could not be refreshed. Please sign in again.',
-                'Profile'
-              );
-              this.authService.clearClientSessionAndNavigateToLogin();
-              return EMPTY;
-            })
-          )
-        ),
+        switchMap(() => this.authService.getMe()),
         finalize(() => (this.isLoading = false))
       )
       .subscribe({
-        next: (profile) => {
+        next: (me) => {
           this.toastr.success('Profile updated.', 'Profile');
-          this.initialEmail = (profile.email ?? '').trim().toLowerCase();
-          const snap = this.authService.getProfileSnapshotFromToken();
-          if (snap) {
-            this.form.patchValue({ fullName: snap.fullName, email: snap.email }, { emitEvent: false });
-          }
+          this.initialEmail = (me.email ?? '').trim().toLowerCase();
+          this.form.patchValue(
+            {
+              fullName: me.fullName ?? '',
+              email: me.email ?? '',
+              phoneNumber: me.phoneNumber ?? '',
+              dateOfBirth: me.dateOfBirth ?? ''
+            },
+            { emitEvent: false }
+          );
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err);

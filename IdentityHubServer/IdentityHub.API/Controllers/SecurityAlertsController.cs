@@ -30,6 +30,13 @@ public sealed class SecurityAlertsController : ControllerBase
         return result.ToActionResult();
     }
 
+    [HttpGet("unread-count")]
+    public async Task<IActionResult> GetUnreadCount(CancellationToken cancellationToken = default)
+    {
+        var result = await _service.GetUnreadCountAsync(cancellationToken);
+        return result.ToActionResult();
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(
         Guid id,

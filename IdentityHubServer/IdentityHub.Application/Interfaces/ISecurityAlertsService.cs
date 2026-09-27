@@ -14,5 +14,7 @@ public interface ISecurityAlertsService
 
     Task<Result<SecurityAlertItemResponse>> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<Result<int>> GetUnreadCountAsync(CancellationToken cancellationToken);
+
     Task<Result> UpdateStatusAsync(Guid id, string status, CancellationToken cancellationToken);
 }

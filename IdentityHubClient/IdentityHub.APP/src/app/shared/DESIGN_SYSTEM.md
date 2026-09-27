@@ -9,16 +9,22 @@
 // DESIGN TOKENS
 // ============================================================================
 // 
-// Colors (extended in tailwind.config.js):
-// - primary: Main action color (blue)
-// - danger: Destructive actions (red)
-// - warning: Caution/alerts (amber)
-// - success: Confirmations (green)
-// - surface: Backgrounds/neutrals (gray)
-// - muted: Secondary/disabled text
-// 
-// Usage: <div class="bg-primary-600 text-white">
-// 
+// Colors (semantic tokens in styles.css + tailwind.config.js):
+// - canvas / panel / elevated: page & card surfaces (theme-aware)
+// - ink / ink-secondary / soft: text hierarchy
+// - line / line-strong: borders
+// - rail / rail-*: navigation sidebar (brand dark)
+// - primary: trust-blue accent (actions, focus, active nav)
+// - danger / warning / success: status semantics
+//
+// Shell utilities: .ih-app-shell .ih-chrome .ih-page .ih-card-grid .ih-card-grid-3 .ih-stack .ih-stack-loose
+//   .ih-panel .ih-auth-shell .ih-auth-card .ih-input .ih-label .ih-link
+// Page rhythm: wrap screens in .ih-page (gap-8 between blocks). Card tiles use .ih-card-grid / .ih-card-grid-3.
+// Buttons: .btn .btn-primary .btn-secondary .btn-danger .btn-ghost .btn-link (+ sizes)
+//
+// Usage: <div class="bg-panel text-ink border border-line">
+// Theme toggle persists via ThemeService (`dark` class on <html>).
+//
 // Spacing Scale:
 // xs: 0.25rem (4px)
 // sm: 0.5rem (8px)

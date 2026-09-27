@@ -43,6 +43,10 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
       if (req.headers.has(reattemptHeader)) {
         return throwError(() => err);
       }
+      // Do not recurse when the refresh call itself fails.
+      if (req.url.includes('/auth/refresh')) {
+        return throwError(() => err);
+      }
 
       return from(sharedRefreshAccessToken(rawClient, tokens)).pipe(
         switchMap((access) =>

@@ -89,6 +89,10 @@ export class SecurityAlertsService {
     return this.http.get<SecurityAlertItem>(`${this.securityAlertsApiUrl}/${encodeURIComponent(id)}`);
   }
 
+  getUnreadCount(): Observable<number> {
+    return this.http.get<number>(`${this.securityAlertsApiUrl}/unread-count`);
+  }
+
   updateAlertStatus(id: string, body: UpdateSecurityAlertStatusRequest): Observable<string> {
     return this.http.put(`${this.securityAlertsApiUrl}/${encodeURIComponent(id)}/status`, body, {
       responseType: 'text'

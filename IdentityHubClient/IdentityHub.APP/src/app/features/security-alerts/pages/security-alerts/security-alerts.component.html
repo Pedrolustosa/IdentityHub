@@ -1,40 +1,37 @@
-<section class="space-y-5">
-  <header class="security-header rounded-2xl border border-slate-200/80 px-5 py-4 shadow-sm ring-1 ring-slate-900/5 sm:px-6">
+<section class="ih-page">
+  <header class="ih-page-header">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Security Alerts</h1>
-        <p class="text-slate-600">Monitor suspicious logins and critical account actions.</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">Security Alerts</h1>
+        <p class="text-soft">Monitor suspicious logins and critical account actions.</p>
       </div>
-      <div class="grid grid-cols-4 gap-2 sm:gap-3">
-        <div class="security-kpi">
-          <span class="security-kpi-label">Total</span>
-          <span class="security-kpi-value">{{ totalCount }}</span>
+      <div class="grid grid-cols-4 gap-3 sm:gap-4">
+        <div class="ih-kpi">
+          <span class="ih-kpi-label">Total</span>
+          <span class="ih-kpi-value">{{ totalCount }}</span>
         </div>
-        <div class="security-kpi">
-          <span class="security-kpi-label">Page</span>
-          <span class="security-kpi-value">{{ page }}</span>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label">Page</span>
+          <span class="ih-kpi-value">{{ page }}</span>
         </div>
-        <div class="security-kpi">
-          <span class="security-kpi-label">Visible</span>
-          <span class="security-kpi-value">{{ items.length }}</span>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label">Visible</span>
+          <span class="ih-kpi-value">{{ items.length }}</span>
         </div>
-        <div class="security-kpi">
-          <span class="security-kpi-label">Filters</span>
-          <span class="security-kpi-value">{{ activeFiltersCount() }}</span>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label">Filters</span>
+          <span class="ih-kpi-value">{{ activeFiltersCount() }}</span>
         </div>
       </div>
     </div>
   </header>
 
-  <div class="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5 md:p-5">
-    <section class="security-filters mb-5 rounded-xl border border-slate-200 p-4">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">Alert type</span>
-          <select
-            [(ngModel)]="filters.type"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
-          >
+  <div class="ih-panel p-4 md:p-5">
+    <section class="ih-filters mb-5">
+      <div class="ih-card-grid">
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">Alert type</span>
+          <select [(ngModel)]="filters.type" class="ih-input">
             <option value="">All alert types</option>
             @for (eventType of eventTypeOptions; track eventType) {
               <option [value]="eventType">{{ eventType }}</option>
@@ -42,40 +39,29 @@
           </select>
         </label>
 
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">User ID</span>
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">User ID</span>
           <input
             [(ngModel)]="filters.userId"
             type="text"
             placeholder="Filter by user ID"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
+            class="ih-input"
           />
         </label>
 
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">From date</span>
-          <input
-            [(ngModel)]="filters.fromDate"
-            type="date"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
-          />
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">From date</span>
+          <input [(ngModel)]="filters.fromDate" type="date" class="ih-input" />
         </label>
 
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">To date</span>
-          <input
-            [(ngModel)]="filters.toDate"
-            type="date"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
-          />
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">To date</span>
+          <input [(ngModel)]="filters.toDate" type="date" class="ih-input" />
         </label>
 
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">Severity</span>
-          <select
-            [(ngModel)]="filters.severity"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
-          >
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">Severity</span>
+          <select [(ngModel)]="filters.severity" class="ih-input">
             <option value="">All severities</option>
             @for (severity of severityOptions; track severity) {
               <option [value]="severity">{{ severity }}</option>
@@ -83,12 +69,9 @@
           </select>
         </label>
 
-        <label class="space-y-1 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">Status</span>
-          <select
-            [(ngModel)]="filters.status"
-            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-150 focus:border-blue-500"
-          >
+        <label class="space-y-1 text-sm text-ink-secondary">
+          <span class="ih-label">Status</span>
+          <select [(ngModel)]="filters.status" class="ih-input">
             <option value="">All statuses</option>
             @for (status of statusOptions; track status) {
               <option [value]="status">{{ status }}</option>
@@ -98,22 +81,10 @@
       </div>
 
       <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500">Filters apply to server-side pagination.</p>
+        <p class="ih-muted">Filters apply to server-side pagination.</p>
         <div class="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            (click)="applyFilters()"
-            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-blue-500"
-          >
-            Apply Filters
-          </button>
-          <button
-            type="button"
-            (click)="resetFilters()"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50"
-          >
-            Reset
-          </button>
+          <button type="button" (click)="applyFilters()" class="btn btn-primary btn-md">Apply Filters</button>
+          <button type="button" (click)="resetFilters()" class="btn btn-secondary btn-md">Reset</button>
         </div>
       </div>
     </section>
@@ -129,28 +100,28 @@
     >
     @if (items.length > 0) {
       <section class="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-        <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Open</p>
-          <p class="text-lg font-semibold text-slate-900">{{ openAlertsCount() }}</p>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label">Open</span>
+          <span class="ih-kpi-value">{{ openAlertsCount() }}</span>
         </div>
-        <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-rose-700">Critical</p>
-          <p class="text-lg font-semibold text-rose-800">{{ criticalAlertsCount() }}</p>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label text-danger-600 dark:text-danger-400">Critical</span>
+          <span class="ih-kpi-value text-danger-700 dark:text-danger-300">{{ criticalAlertsCount() }}</span>
         </div>
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Resolved</p>
-          <p class="text-lg font-semibold text-emerald-800">{{ resolvedAlertsCount() }}</p>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label text-success-600 dark:text-success-400">Resolved</span>
+          <span class="ih-kpi-value text-success-700 dark:text-success-300">{{ resolvedAlertsCount() }}</span>
         </div>
-        <div class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2">
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-sky-700">Last 24h</p>
-          <p class="text-lg font-semibold text-sky-800">{{ last24HoursCount() }}</p>
+        <div class="ih-kpi">
+          <span class="ih-kpi-label text-primary-600 dark:text-primary-400">Last 24h</span>
+          <span class="ih-kpi-value text-primary-700 dark:text-primary-300">{{ last24HoursCount() }}</span>
         </div>
       </section>
 
       <div class="hidden lg:block overflow-x-auto">
         <table class="w-full min-w-[980px] text-sm security-table">
           <thead>
-            <tr class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
+            <tr class="bg-panel-muted text-soft uppercase text-xs tracking-wide">
               <th class="text-left py-3 px-3 font-semibold">Alert Type</th>
               <th class="text-left py-3 px-3 font-semibold">Severity</th>
               <th class="text-left py-3 px-3 font-semibold">Status</th>
@@ -162,8 +133,11 @@
           </thead>
           <tbody>
             @for (item of items; track trackById($index, item)) {
-              <tr class="border-b border-slate-100 align-top hover:bg-slate-50 transition-colors duration-150" [ngClass]="isCritical(item) ? 'bg-rose-50/40' : ''">
-                <td class="py-3 px-3 text-slate-900 font-medium">{{ item.type }}</td>
+              <tr
+                class="border-b border-line align-top hover:bg-panel-muted transition-colors duration-150"
+                [ngClass]="isCritical(item) ? 'bg-danger-50/40 dark:bg-danger-900/20' : ''"
+              >
+                <td class="py-3 px-3 text-ink font-medium">{{ item.type }}</td>
                 <td class="py-3 px-3">
                   <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold" [ngClass]="severityBadgeClass(item.severity)">
                     {{ item.severity }}
@@ -174,31 +148,33 @@
                     {{ item.status }}
                   </span>
                 </td>
-                <td class="py-3 px-3 text-slate-700 font-mono text-xs break-all">{{ item.userId }}</td>
-                <td class="py-3 px-3 text-slate-700">{{ item.description }}</td>
-                <td class="py-3 px-3 text-slate-600 whitespace-nowrap">{{ item.createdAt | date:'medium' }}</td>
+                <td class="py-3 px-3 text-ink-secondary font-mono text-xs break-all">{{ item.userId }}</td>
+                <td class="py-3 px-3 text-ink-secondary">{{ item.description }}</td>
+                <td class="py-3 px-3 text-soft whitespace-nowrap">{{ item.createdAt | date:'medium' }}</td>
                 <td class="py-3 px-3 text-right">
                   <div class="inline-flex items-center gap-1">
-                    <a [routerLink]="['/app/security-alerts', item.id]"
-                      class="rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700">Details</a>
+                    <a
+                      [routerLink]="['/app/security-alerts', item.id]"
+                      class="rounded border border-line bg-panel px-2 py-1 text-xs font-medium text-ink-secondary hover:bg-panel-muted"
+                    >Details</a>
                     @if (canManageAlerts) {
                       <button
                         type="button"
                         (click)="updateStatus(item, 'Reviewed')"
                         [disabled]="isUpdatingStatus(item.id) || item.status === 'Reviewed'"
-                        class="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 disabled:opacity-50"
+                        class="rounded border border-warning-200 bg-warning-50 px-2 py-1 text-xs font-medium text-warning-700 disabled:opacity-50 dark:border-warning-800 dark:bg-warning-900/40 dark:text-warning-300"
                       >Reviewed</button>
                       <button
                         type="button"
                         (click)="updateStatus(item, 'Resolved')"
                         [disabled]="isUpdatingStatus(item.id) || item.status === 'Resolved'"
-                        class="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 disabled:opacity-50"
+                        class="rounded border border-success-200 bg-success-50 px-2 py-1 text-xs font-medium text-success-700 disabled:opacity-50 dark:border-success-800 dark:bg-success-900/40 dark:text-success-300"
                       >Resolved</button>
                       <button
                         type="button"
                         (click)="updateStatus(item, 'Ignored')"
                         [disabled]="isUpdatingStatus(item.id) || item.status === 'Ignored'"
-                        class="rounded border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 disabled:opacity-50"
+                        class="rounded border border-line bg-panel-muted px-2 py-1 text-xs font-medium text-ink-secondary disabled:opacity-50"
                       >Ignored</button>
                     }
                   </div>
@@ -211,11 +187,14 @@
 
       <div class="lg:hidden space-y-3">
         @for (item of items; track trackById($index, item)) {
-          <article class="rounded-lg border p-4 space-y-3" [ngClass]="isCritical(item) ? 'border-rose-300 bg-rose-50/40' : 'border-slate-200'">
+          <article
+            class="rounded-lg border p-4 space-y-3 bg-panel"
+            [ngClass]="isCritical(item) ? 'border-danger-300 bg-danger-50/40 dark:border-danger-800 dark:bg-danger-900/20' : 'border-line'"
+          >
             <div class="flex items-start justify-between gap-3">
               <div>
-                <p class="font-medium text-slate-900 break-all">{{ item.type }}</p>
-                <p class="text-xs text-slate-500 mt-1">{{ item.createdAt | date:'medium' }}</p>
+                <p class="font-medium text-ink break-all">{{ item.type }}</p>
+                <p class="text-xs text-soft mt-1">{{ item.createdAt | date:'medium' }}</p>
               </div>
               <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold" [ngClass]="severityBadgeClass(item.severity)">
                 {{ item.severity }}
@@ -224,31 +203,34 @@
             <div class="flex items-center gap-2">
               <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold" [ngClass]="statusBadgeClass(item.status)">{{ item.status }}</span>
             </div>
-            <p class="text-sm text-slate-700 break-words">{{ item.description }}</p>
-            <div class="rounded-lg bg-slate-50 px-3 py-2">
-              <p class="text-[11px] uppercase tracking-wide text-slate-500">User ID</p>
-              <p class="mt-1 break-all font-mono text-xs text-slate-700">{{ item.userId }}</p>
+            <p class="text-sm text-ink-secondary break-words">{{ item.description }}</p>
+            <div class="rounded-lg bg-panel-muted px-3 py-2">
+              <p class="text-[11px] uppercase tracking-wide text-soft">User ID</p>
+              <p class="mt-1 break-all font-mono text-xs text-ink-secondary">{{ item.userId }}</p>
             </div>
-            <a [routerLink]="['/app/security-alerts', item.id]" class="inline-flex rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700">Details</a>
+            <a
+              [routerLink]="['/app/security-alerts', item.id]"
+              class="inline-flex rounded border border-line bg-panel px-2 py-1 text-xs font-medium text-ink-secondary hover:bg-panel-muted"
+            >Details</a>
             @if (canManageAlerts) {
               <div class="flex flex-wrap gap-2 pt-1">
                 <button
                   type="button"
                   (click)="updateStatus(item, 'Reviewed')"
                   [disabled]="isUpdatingStatus(item.id) || item.status === 'Reviewed'"
-                  class="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 disabled:opacity-50"
+                  class="rounded border border-warning-200 bg-warning-50 px-2 py-1 text-xs font-medium text-warning-700 disabled:opacity-50 dark:border-warning-800 dark:bg-warning-900/40 dark:text-warning-300"
                 >Reviewed</button>
                 <button
                   type="button"
                   (click)="updateStatus(item, 'Resolved')"
                   [disabled]="isUpdatingStatus(item.id) || item.status === 'Resolved'"
-                  class="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 disabled:opacity-50"
+                  class="rounded border border-success-200 bg-success-50 px-2 py-1 text-xs font-medium text-success-700 disabled:opacity-50 dark:border-success-800 dark:bg-success-900/40 dark:text-success-300"
                 >Resolved</button>
                 <button
                   type="button"
                   (click)="updateStatus(item, 'Ignored')"
                   [disabled]="isUpdatingStatus(item.id) || item.status === 'Ignored'"
-                  class="rounded border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 disabled:opacity-50"
+                  class="rounded border border-line bg-panel-muted px-2 py-1 text-xs font-medium text-ink-secondary disabled:opacity-50"
                 >Ignored</button>
               </div>
             }
@@ -256,17 +238,17 @@
         }
       </div>
 
-      <footer class="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500">
-          Page <span class="font-medium text-slate-700">{{ page }}</span>
-          of <span class="font-medium text-slate-700">{{ totalPages || 1 }}</span>
+      <footer class="mt-5 flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-soft">
+          Page <span class="font-medium text-ink-secondary">{{ page }}</span>
+          of <span class="font-medium text-ink-secondary">{{ totalPages || 1 }}</span>
         </p>
         <div class="flex items-center gap-2">
           <button
             type="button"
             (click)="previousPage()"
             [disabled]="page <= 1 || isLoading"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            class="btn btn-secondary btn-md"
           >
             Previous
           </button>
@@ -274,7 +256,7 @@
             type="button"
             (click)="nextPage()"
             [disabled]="page >= totalPages || isLoading || totalPages === 0"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            class="btn btn-secondary btn-md"
           >
             Next
           </button>

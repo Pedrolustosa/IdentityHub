@@ -1,39 +1,43 @@
 :host {
-	display: block;
-}
-
-.users-header {
-	background:
-		radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.12), transparent 40%),
-		linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0.76));
-}
-
-.users-kpi {
-	display: inline-flex;
-	flex-direction: column;
-	border: 1px solid rgba(148, 163, 184, 0.28);
-	border-radius: 0.75rem;
-	background: rgba(255, 255, 255, 0.86);
-	padding: 0.35rem 0.65rem;
-	min-width: 4.5rem;
-}
-
-.users-kpi-label {
-	font-size: 0.66rem;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	color: rgb(100 116 139);
-}
-
-.users-kpi-value {
-	font-size: 0.95rem;
-	font-weight: 700;
-	color: rgb(15 23 42);
-	line-height: 1.2;
+  display: block;
 }
 
 .users-table tbody tr {
-	transition: background-color 140ms ease;
+  transition: background-color 140ms ease;
 }
 
+.users-bday-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: #b45309;
+  background: color-mix(in srgb, #fbbf24 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #f59e0b 35%, transparent);
+  animation: users-bday-pulse 2.4s ease-in-out infinite;
+}
+
+:host-context(.dark) .users-bday-badge {
+  color: #fcd34d;
+  background: color-mix(in srgb, #f59e0b 28%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #fbbf24 40%, transparent);
+}
+
+@keyframes users-bday-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .users-bday-badge {
+    animation: none;
+  }
+}

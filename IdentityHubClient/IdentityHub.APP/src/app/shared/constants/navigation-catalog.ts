@@ -19,7 +19,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     requiredAny: ['Roles.View'],
     group: 'administration'
   },
-  { label: 'My Sessions', route: '/app/profile', icon: 'sessions', requiredAny: [], group: 'security' },
+  { label: 'My Sessions', route: '/app/my-sessions', icon: 'sessions', requiredAny: [], group: 'security' },
   {
     label: 'Security Alerts',
     route: '/app/security-alerts',

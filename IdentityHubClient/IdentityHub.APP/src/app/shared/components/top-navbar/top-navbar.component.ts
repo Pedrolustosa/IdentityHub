@@ -1,9 +1,12 @@
 import { Component, EventEmitter, OnInit, Output, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService, UserSessionResponse } from '../../../core/services/auth.service';
+import { BirthdayGreetingService } from '../../../core/services/birthday-greeting.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { BreadcrumbService } from '../../../core/services/breadcrumb.service';
+import { SecurityAlertsService } from '../../../features/security-alerts/security-alerts.service';
 import { getEnvironmentBadge } from '../../constants/environment-badge';
+import { isDateOfBirthToday } from '../../utils/birthday.util';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
 
@@ -27,10 +30,15 @@ export class TopNavbarComponent implements OnInit {
   readonly envBadge = getEnvironmentBadge();
   private readonly themeService = inject(ThemeService);
   private readonly breadcrumbService = inject(BreadcrumbService);
+  private readonly birthdayGreeting = inject(BirthdayGreetingService);
   readonly pageTitle = this.breadcrumbService.pageTitle;
   readonly theme = this.themeService.theme;
+  readonly isBirthdayToday = this.birthdayGreeting.isBirthdayToday;
 
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly securityAlertsService: SecurityAlertsService
+  ) {
     this.displayName = this.authService.getCurrentUserDisplayName();
   }
 
@@ -42,11 +50,16 @@ export class TopNavbarComponent implements OnInit {
           this.displayName = name;
         }
         this.userEmail = me.email ?? '';
+        this.birthdayGreeting.isBirthdayToday.set(isDateOfBirthToday(me.dateOfBirth));
       }
     });
 
     this.loadCurrentSession();
     this.loadNotificationCount();
+  }
+
+  openBirthdayCelebration(): void {
+    this.birthdayGreeting.openCelebration();
   }
 
   private loadCurrentSession(): void {
@@ -63,8 +76,14 @@ export class TopNavbarComponent implements OnInit {
   }
 
   private loadNotificationCount(): void {
-    this.authService.getSecurityAlertCount().subscribe({
-      next: (count) => this.notificationCount.set(count)
+    if (!this.authService.hasPermission('SecurityEvents.View')) {
+      this.notificationCount.set(0);
+      return;
+    }
+
+    this.securityAlertsService.getUnreadCount().subscribe({
+      next: (count) => this.notificationCount.set(count),
+      error: () => this.notificationCount.set(0)
     });
   }
 

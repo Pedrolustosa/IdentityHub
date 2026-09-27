@@ -14,6 +14,43 @@ namespace IdentityHub.Infrastructure.Data.Seed
             "RoleClaims.Manage"
         ];
 
+        private sealed record SeedUserProfile(
+            string Email,
+            string FullName,
+            string Password,
+            string Role,
+            string PhoneNumber,
+            DateOnly DateOfBirth);
+
+        /// <summary>
+        /// Development users with distinct country dial codes so the phone picker
+        /// resolves a different flag for each account.
+        /// </summary>
+        private static readonly SeedUserProfile[] SeedUsers =
+        [
+            new(
+                Email: "admin@identityhub.com",
+                FullName: "Admin User",
+                Password: "Admin@123",
+                Role: "Admin",
+                PhoneNumber: "+5511987654321", // Brazil (+55)
+                DateOfBirth: new DateOnly(1985, 3, 15)),
+            new(
+                Email: "manager@identityhub.com",
+                FullName: "Manager User",
+                Password: "Manager@123",
+                Role: "Manager",
+                PhoneNumber: "+12125550199", // United States (+1)
+                DateOfBirth: new DateOnly(1990, 7, 22)),
+            new(
+                Email: "user@identityhub.com",
+                FullName: "Normal User",
+                Password: "User@123",
+                Role: "User",
+                PhoneNumber: "+351912345678", // Portugal (+351)
+                DateOfBirth: new DateOnly(1995, 11, 8))
+        ];
+
         public static async Task SeedAsync(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
@@ -146,39 +183,68 @@ namespace IdentityHub.Infrastructure.Data.Seed
         private static async Task EnsureUsers(
             UserManager<ApplicationUser> userManager)
         {
-            await CreateUser(userManager, "admin@identityhub.com", "Admin User", "Admin@123", "Admin");
-            await CreateUser(userManager, "manager@identityhub.com", "Manager User", "Manager@123", "Manager");
-            await CreateUser(userManager, "user@identityhub.com", "Normal User", "User@123", "User");
+            foreach (var profile in SeedUsers)
+            {
+                await EnsureUserAsync(userManager, profile);
+            }
         }
 
-        private static async Task CreateUser(
+        private static async Task EnsureUserAsync(
             UserManager<ApplicationUser> userManager,
-            string email,
-            string name,
-            string password,
-            string role)
+            SeedUserProfile profile)
         {
-            var existing = await userManager.FindByEmailAsync(email);
+            var existing = await userManager.FindByEmailAsync(profile.Email);
 
-            if (existing != null)
-                return;
-
-            var user = new ApplicationUser
+            if (existing is null)
             {
-                UserName = email,
-                Email = email,
-                FullName = name,
-                IsActive = true,
-                EmailConfirmed = true,
-                CreatedAt = DateTime.UtcNow
-            };
+                var user = new ApplicationUser
+                {
+                    UserName = profile.Email,
+                    Email = profile.Email,
+                    FullName = profile.FullName,
+                    PhoneNumber = profile.PhoneNumber,
+                    DateOfBirth = profile.DateOfBirth,
+                    IsActive = true,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            var result = await userManager.CreateAsync(user, password);
+                var result = await userManager.CreateAsync(user, profile.Password);
 
-            if (!result.Succeeded)
-                throw new Exception($"Error creating user {email}");
+                if (!result.Succeeded)
+                    throw new Exception($"Error creating user {profile.Email}");
 
-            await userManager.AddToRoleAsync(user, role);
+                await userManager.AddToRoleAsync(user, profile.Role);
+                return;
+            }
+
+            // Idempotent backfill for databases seeded before phone / date-of-birth existed.
+            var needsUpdate = false;
+
+            if (string.IsNullOrWhiteSpace(existing.FullName))
+            {
+                existing.FullName = profile.FullName;
+                needsUpdate = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(existing.PhoneNumber))
+            {
+                existing.PhoneNumber = profile.PhoneNumber;
+                needsUpdate = true;
+            }
+
+            if (existing.DateOfBirth is null)
+            {
+                existing.DateOfBirth = profile.DateOfBirth;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate)
+            {
+                var updateResult = await userManager.UpdateAsync(existing);
+                if (!updateResult.Succeeded)
+                    throw new Exception($"Error updating seeded profile for {profile.Email}");
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
@@ -44,6 +45,8 @@ public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand
             UserName = email,
             Email = email,
             FullName = command.Request.FullName?.Trim(),
+            PhoneNumber = UserContactValidation.NormalizePhoneNumber(command.Request.PhoneNumber),
+            DateOfBirth = command.Request.DateOfBirth,
             IsActive = true,
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow

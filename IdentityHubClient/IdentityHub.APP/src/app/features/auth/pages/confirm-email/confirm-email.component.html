@@ -1,5 +1,5 @@
-<main class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-  <section class="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
+<main class="w-full flex items-center justify-center">
+  <section class="ih-auth-card">
     <div class="flex flex-col items-center gap-3 pb-4">
       <app-brand-logo variant="auth" [wordmark]="false" />
     </div>
@@ -19,13 +19,13 @@
       <div class="w-full space-y-2 pt-4">
         <a
           routerLink="/resend-confirmation"
-          class="block w-full text-center rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 transition-colors duration-150"
+          class="block w-full text-center rounded-lg bg-primary-600 text-white font-medium py-2.5 text-sm hover:bg-primary-500 transition-colors duration-150"
         >
           Resend confirmation email
         </a>
         <a
           routerLink="/login"
-          class="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-500"
+          class="block w-full text-center text-sm font-medium ih-link"
         >
           Back to sign in
         </a>
@@ -35,7 +35,7 @@
     @if (status === 'success') {
       <a
         routerLink="/login"
-        class="mt-4 w-full inline-flex justify-center rounded-lg bg-blue-600 text-white font-medium py-2.5 text-sm hover:bg-blue-500 transition-colors duration-150"
+        class="mt-4 w-full inline-flex justify-center rounded-lg bg-primary-600 text-white font-medium py-2.5 text-sm hover:bg-primary-500 transition-colors duration-150"
       >
         Sign in
       </a>

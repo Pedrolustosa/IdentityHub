@@ -2,6 +2,103 @@
 
 @layer tailwind-base, tailwind-utilities;
 
+/*
+  IdentityHub theme tokens
+  Light = cool slate canvas + white panels + trust-blue accent
+  Dark  = deep navy canvas + elevated panels + same accent for continuity
+*/
+:root {
+  color-scheme: light;
+
+  --ih-canvas: 241 245 249; /* slate-100 */
+  --ih-canvas-subtle: 248 250 252; /* slate-50 */
+  --ih-panel: 255 255 255;
+  --ih-panel-muted: 248 250 252;
+  --ih-elevated: 255 255 255;
+  --ih-ink: 15 23 42; /* slate-900 */
+  --ih-ink-secondary: 51 65 85; /* slate-700 */
+  --ih-ink-muted: 100 116 139; /* slate-500 */
+  --ih-line: 226 232 240; /* slate-200 */
+  --ih-line-strong: 203 213 225; /* slate-300 */
+
+  /* Auth brand panel stays dark in both themes */
+  --ih-rail: 15 23 42; /* slate-900 */
+  --ih-rail-muted: 51 65 85;
+  --ih-rail-hover: 30 41 59;
+  --ih-rail-active: 30 41 59;
+  --ih-rail-ink: 226 232 240;
+  --ih-rail-soft: 148 163 184;
+
+  /* App sidebar — light surfaces in light mode */
+  --ih-sidebar: 255 255 255;
+  --ih-sidebar-muted: 248 250 252;
+  --ih-sidebar-hover: 241 245 249;
+  --ih-sidebar-active: 240 247 251; /* primary-50 */
+  --ih-sidebar-ink: 15 23 42;
+  --ih-sidebar-soft: 100 116 139;
+  --ih-sidebar-line: 226 232 240;
+  --ih-sidebar-accent: 21 98 143; /* primary-600 */
+
+  --ih-accent: 21 98 143; /* primary-600 */
+  --ih-accent-strong: 18 78 115; /* primary-700 */
+  --ih-focus: 26 122 173; /* primary-500 */
+
+  --ih-danger: 220 38 38;
+  --ih-success: 22 163 74;
+  --ih-warning: 217 119 6;
+
+  --ih-shadow-panel: 0 1px 2px rgb(15 23 42 / 0.04), 0 0 0 1px rgb(15 23 42 / 0.03);
+  --ih-shadow-lift: 0 10px 28px rgb(15 23 42 / 0.08);
+
+  --ih-auth-glow: rgb(26 122 173 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --ih-canvas: 11 18 32; /* deep navy */
+  --ih-canvas-subtle: 15 23 42;
+  --ih-panel: 22 32 51;
+  --ih-panel-muted: 30 41 59;
+  --ih-elevated: 30 41 59;
+  --ih-ink: 241 245 249;
+  --ih-ink-secondary: 203 213 225;
+  --ih-ink-muted: 148 163 184;
+  --ih-line: 51 65 85;
+  --ih-line-strong: 71 85 105;
+
+  /* Auth brand panel stays dark */
+  --ih-rail: 8 12 22;
+  --ih-rail-muted: 30 41 59;
+  --ih-rail-hover: 30 41 59;
+  --ih-rail-active: 36 52 74;
+  --ih-rail-ink: 226 232 240;
+  --ih-rail-soft: 148 163 184;
+
+  /* App sidebar — elevated dark panels */
+  --ih-sidebar: 22 32 51;
+  --ih-sidebar-muted: 15 23 42;
+  --ih-sidebar-hover: 30 41 59;
+  --ih-sidebar-active: 26 40 64;
+  --ih-sidebar-ink: 241 245 249;
+  --ih-sidebar-soft: 148 163 184;
+  --ih-sidebar-line: 51 65 85;
+  --ih-sidebar-accent: 61 148 192; /* primary-400 */
+
+  --ih-accent: 61 148 192; /* primary-400 — brighter on dark */
+  --ih-accent-strong: 124 184 217;
+  --ih-focus: 61 148 192;
+
+  --ih-danger: 248 113 113;
+  --ih-success: 74 222 128;
+  --ih-warning: 251 191 36;
+
+  --ih-shadow-panel: 0 1px 2px rgb(0 0 0 / 0.35), 0 0 0 1px rgb(148 163 184 / 0.08);
+  --ih-shadow-lift: 0 12px 32px rgb(0 0 0 / 0.45);
+
+  --ih-auth-glow: rgb(61 148 192 / 0.18);
+}
+
 @layer tailwind-base {
   @tailwind base;
 }
@@ -12,39 +109,75 @@
   @tailwind utilities;
 }
 
-/* Button Utilities for IdentityHub Design System */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-ink;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 100% -20%, var(--ih-auth-glow), transparent 55%),
+      radial-gradient(ellipse 60% 40% at -10% 110%, var(--ih-auth-glow), transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgb(var(--ih-focus) / 0.25);
+  }
+
+  /* Form controls inherit theme surfaces */
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    @apply bg-panel text-ink border-line-strong;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgb(var(--ih-ink-muted) / 0.85);
+  }
+}
+
+/* Button + shell utilities */
 @layer components {
-  /* Base button styles */
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
 
-  /* Primary button */
   .btn-primary {
     @apply bg-primary-600 text-white hover:bg-primary-700 focus-visible:outline-primary-500 active:bg-primary-800;
   }
 
-  /* Secondary button */
-  .btn-secondary {
-    @apply border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 focus-visible:outline-slate-500 active:bg-slate-100;
+  .dark .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-400 active:bg-primary-600 focus-visible:outline-primary-400;
   }
 
-  /* Danger button */
+  .btn-secondary {
+    @apply border border-line-strong bg-panel text-ink hover:bg-panel-muted focus-visible:outline-soft active:bg-canvas;
+  }
+
   .btn-danger {
     @apply bg-danger-600 text-white hover:bg-danger-700 focus-visible:outline-danger-500 active:bg-danger-800;
   }
 
-  /* Ghost button (minimal) */
-  .btn-ghost {
-    @apply text-slate-700 hover:bg-slate-100 focus-visible:outline-slate-500 active:bg-slate-200;
+  .dark .btn-danger {
+    @apply bg-danger-500 hover:bg-danger-400 active:bg-danger-600;
   }
 
-  /* Link button (no styling) */
+  .btn-ghost {
+    @apply text-ink-secondary hover:bg-panel-muted focus-visible:outline-soft active:bg-canvas;
+  }
+
   .btn-link {
     @apply text-primary-600 hover:text-primary-700 focus-visible:outline-primary-500 underline;
   }
 
-  /* Button sizes */
+  .dark .btn-link {
+    @apply text-primary-400 hover:text-primary-300;
+  }
+
   .btn-sm {
     @apply px-3 py-1.5 text-sm;
   }
@@ -57,13 +190,283 @@
     @apply px-6 py-3 text-base;
   }
 
-  /* Full width button */
   .btn-full {
     @apply w-full;
   }
 
-  /* Mark/Highlight from SearchHighlightPipe */
+  /* Layout shells */
+  .ih-app-shell {
+    @apply flex min-h-screen bg-canvas text-ink;
+  }
+
+  .ih-chrome {
+    @apply border-b border-line bg-panel;
+  }
+
+  .ih-sidebar {
+    @apply sticky top-0 flex min-h-screen flex-col border-r border-sidebar-line bg-sidebar p-3 text-sidebar-ink transition-all duration-200;
+  }
+
+  .ih-sidebar-brand {
+    @apply -mx-3 -mt-3 mb-2 shrink-0 border-b border-sidebar-line px-3 pb-2.5 pt-3;
+  }
+
+  .ih-sidebar-brand.is-collapsed {
+    @apply px-2;
+  }
+
+  .ih-sidebar-brand-caption {
+    @apply mt-1 block text-center text-[11px] font-medium tracking-wide text-sidebar-soft;
+  }
+
+  .ih-sidebar-nav {
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain pr-0.5;
+  }
+
+  .ih-sidebar-group-label {
+    @apply px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-soft;
+  }
+
+  .ih-sidebar-link {
+    @apply relative flex items-center rounded-lg border border-transparent px-3 py-2 text-sm font-medium text-sidebar-ink/90 transition-colors duration-150;
+    @apply hover:bg-sidebar-hover hover:text-sidebar-ink;
+  }
+
+  .ih-sidebar-link.is-active {
+    @apply border-sidebar-line bg-sidebar-active text-sidebar-ink shadow-panel;
+    box-shadow:
+      inset 3px 0 0 rgb(var(--ih-sidebar-accent)),
+      var(--ih-shadow-panel);
+  }
+
+  .ih-sidebar-link.is-blocked {
+    @apply cursor-not-allowed text-sidebar-soft opacity-50 hover:bg-transparent;
+  }
+
+  /* Page rhythm — vertical stack between headers, filters, and card blocks */
+  .ih-page {
+    @apply flex flex-col gap-8;
+  }
+
+  /* Card / KPI grids — consistent breathing room between tiles */
+  .ih-card-grid {
+    @apply grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .ih-card-grid-3 {
+    @apply grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .ih-stack {
+    @apply flex flex-col gap-4;
+  }
+
+  .ih-stack-loose {
+    @apply flex flex-col gap-6;
+  }
+
+  .ih-panel {
+    @apply rounded-xl border border-line bg-panel shadow-panel;
+  }
+
+  /* Flat page header + KPI chips — theme-safe (no light-only gradients) */
+  .ih-page-header {
+    @apply rounded-2xl border border-line bg-panel px-5 py-4 shadow-panel sm:px-6;
+  }
+
+  .ih-kpi {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 4.75rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgb(var(--ih-line));
+    background: rgb(var(--ih-panel-muted));
+  }
+
+  .ih-kpi-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgb(var(--ih-ink-muted));
+  }
+
+  .ih-kpi-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: rgb(var(--ih-ink));
+  }
+
+  .ih-filters {
+    @apply rounded-xl border border-line bg-panel-muted p-4;
+  }
+
+  .ih-auth-shell {
+    @apply min-h-screen bg-canvas p-0;
+    background-image:
+      radial-gradient(circle at 78% 12%, var(--ih-auth-glow), transparent 42%),
+      radial-gradient(circle at 12% 88%, var(--ih-auth-glow), transparent 40%),
+      linear-gradient(165deg, rgb(var(--ih-canvas-subtle)) 0%, rgb(var(--ih-canvas)) 55%, rgb(var(--ih-panel-muted)) 100%);
+  }
+
+  .ih-auth-stage {
+    @apply relative mx-auto flex min-h-screen w-full max-w-6xl flex-col lg:flex-row lg:items-stretch;
+  }
+
+  .ih-auth-brand {
+    @apply relative flex flex-col justify-between overflow-hidden px-6 py-8 text-rail-ink sm:px-8 lg:w-[46%] lg:px-10 lg:py-12;
+    background:
+      radial-gradient(circle at 20% 15%, rgb(var(--ih-focus) / 0.35), transparent 45%),
+      radial-gradient(circle at 90% 80%, rgb(var(--ih-focus) / 0.18), transparent 40%),
+      linear-gradient(160deg, rgb(var(--ih-rail)) 0%, rgb(15 35 55) 55%, rgb(var(--ih-rail-muted)) 100%);
+  }
+
+  .ih-auth-brand::after {
+    content: '';
+    position: absolute;
+    inset: auto -20% -30% 20%;
+    height: 55%;
+    background: radial-gradient(ellipse at center, rgb(255 255 255 / 0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .ih-auth-brand-mark {
+    @apply relative z-10 max-w-[12rem] sm:max-w-[14rem];
+    animation: ih-auth-fade-up 420ms ease-out both;
+  }
+
+  .ih-auth-brand-copy {
+    @apply relative z-10 mt-8 max-w-md space-y-3 lg:mt-0;
+    animation: ih-auth-fade-up 520ms ease-out 80ms both;
+  }
+
+  .ih-auth-brand-title {
+    @apply text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-[2.75rem] lg:leading-tight;
+  }
+
+  .ih-auth-brand-text {
+    @apply text-sm leading-relaxed text-rail-ink/80 sm:text-base;
+  }
+
+  .ih-auth-form-wrap {
+    @apply relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-10 lg:py-12;
+    animation: ih-auth-fade-up 480ms ease-out 120ms both;
+  }
+
+  .ih-auth-card {
+    @apply w-full max-w-md rounded-2xl border border-line bg-panel p-6 shadow-lift sm:p-8;
+  }
+
+  .ih-auth-card-wide {
+    @apply max-w-lg;
+  }
+
+  .ih-auth-theme-btn {
+    @apply absolute right-4 top-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-panel/90 text-ink-secondary shadow-panel backdrop-blur transition-colors hover:bg-panel-muted hover:text-ink lg:right-8 lg:top-8;
+  }
+
+  @keyframes ih-auth-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ih-input {
+    @apply w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink transition-colors duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/35 focus:border-primary-500;
+  }
+
+  .ih-label {
+    @apply text-sm font-medium text-ink-secondary;
+  }
+
+  .ih-muted {
+    @apply text-sm text-soft;
+  }
+
+  .ih-link {
+    @apply text-primary-600 hover:text-primary-500 transition-colors duration-150;
+  }
+
+  .dark .ih-link {
+    @apply text-primary-400 hover:text-primary-300;
+  }
+
   mark {
-    @apply bg-warning-200 font-semibold;
+    @apply bg-warning-200 font-semibold text-ink;
+  }
+
+  .dark mark {
+    @apply bg-warning-900/60 text-warning-100;
+  }
+
+  /*
+    Dark-mode bridge for feature pages still using slate/white utilities.
+    Keeps screens readable until they migrate to semantic tokens.
+  */
+  .dark main .bg-white {
+    background-color: rgb(var(--ih-panel));
+  }
+
+  .dark main .bg-slate-50,
+  .dark main .bg-slate-50\/80 {
+    background-color: rgb(var(--ih-panel-muted));
+  }
+
+  .dark main .bg-slate-100 {
+    background-color: rgb(var(--ih-canvas-subtle));
+  }
+
+  .dark main .text-slate-900,
+  .dark main .text-slate-800 {
+    color: rgb(var(--ih-ink));
+  }
+
+  .dark main .text-slate-700,
+  .dark main .text-slate-600 {
+    color: rgb(var(--ih-ink-secondary));
+  }
+
+  .dark main .text-slate-500,
+  .dark main .text-slate-400 {
+    color: rgb(var(--ih-ink-muted));
+  }
+
+  .dark main .border-slate-100,
+  .dark main .border-slate-200,
+  .dark main .border-slate-200\/80 {
+    border-color: rgb(var(--ih-line));
+  }
+
+  .dark main .border-slate-300 {
+    border-color: rgb(var(--ih-line-strong));
+  }
+
+  .dark main .ring-slate-900\/5 {
+    --tw-ring-color: rgb(148 163 184 / 0.12);
+  }
+
+  .dark main .bg-blue-600 {
+    background-color: rgb(var(--ih-accent));
+  }
+
+  .dark main .hover\:bg-blue-500:hover {
+    background-color: rgb(var(--ih-accent-strong));
+  }
+
+  .dark main .text-blue-600 {
+    color: rgb(var(--ih-accent));
+  }
+
+  .dark main .hover\:bg-slate-50:hover,
+  .dark main .hover\:bg-slate-100:hover {
+    background-color: rgb(var(--ih-panel-muted));
   }
 }

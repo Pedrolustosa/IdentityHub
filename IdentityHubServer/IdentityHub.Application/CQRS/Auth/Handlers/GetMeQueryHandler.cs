@@ -63,6 +63,8 @@ public sealed class GetMeQueryHandler : IRequestHandler<GetMeQuery, Result<MeRes
             Id = user.Id,
             Email = user.Email,
             FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber,
+            DateOfBirth = user.DateOfBirth,
             IsActive = user.IsActive,
             EmailConfirmed = user.EmailConfirmed,
             Roles = roles,
