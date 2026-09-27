@@ -1,18 +1,20 @@
 <main class="ih-auth-stage">
   <aside class="ih-auth-brand" aria-label="IdentityHub">
-    <div class="ih-auth-brand-mark">
-      <app-brand-logo variant="auth" [wordmark]="true" />
+    <div class="ih-auth-brand-main">
+      <div class="ih-auth-brand-mark">
+        <app-brand-logo variant="auth" [wordmark]="true" />
+      </div>
+
+      <div class="ih-auth-brand-copy">
+        <p class="text-xs font-semibold uppercase tracking-[0.22em] text-primary-300">Get started</p>
+        <h1 class="ih-auth-brand-title">IdentityHub</h1>
+        <p class="ih-auth-brand-text">
+          Create your account to manage users, roles, and security from one place.
+        </p>
+      </div>
     </div>
 
-    <div class="ih-auth-brand-copy">
-      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-primary-300">Get started</p>
-      <h1 class="ih-auth-brand-title">IdentityHub</h1>
-      <p class="ih-auth-brand-text">
-        Create your account to manage users, roles, and security from one place.
-      </p>
-    </div>
-
-    <p class="relative z-10 mt-8 hidden text-xs text-rail-soft lg:block">Registration · Email confirmation · Secure passwords</p>
+    <p class="ih-auth-brand-foot">Registration · Email confirmation · Secure passwords</p>
   </aside>
 
   <div class="ih-auth-form-wrap">

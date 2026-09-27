@@ -316,7 +316,7 @@
   }
 
   .ih-auth-brand {
-    @apply relative flex flex-col justify-between overflow-hidden px-6 py-8 text-rail-ink sm:px-8 lg:w-[46%] lg:px-10 lg:py-12;
+    @apply relative flex flex-col items-stretch justify-center overflow-hidden px-6 py-10 text-rail-ink sm:px-8 lg:w-[46%] lg:px-10 lg:py-12;
     background:
       radial-gradient(circle at 20% 15%, rgb(var(--ih-focus) / 0.35), transparent 45%),
       radial-gradient(circle at 90% 80%, rgb(var(--ih-focus) / 0.18), transparent 40%),
@@ -332,14 +332,22 @@
     pointer-events: none;
   }
 
+  .ih-auth-brand-main {
+    @apply relative z-10 flex w-full flex-col justify-center;
+  }
+
   .ih-auth-brand-mark {
-    @apply relative z-10 max-w-[12rem] sm:max-w-[14rem];
+    @apply relative z-10 w-full max-w-[26rem] sm:max-w-[32rem] lg:max-w-full;
     animation: ih-auth-fade-up 420ms ease-out both;
   }
 
   .ih-auth-brand-copy {
-    @apply relative z-10 mt-8 max-w-md space-y-3 lg:mt-0;
+    @apply relative z-10 -mt-1 max-w-md space-y-2.5 sm:-mt-2;
     animation: ih-auth-fade-up 520ms ease-out 80ms both;
+  }
+
+  .ih-auth-brand-foot {
+    @apply relative z-10 mt-10 hidden text-xs text-rail-soft lg:absolute lg:bottom-10 lg:left-10 lg:right-10 lg:mt-0 lg:block;
   }
 
   .ih-auth-brand-title {
