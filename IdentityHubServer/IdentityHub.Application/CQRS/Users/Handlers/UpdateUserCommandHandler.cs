@@ -1,5 +1,6 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
@@ -30,6 +31,8 @@ public sealed class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand
                 Error.Create("User.NotFound", "User not found"));
 
         user.FullName = command.Request.FullName?.Trim();
+        user.PhoneNumber = UserContactValidation.NormalizePhoneNumber(command.Request.PhoneNumber);
+        user.DateOfBirth = command.Request.DateOfBirth;
         user.IsActive = command.Request.IsActive;
 
         await _repository.UpdateAsync(user, cancellationToken);

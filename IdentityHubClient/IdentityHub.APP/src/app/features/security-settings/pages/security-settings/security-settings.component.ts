@@ -13,7 +13,7 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, UxStateComponent],
   template: `
-    <section class="space-y-5">
+    <section class="ih-page">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Security settings</h1>
         <p class="text-slate-600">Centralized, configurable security policies.</p>
@@ -26,7 +26,7 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
         description="Could not retrieve security settings."
         (retry)="load()"
       >
-        <form [formGroup]="form" (ngSubmit)="save()" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm grid grid-cols-1 gap-4 md:grid-cols-2">
+        <form [formGroup]="form" (ngSubmit)="save()" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
           <label class="space-y-1 text-sm text-slate-600">
             <span class="font-medium text-slate-700">Access token (minutes)</span>
             <input type="number" formControlName="accessTokenMinutes" class="w-full rounded-lg border border-slate-300 px-3 py-2" />

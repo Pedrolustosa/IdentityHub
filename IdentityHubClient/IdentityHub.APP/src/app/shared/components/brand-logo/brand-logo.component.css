@@ -1,4 +1,21 @@
 :host {
   display: block;
   min-width: 0;
+  width: 100%;
+}
+
+.ih-brand-sidebar {
+  max-height: 5.5rem;
+  width: 100%;
+  /* Crop excess transparent padding typical in lockup PNGs */
+  transform: scale(1.08);
+  transform-origin: center center;
+}
+
+.ih-brand-sidebar--collapsed {
+  max-height: 2.75rem;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  transform: scale(1.15);
 }

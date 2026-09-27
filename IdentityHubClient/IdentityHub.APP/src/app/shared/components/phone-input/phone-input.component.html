@@ -1,0 +1,101 @@
+<div class="phone-input" [class.phone-input-disabled]="disabled">
+  <div class="phone-input-shell">
+    <button
+      #countryTrigger
+      type="button"
+      class="phone-country-trigger"
+      [disabled]="disabled"
+      [attr.aria-expanded]="countryMenuOpen"
+      aria-haspopup="listbox"
+      [attr.aria-controls]="inputId + '-country-list'"
+      [attr.aria-label]="'Country code: ' + countryTriggerLabel"
+      [title]="countryTriggerLabel"
+      (click)="toggleCountryMenu()"
+    >
+      <img
+        class="phone-flag"
+        [src]="flagAsset.src"
+        [attr.srcset]="flagAsset.srcset"
+        [width]="flagAsset.width"
+        [height]="flagAsset.height"
+        [alt]="selectedCountry.name"
+        loading="lazy"
+        decoding="async"
+      />
+      <span class="phone-dial">{{ dialCodeLabel }}</span>
+      <svg class="phone-caret" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path
+          fill-rule="evenodd"
+          d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+
+    <input
+      #nationalInput
+      [id]="inputId"
+      type="tel"
+      inputmode="tel"
+      autocomplete="tel-national"
+      class="phone-national-input"
+      [placeholder]="inputPlaceholder"
+      [attr.aria-label]="'Local phone number for ' + selectedCountry.name"
+      [disabled]="disabled"
+      [ngModel]="nationalDisplay"
+      (ngModelChange)="onNationalInput($event)"
+      (blur)="onBlur()"
+    />
+  </div>
+
+  @if (countryMenuOpen) {
+    <div
+      class="phone-country-menu"
+      role="listbox"
+      [id]="inputId + '-country-list'"
+      [ngStyle]="menuStyle"
+    >
+      <div class="phone-country-search">
+        <input
+          #searchInput
+          type="search"
+          class="phone-country-search-input"
+          placeholder="Search country, ISO code or dial code"
+          [ngModel]="countryFilter"
+          (ngModelChange)="countryFilter = $event"
+          autocomplete="off"
+        />
+        <p class="phone-country-count">{{ filteredCountryOptions.length }} of {{ countryCountLabel }}</p>
+      </div>
+      <ul class="phone-country-list">
+        @for (option of filteredCountryOptions; track option.country.iso2) {
+          <li>
+            <button
+              type="button"
+              class="phone-country-option"
+              [class.phone-country-option-active]="option.country.iso2 === selectedCountry.iso2"
+              role="option"
+              [attr.aria-selected]="option.country.iso2 === selectedCountry.iso2"
+              (click)="selectCountry(option.country)"
+            >
+              <img
+                class="phone-flag"
+                [src]="option.flag.src"
+                [attr.srcset]="option.flag.srcset"
+                [width]="option.flag.width"
+                [height]="option.flag.height"
+                [alt]="option.country.name"
+                loading="lazy"
+                decoding="async"
+              />
+              <span class="phone-country-name">{{ option.country.name }}</span>
+              <span class="phone-country-code">+{{ option.country.dialCode }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="phone-country-empty">No countries found</li>
+        }
+      </ul>
+    </div>
+  }
+</div>

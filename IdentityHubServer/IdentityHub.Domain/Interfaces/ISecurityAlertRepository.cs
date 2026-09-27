@@ -12,5 +12,7 @@ public interface ISecurityAlertRepository
 
     Task<SecurityEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+    Task<int> CountUnreadAsync(CancellationToken cancellationToken = default);
+
     Task UpdateAsync(SecurityEvent securityEvent, CancellationToken cancellationToken = default);
 }

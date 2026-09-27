@@ -7,10 +7,16 @@ import { catchError, finalize } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../../../core/services/auth.service';
 import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
+import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { CriticalActionConfirmationService } from '../../../../../shared/services/critical-action-confirmation.service';
 import { RoleListItem, RolesService } from '../../../../role-claims/roles.service';
 import { UserListItem, UsersService } from '../../../users.service';
+import {
+  normalizeOptionalDate,
+  normalizeOptionalText,
+  optionalDateOfBirthValidator
+} from '../../../../../shared/validation/user-contact.validators';
 
 function sortedRoles(roles: string[]): string {
   return [...roles].sort().join('|');
@@ -19,7 +25,7 @@ function sortedRoles(roles: string[]): string {
 @Component({
   selector: 'app-user-edit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent, PhoneInputComponent],
   templateUrl: './user-edit.component.html',
   styleUrl: './user-edit.component.css'
 })
@@ -39,6 +45,8 @@ export class UserEditComponent implements OnInit {
   selectedRoleNames: string[] = [];
   initialRoleNames: string[] = [];
   initialFullName = '';
+  initialPhoneNumber = '';
+  initialDateOfBirth = '';
   initialIsActive = true;
   readonly canUpdateUserRoles: boolean;
   readonly criticalRoles = ['Admin', 'Administrator', 'SuperAdmin'];
@@ -46,6 +54,8 @@ export class UserEditComponent implements OnInit {
 
   readonly editForm = this.formBuilder.nonNullable.group({
     fullName: [''],
+    phoneNumber: [''],
+    dateOfBirth: ['', [optionalDateOfBirthValidator()]],
     isActive: [true]
   });
 
@@ -96,9 +106,13 @@ export class UserEditComponent implements OnInit {
           this.initialRoleNames = [...(user.roles ?? [])];
           this.selectedRoleNames = [...this.initialRoleNames];
           this.initialFullName = user.fullName ?? '';
+          this.initialPhoneNumber = user.phoneNumber ?? '';
+          this.initialDateOfBirth = user.dateOfBirth ?? '';
           this.initialIsActive = user.isActive;
           this.editForm.patchValue({
             fullName: user.fullName ?? '',
+            phoneNumber: user.phoneNumber ?? '',
+            dateOfBirth: user.dateOfBirth ?? '',
             isActive: user.isActive
           });
           if (this.isEditingSelf) {
@@ -173,9 +187,11 @@ export class UserEditComponent implements OnInit {
   }
 
   hasChanges(): boolean {
-    const { fullName, isActive } = this.editForm.getRawValue();
+    const { fullName, phoneNumber, dateOfBirth, isActive } = this.editForm.getRawValue();
     return (
       (fullName.trim() || '') !== this.initialFullName ||
+      (normalizeOptionalText(phoneNumber) ?? '') !== this.initialPhoneNumber ||
+      (normalizeOptionalDate(dateOfBirth) ?? '') !== this.initialDateOfBirth ||
       isActive !== this.initialIsActive ||
       this.rolesChanged()
     );
@@ -199,13 +215,15 @@ export class UserEditComponent implements OnInit {
       return;
     }
 
-    const { fullName, isActive } = this.editForm.getRawValue();
+    const { fullName, phoneNumber, dateOfBirth, isActive } = this.editForm.getRawValue();
     this.isSaving = true;
     this.saveError = null;
 
     this.usersService
       .updateUser(this.userId, {
-        fullName: fullName.trim() || null,
+        fullName: normalizeOptionalText(fullName),
+        phoneNumber: normalizeOptionalText(phoneNumber),
+        dateOfBirth: normalizeOptionalDate(dateOfBirth),
         isActive
       })
       .subscribe({

@@ -156,6 +156,9 @@ public sealed class DashboardQueryHandlerUnitTests
         public Task<SecurityEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => Task.FromResult<SecurityEvent?>(null);
 
+        public Task<int> CountUnreadAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
+
         public Task UpdateAsync(SecurityEvent securityEvent, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }

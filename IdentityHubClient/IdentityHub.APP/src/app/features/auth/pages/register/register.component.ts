@@ -6,13 +6,19 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
+import { PhoneInputComponent } from '../../../../shared/components/phone-input/phone-input.component';
 import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
+import {
+  normalizeOptionalDate,
+  normalizeOptionalText,
+  optionalDateOfBirthValidator
+} from '../../../../shared/validation/user-contact.validators';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, UxStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, BrandLogoComponent, UxStateComponent, PhoneInputComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -35,6 +41,8 @@ export class RegisterComponent {
     this.registerForm = this.formBuilder.nonNullable.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
+      phoneNumber: [''],
+      dateOfBirth: ['', [optionalDateOfBirthValidator()]],
       password: ['', [Validators.required, Validators.minLength(7), Validators.pattern(/^(?=.*[A-Z])(?=.*\d).+$/)]],
       confirmPassword: ['', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
@@ -49,6 +57,14 @@ export class RegisterComponent {
 
   get emailControl() {
     return this.registerForm.get('email');
+  }
+
+  get phoneNumberControl() {
+    return this.registerForm.get('phoneNumber');
+  }
+
+  get dateOfBirthControl() {
+    return this.registerForm.get('dateOfBirth');
   }
 
   get passwordControl() {
@@ -145,18 +161,21 @@ export class RegisterComponent {
       .register({
         fullName: formValue.fullName.trim(),
         email: formValue.email.trim().toLowerCase(),
-        password: formValue.password
+        password: formValue.password,
+        phoneNumber: normalizeOptionalText(formValue.phoneNumber),
+        dateOfBirth: normalizeOptionalDate(formValue.dateOfBirth)
       })
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: () => {
-          const registeredEmail = formValue.email.trim().toLowerCase();
           this.successMessage =
             'Account created successfully! Check your email to confirm your account. You can close this window or click the button below to sign in.';
           this.toastr.success('We sent a confirmation link to your email.', 'Registration');
           this.registerForm.reset({
             fullName: '',
             email: '',
+            phoneNumber: '',
+            dateOfBirth: '',
             password: '',
             confirmPassword: '',
             agreeToTerms: false

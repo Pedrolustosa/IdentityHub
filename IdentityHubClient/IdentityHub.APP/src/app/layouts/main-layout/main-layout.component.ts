@@ -1,14 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { BirthdayGreetingService } from '../../core/services/birthday-greeting.service';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopNavbarComponent } from '../../shared/components/top-navbar/top-navbar.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { ThemeService } from '../../core/services/theme.service';
+import { BirthdayCelebrationComponent } from '../../shared/components/birthday-celebration/birthday-celebration.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, TopNavbarComponent, BreadcrumbsComponent],
+  imports: [
+    RouterOutlet,
+    SidebarComponent,
+    TopNavbarComponent,
+    BreadcrumbsComponent,
+    BirthdayCelebrationComponent
+  ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
@@ -16,10 +23,10 @@ export class MainLayoutComponent implements OnInit {
   isSidebarCollapsed = false;
   isMobileSidebarOpen = false;
 
-  constructor(private readonly themeService: ThemeService) {}
+  constructor(private readonly birthdayGreeting: BirthdayGreetingService) {}
 
   ngOnInit(): void {
-    this.themeService.init();
+    this.birthdayGreeting.evaluateOnAppEntry();
   }
 
   toggleSidebar(): void {

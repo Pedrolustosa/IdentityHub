@@ -15,6 +15,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
 }
 
 export interface AuthResponse {
@@ -40,18 +42,24 @@ export interface ChangePasswordRequest {
 export interface UpdateProfileRequest {
   fullName: string;
   email: string;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
 }
 
 export interface ProfileResponse {
   id: string;
   email: string | null;
   fullName: string | null;
+  phoneNumber: string | null;
+  dateOfBirth: string | null;
 }
 
 export interface MeResponse {
   id: string;
   email: string | null;
   fullName: string | null;
+  phoneNumber: string | null;
+  dateOfBirth: string | null;
   isActive: boolean;
   emailConfirmed: boolean;
   roles: string[];
@@ -136,11 +144,7 @@ export class AuthService {
 
   getSessionsHistory(take = 20): Observable<UserSessionResponse[]> {
     const params = new HttpParams().set('take', take);
-    return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions/history`, { params });
-  }
-
-  getSecurityAlertCount(): Observable<number> {
-    return this.http.get<number>(`${environment.apiUrl}/security-alerts/unread-count`);
+    return this.http.get<UserSessionResponse[]>(`${this.apiBaseUrl}/sessions/recent`, { params });
   }
 
   revokeSession(sessionId: string): Observable<string> {

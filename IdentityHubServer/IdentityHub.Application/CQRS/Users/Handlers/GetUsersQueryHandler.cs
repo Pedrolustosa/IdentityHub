@@ -34,6 +34,8 @@ public sealed class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, Result
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
                 FullName = user.FullName ?? string.Empty,
+                PhoneNumber = user.PhoneNumber,
+                DateOfBirth = user.DateOfBirth,
                 IsActive = user.IsActive,
                 EmailConfirmed = user.EmailConfirmed,
                 LastLoginAt = lastLoginAt,

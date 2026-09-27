@@ -1,11 +1,10 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Auth.Commands;
-using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 
 namespace IdentityHub.Application.CQRS.Auth.Handlers;
 
@@ -26,6 +25,8 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
             return Result.Failure(Error.Create("User.NotFound", "User not found"));
 
         user.FullName = cmd.Request.FullName?.Trim();
+        user.PhoneNumber = UserContactValidation.NormalizePhoneNumber(cmd.Request.PhoneNumber);
+        user.DateOfBirth = cmd.Request.DateOfBirth;
 
         await _userManager.UpdateAsync(user);
 

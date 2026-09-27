@@ -1,3 +1,4 @@
+using IdentityHub.Domain.Constants;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
@@ -36,6 +37,13 @@ public sealed class SecurityAlertRepository : ISecurityAlertRepository
     public Task<SecurityEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _context.SecurityEvents.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public Task<int> CountUnreadAsync(CancellationToken cancellationToken = default)
+    {
+        return _context.SecurityEvents
+            .AsNoTracking()
+            .CountAsync(x => x.Status == SecurityEventStatus.Open, cancellationToken);
     }
 
     public async Task UpdateAsync(SecurityEvent securityEvent, CancellationToken cancellationToken = default)

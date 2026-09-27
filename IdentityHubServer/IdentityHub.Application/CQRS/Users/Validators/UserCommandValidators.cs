@@ -1,4 +1,5 @@
 using FluentValidation;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Users.Commands;
 
 namespace IdentityHub.Application.CQRS.Users.Validators;
@@ -10,6 +11,8 @@ public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCom
         RuleFor(x => x.Request.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Request.Password).NotEmpty().MinimumLength(7).MaximumLength(128);
         RuleFor(x => x.Request.FullName).MaximumLength(120);
+        RuleFor(x => x.Request.PhoneNumber).OptionalPhoneNumber();
+        RuleFor(x => x.Request.DateOfBirth).OptionalDateOfBirth();
     }
 }
 
@@ -19,6 +22,8 @@ public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCom
     {
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Request.FullName).MaximumLength(120);
+        RuleFor(x => x.Request.PhoneNumber).OptionalPhoneNumber();
+        RuleFor(x => x.Request.DateOfBirth).OptionalDateOfBirth();
     }
 }
 
@@ -28,6 +33,8 @@ public sealed class InviteUserCommandValidator : AbstractValidator<InviteUserCom
     {
         RuleFor(x => x.Request.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Request.FullName).MaximumLength(120);
+        RuleFor(x => x.Request.PhoneNumber).OptionalPhoneNumber();
+        RuleFor(x => x.Request.DateOfBirth).OptionalDateOfBirth();
     }
 }
 

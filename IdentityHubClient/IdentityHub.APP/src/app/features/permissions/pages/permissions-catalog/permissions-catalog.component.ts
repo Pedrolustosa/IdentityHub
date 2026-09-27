@@ -11,7 +11,7 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
   standalone: true,
   imports: [CommonModule, UxStateComponent],
   template: `
-    <section class="space-y-5">
+    <section class="ih-page">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Permissions catalog</h1>
         <p class="text-slate-600">Reference list for available permissions and impact review.</p>
@@ -24,9 +24,9 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
         description="No permissions were returned by the backend catalog endpoint."
         (retry)="load()"
       >
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div class="ih-card-grid-3">
           @for (permission of permissions; track permission) {
-            <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-2">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
               <p class="text-xs uppercase tracking-wide text-slate-500">Code</p>
               <p class="font-mono text-sm text-slate-900 break-all">{{ permission }}</p>
               <p class="text-xs text-slate-500">Module: {{ moduleOf(permission) }}</p>

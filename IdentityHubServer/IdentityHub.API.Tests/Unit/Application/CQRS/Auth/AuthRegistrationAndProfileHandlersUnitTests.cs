@@ -159,6 +159,41 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
         Assert.Equal(1, userManager.UpdateCalls);
     }
 
+    [Fact]
+    public async Task UpdateProfileCommandHandler_ShouldNormalizePhoneAndSetDateOfBirth_WhenProvided()
+    {
+        var user = new ApplicationUser
+        {
+            Id = "u1",
+            Email = "u1@identityhub.com",
+            FullName = "Old",
+            IsDeleted = false
+        };
+
+        var userManager = new StubUserManager
+        {
+            OnFindByIdAsync = _ => Task.FromResult<ApplicationUser?>(user),
+            OnUpdateAsync = _ => Task.FromResult(IdentityResult.Success)
+        };
+
+        var handler = new UpdateProfileCommandHandler(userManager);
+        var dateOfBirth = new DateOnly(1990, 5, 15);
+
+        var result = await handler.Handle(
+            new UpdateProfileCommand("u1", new UpdateProfileRequest
+            {
+                FullName = "Name",
+                Email = "u1@identityhub.com",
+                PhoneNumber = "  +1 555 0100  ",
+                DateOfBirth = dateOfBirth
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("+15550100", user.PhoneNumber);
+        Assert.Equal(dateOfBirth, user.DateOfBirth);
+    }
+
     private static IConfiguration BuildConfig(string baseUrl)
     {
         return new ConfigurationBuilder()

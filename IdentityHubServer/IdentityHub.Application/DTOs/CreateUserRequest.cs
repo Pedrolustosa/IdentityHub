@@ -15,6 +15,10 @@ namespace IdentityHub.Application.DTOs
 
         [MaxLength(120)]
         public string FullName { get; set; } = string.Empty;
+
+        [MaxLength(32)]
+        public string? PhoneNumber { get; set; }
+
+        public DateOnly? DateOfBirth { get; set; }
     }
 }
-

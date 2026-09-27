@@ -12,7 +12,7 @@ import { UxStateComponent } from '../../../../shared/components/ux-state/ux-stat
   standalone: true,
   imports: [CommonModule, UxStateComponent],
   template: `
-    <section class="space-y-5">
+    <section class="ih-page">
       <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Permissions matrix</h1>
         <p class="text-slate-600">Quick view of role versus permission coverage.</p>

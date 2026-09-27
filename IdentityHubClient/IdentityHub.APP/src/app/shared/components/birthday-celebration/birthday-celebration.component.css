@@ -1,0 +1,293 @@
+:host {
+  display: contents;
+}
+
+.bday-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(14, 165, 233, 0.22), transparent 60%),
+    rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  animation: bday-fade-in 0.45s ease-out both;
+}
+
+.bday-confetti {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bday-piece {
+  position: absolute;
+  top: -24px;
+  border-radius: 2px;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: bday-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+.bday-piece--dot {
+  border-radius: 999px;
+}
+
+.bday-piece--tri {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.bday-stage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 26rem);
+}
+
+.bday-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary, #0ea5e9) 28%, transparent);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.97) 0%, rgba(240, 249, 255, 0.96) 55%, rgba(255, 251, 235, 0.94) 100%);
+  box-shadow:
+    0 24px 64px -20px rgba(15, 23, 42, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  padding: 2rem 1.75rem 1.75rem;
+  text-align: center;
+  color: #0f172a;
+  animation: bday-pop 0.55s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+:host-context(.dark) .bday-card,
+:host-context([data-theme='dark']) .bday-card {
+  background:
+    linear-gradient(165deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 60%, rgba(66, 32, 6, 0.35) 100%);
+  color: #f8fafc;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.bday-glow {
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 70%;
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.28), transparent 65%);
+  pointer-events: none;
+  animation: bday-pulse 2.8s ease-in-out infinite;
+}
+
+.bday-cake {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0 auto 1rem;
+  color: #0369a1;
+  animation: bday-float 3.2s ease-in-out infinite;
+}
+
+.bday-cake svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(3, 105, 161, 0.25));
+}
+
+.bday-flame {
+  transform-origin: center bottom;
+  animation: bday-flicker 0.9s ease-in-out infinite;
+}
+
+.bday-flame--b {
+  animation-delay: 0.15s;
+}
+
+.bday-flame--c {
+  animation-delay: 0.3s;
+}
+
+.bday-eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0284c7;
+}
+
+:host-context(.dark) .bday-eyebrow,
+:host-context([data-theme='dark']) .bday-eyebrow {
+  color: #7dd3fc;
+}
+
+.bday-title {
+  margin: 0 0 0.65rem;
+  font-size: clamp(1.45rem, 4vw, 1.85rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.bday-message {
+  margin: 0 auto 1.5rem;
+  max-width: 22rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+:host-context(.dark) .bday-message,
+:host-context([data-theme='dark']) .bday-message {
+  color: #cbd5e1;
+}
+
+.bday-mute {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0 auto 1.15rem;
+  max-width: 20rem;
+  text-align: left;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.bday-mute input {
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  width: 0.95rem;
+  height: 0.95rem;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+:host-context(.dark) .bday-mute,
+:host-context([data-theme='dark']) .bday-mute {
+  color: #94a3b8;
+}
+
+.bday-cta {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.35rem;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #fff;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  box-shadow: 0 10px 24px -10px rgba(3, 105, 161, 0.65);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.bday-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 14px 28px -10px rgba(3, 105, 161, 0.7);
+}
+
+.bday-cta:active {
+  transform: translateY(0);
+}
+
+@keyframes bday-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bday-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bday-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10vh, 0) rotate(var(--spin));
+  }
+  8% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+    transform: translate3d(var(--drift, 20px), 110vh, 0) rotate(calc(var(--spin) + 720deg));
+  }
+}
+
+@keyframes bday-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes bday-flicker {
+  0%,
+  100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scaleY(1.12) scaleX(0.9);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scaleY(0.92) scaleX(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes bday-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bday-overlay,
+  .bday-card,
+  .bday-cake,
+  .bday-flame,
+  .bday-glow,
+  .bday-piece {
+    animation: none !important;
+  }
+
+  .bday-piece {
+    display: none;
+  }
+}

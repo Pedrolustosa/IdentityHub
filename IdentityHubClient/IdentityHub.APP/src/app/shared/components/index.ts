@@ -10,3 +10,4 @@ export * from './kpi-card/kpi-card.component';
 export * from './permission-chip/permission-chip.component';
 export * from './date-range-picker/date-range-picker.component';
 export * from './tree-view/tree-view.component';
+export * from './phone-input/phone-input.component';

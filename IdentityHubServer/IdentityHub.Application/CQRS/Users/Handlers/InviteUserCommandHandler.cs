@@ -1,5 +1,6 @@
 using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Validation;
 using IdentityHub.Application.CQRS.Users.Commands;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
@@ -41,6 +42,8 @@ public sealed class InviteUserCommandHandler : IRequestHandler<InviteUserCommand
     {
         var email = command.Request.Email.Trim().ToLowerInvariant();
         var fullName = command.Request.FullName?.Trim();
+        var phoneNumber = UserContactValidation.NormalizePhoneNumber(command.Request.PhoneNumber);
+        var dateOfBirth = command.Request.DateOfBirth;
 
         var existingUser = await _repository.GetByEmailAsync(email, cancellationToken);
 
@@ -53,6 +56,8 @@ public sealed class InviteUserCommandHandler : IRequestHandler<InviteUserCommand
                 UserName = email,
                 Email = email,
                 FullName = fullName,
+                PhoneNumber = phoneNumber,
+                DateOfBirth = dateOfBirth,
                 IsActive = true,
                 IsDeleted = false,
                 DeletedAt = null,
@@ -82,10 +87,28 @@ public sealed class InviteUserCommandHandler : IRequestHandler<InviteUserCommand
             }
 
             user = existingUser;
+            var profileChanged = false;
 
             if (!string.IsNullOrWhiteSpace(fullName) && !string.Equals(user.FullName, fullName, StringComparison.Ordinal))
             {
                 user.FullName = fullName;
+                profileChanged = true;
+            }
+
+            if (!string.Equals(user.PhoneNumber, phoneNumber, StringComparison.Ordinal))
+            {
+                user.PhoneNumber = phoneNumber;
+                profileChanged = true;
+            }
+
+            if (user.DateOfBirth != dateOfBirth)
+            {
+                user.DateOfBirth = dateOfBirth;
+                profileChanged = true;
+            }
+
+            if (profileChanged)
+            {
                 await _repository.UpdateAsync(user, cancellationToken);
             }
         }

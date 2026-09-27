@@ -1,0 +1,93 @@
+@if (visible()) {
+  <div
+    class="bday-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="bday-title"
+    (click)="dismiss()"
+  >
+    <div class="bday-confetti" aria-hidden="true">
+      @for (piece of confetti; track piece.id) {
+        <span
+          class="bday-piece"
+          [ngClass]="piece.shape"
+          [style.left]="piece.left"
+          [style.animation-delay]="piece.delay"
+          [style.animation-duration]="piece.duration"
+          [style.background]="piece.color"
+          [style.width.px]="piece.width"
+          [style.height.px]="piece.height"
+          [style.--drift]="piece.drift"
+          [style.--spin]="piece.rotate + 'deg'"
+        ></span>
+      }
+    </div>
+
+    <div class="bday-stage" (click)="$event.stopPropagation()">
+      <div class="bday-card">
+        <div class="bday-glow" aria-hidden="true"></div>
+
+        <div class="bday-cake" aria-hidden="true">
+          <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="48" cy="78" rx="34" ry="8" fill="currentColor" opacity="0.12" />
+            <path
+              d="M18 58c0-3 3-5 6-5h48c3 0 6 2 6 5v14c0 4-4 7-9 7H27c-5 0-9-3-9-7V58z"
+              fill="url(#cakeBody)"
+            />
+            <path
+              d="M22 48c0-2.5 2.5-4.5 5.5-4.5h41c3 0 5.5 2 5.5 4.5v6H22v-6z"
+              fill="url(#cakeFrost)"
+            />
+            <path
+              d="M28 43.5c2.2-3.5 5.5-3.5 7.5 0 2-3.5 5.3-3.5 7.5 0 2.2-3.5 5.5-3.5 7.5 0 2-3.5 5.3-3.5 7.5 0 2.2-3.5 5.5-3.5 7.5 0"
+              stroke="#f8fafc"
+              stroke-width="3"
+              stroke-linecap="round"
+              fill="none"
+            />
+            <g class="bday-candles">
+              <rect x="34" y="28" width="3.5" height="14" rx="1" fill="#f1f5f9" />
+              <rect x="46.25" y="24" width="3.5" height="18" rx="1" fill="#f1f5f9" />
+              <rect x="58.5" y="28" width="3.5" height="14" rx="1" fill="#f1f5f9" />
+              <ellipse class="bday-flame bday-flame--a" cx="35.75" cy="24" rx="2.2" ry="3.4" fill="#fbbf24" />
+              <ellipse class="bday-flame bday-flame--b" cx="48" cy="20" rx="2.4" ry="3.8" fill="#f59e0b" />
+              <ellipse class="bday-flame bday-flame--c" cx="60.25" cy="24" rx="2.2" ry="3.4" fill="#fbbf24" />
+            </g>
+            <defs>
+              <linearGradient id="cakeBody" x1="18" y1="53" x2="78" y2="79" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0ea5e9" />
+                <stop offset="1" stop-color="#0369a1" />
+              </linearGradient>
+              <linearGradient id="cakeFrost" x1="22" y1="43" x2="74" y2="54" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#e0f2fe" />
+                <stop offset="1" stop-color="#bae6fd" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <p class="bday-eyebrow">Today is special</p>
+        <h2 id="bday-title" class="bday-title">
+          Happy Birthday{{ displayName() ? ', ' + displayName() : '' }}!
+        </h2>
+        <p class="bday-message">
+          @if (ageLabel(); as yearsLabel) {
+            Wishing you a wonderful {{ yearsLabel }} year —
+            thank you for being part of IdentityHub.
+          } @else {
+            We're glad you're here. Wishing you a day as bright as you make ours.
+          }
+        </p>
+
+        <label class="bday-mute">
+          <input type="checkbox" [(ngModel)]="dontShowAgain" name="dontShowBirthdayAgain" />
+          <span>Don't show this greeting again when I sign in</span>
+        </label>
+
+        <button type="button" class="bday-cta" (click)="dismiss()">
+          Thank you — let's go
+        </button>
+      </div>
+    </div>
+  </div>
+}

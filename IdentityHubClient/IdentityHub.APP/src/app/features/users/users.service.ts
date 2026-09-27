@@ -7,6 +7,8 @@ export interface UserListItem {
   id: string;
   email: string | null;
   fullName: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
   isActive: boolean;
   emailConfirmed?: boolean;
   lastLoginAt?: string | null;
@@ -18,17 +20,23 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   fullName?: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
 }
 
 export interface InviteUserRequest {
   email: string;
   fullName?: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
   isActive?: boolean;
   roles?: string[];
 }
 
 export interface UpdateUserRequest {
   fullName?: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
   isActive: boolean;
 }
 
@@ -98,11 +106,11 @@ export class UsersService {
 
   getUserSessionsHistory(id: string, take = 20): Observable<UserSessionItem[]> {
     const params = new HttpParams().set('take', take);
-    return this.http.get<UserSessionItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/sessions/history`, { params });
+    return this.http.get<UserSessionItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/sessions`, { params });
   }
 
   getUserAudit(id: string, take = 20): Observable<UserAuditItem[]> {
     const params = new HttpParams().set('take', take);
-    return this.http.get<UserAuditItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/audit`, { params });
+    return this.http.get<UserAuditItem[]>(`${this.usersApiUrl}/${encodeURIComponent(id)}/audit-logs`, { params });
   }
 }

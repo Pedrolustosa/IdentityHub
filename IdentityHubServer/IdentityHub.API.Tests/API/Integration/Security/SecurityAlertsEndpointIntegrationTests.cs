@@ -120,6 +120,25 @@ public sealed class SecurityAlertsEndpointIntegrationTests : IClassFixture<TestW
         Assert.False(string.IsNullOrWhiteSpace(detail.Severity));
     }
 
+    [Fact]
+    public async Task GetSecurityAlertUnreadCount_ShouldReturnOpenAlertCount()
+    {
+        await AuthenticateAsAdminAsync();
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var openCount = await db.SecurityEvents.CountAsync(x => x.Status == SecurityEventStatus.Open);
+
+            var response = await _client.GetAsync("/api/security-alerts/unread-count");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var count = await response.Content.ReadFromJsonAsync<int>();
+            Assert.Equal(openCount, count);
+        }
+    }
+
     private async Task AuthenticateAsAdminAsync()
     {
         var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new

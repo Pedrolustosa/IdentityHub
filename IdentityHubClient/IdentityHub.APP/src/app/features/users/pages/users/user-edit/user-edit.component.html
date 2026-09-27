@@ -1,4 +1,4 @@
-<section class="max-w-2xl space-y-6">
+<section class="ih-page max-w-2xl">
   <a
     [routerLink]="userId ? ['/app/users', userId] : ['/app/users']"
     class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-150"
@@ -39,6 +39,40 @@
           class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Display name"
         />
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="phoneNumber" class="block text-sm font-medium text-slate-700 mb-1.5">Phone number</label>
+          <app-phone-input
+            inputId="phoneNumber"
+            formControlName="phoneNumber"
+            defaultCountryIso2="BR"
+          />
+          @if (editForm.controls.phoneNumber.invalid && (editForm.controls.phoneNumber.dirty || editForm.controls.phoneNumber.touched)) {
+            <small class="text-red-600">
+              @if (editForm.controls.phoneNumber.errors?.['phoneNumberIncomplete']) {
+                Complete the local phone number for the selected country.
+              } @else {
+                Enter a valid phone number.
+              }
+            </small>
+          }
+          <p class="mt-1 text-xs text-slate-500">Select the country, then enter only the local number.</p>
+        </div>
+        <div>
+          <label for="dateOfBirth" class="block text-sm font-medium text-slate-700 mb-1.5">Date of birth</label>
+          <input
+            id="dateOfBirth"
+            type="date"
+            formControlName="dateOfBirth"
+            autocomplete="bday"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          @if (editForm.controls.dateOfBirth.invalid && (editForm.controls.dateOfBirth.dirty || editForm.controls.dateOfBirth.touched)) {
+            <small class="text-red-600">Enter a valid date of birth.</small>
+          }
+        </div>
       </div>
 
       <div class="space-y-2">
@@ -138,6 +172,12 @@
           <ul class="space-y-2 text-sm">
             @if ((editForm.getRawValue().fullName.trim() || '') !== initialFullName) {
               <li class="flex gap-2"><span class="text-slate-500">Name:</span><span class="font-medium text-slate-900">{{ editForm.getRawValue().fullName.trim() || '(empty)' }}</span></li>
+            }
+            @if ((editForm.getRawValue().phoneNumber.trim() || '') !== initialPhoneNumber) {
+              <li class="flex gap-2"><span class="text-slate-500">Phone:</span><span class="font-medium text-slate-900">{{ editForm.getRawValue().phoneNumber.trim() || '(empty)' }}</span></li>
+            }
+            @if ((editForm.getRawValue().dateOfBirth || '') !== initialDateOfBirth) {
+              <li class="flex gap-2"><span class="text-slate-500">Date of birth:</span><span class="font-medium text-slate-900">{{ editForm.getRawValue().dateOfBirth || '(empty)' }}</span></li>
             }
             @if (editForm.getRawValue().isActive !== initialIsActive) {
               <li class="flex gap-2"><span class="text-slate-500">Status:</span><span class="font-medium" [ngClass]="editForm.getRawValue().isActive ? 'text-emerald-700' : 'text-rose-700'">{{ editForm.getRawValue().isActive ? 'Active' : 'Inactive' }}</span></li>

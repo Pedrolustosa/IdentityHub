@@ -6,14 +6,20 @@ import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { UxStateComponent } from '../../../../../shared/components/ux-state/ux-state.component';
+import { PhoneInputComponent } from '../../../../../shared/components/phone-input/phone-input.component';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../../shared/http/ui-load-error';
 import { UsersService } from '../../../users.service';
 import { RoleListItem, RolesService } from '../../../../role-claims/roles.service';
+import {
+  normalizeOptionalDate,
+  normalizeOptionalText,
+  optionalDateOfBirthValidator
+} from '../../../../../shared/validation/user-contact.validators';
 
 @Component({
   selector: 'app-user-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, UxStateComponent, PhoneInputComponent],
   templateUrl: './user-create.component.html',
   styleUrl: './user-create.component.css'
 })
@@ -29,6 +35,8 @@ export class UserCreateComponent implements OnInit {
   readonly createForm = new FormBuilder().nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     fullName: ['', [Validators.maxLength(120)]],
+    phoneNumber: [''],
+    dateOfBirth: ['', [optionalDateOfBirthValidator()]],
     isActive: [true]
   });
 
@@ -78,14 +86,19 @@ export class UserCreateComponent implements OnInit {
     this.isSubmitting = true;
     this.submitError = null;
 
-    const { email, fullName, isActive } = this.createForm.getRawValue();
+    const { email, fullName, phoneNumber, dateOfBirth, isActive } = this.createForm.getRawValue();
+    const contact = {
+      fullName: normalizeOptionalText(fullName),
+      phoneNumber: normalizeOptionalText(phoneNumber),
+      dateOfBirth: normalizeOptionalDate(dateOfBirth)
+    };
 
     if (this.sendInvite) {
       this.generatedPassword = null;
       this.usersService
         .inviteUser({
           email: email.trim().toLowerCase(),
-          fullName: fullName.trim() || null,
+          ...contact,
           isActive,
           roles: this.selectedRoles
         })
@@ -109,7 +122,7 @@ export class UserCreateComponent implements OnInit {
         .createUser({
           email: email.trim().toLowerCase(),
           password: tempPassword,
-          fullName: fullName.trim() || null
+          ...contact
         })
         .pipe(finalize(() => (this.isSubmitting = false)))
         .subscribe({
@@ -131,7 +144,13 @@ export class UserCreateComponent implements OnInit {
     this.generatedPassword = null;
     this.sendInvite = true;
     this.selectedRoles = [];
-    this.createForm.reset({ email: '', fullName: '', isActive: true });
+    this.createForm.reset({
+      email: '',
+      fullName: '',
+      phoneNumber: '',
+      dateOfBirth: '',
+      isActive: true
+    });
   }
 
   goToList(): void {

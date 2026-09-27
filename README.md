@@ -166,7 +166,7 @@ Compatibility note:
 | `GET /api/role-claims/{roleId}` | `Roles.Permissions.View` |
 | `POST /api/role-claims/{roleId}`, `PUT /api/role-claims/{roleId}`, `DELETE /api/role-claims/{roleId}` | `Roles.Permissions.Update` |
 | `GET /api/audit-logs`, `GET /api/audit-logs/{id}`, `GET /api/audit-logs/export` | `Audit.View` |
-| `GET /api/security-alerts`, `GET /api/security-alerts/{id}` | `SecurityEvents.View` |
+| `GET /api/security-alerts`, `GET /api/security-alerts/{id}`, `GET /api/security-alerts/unread-count` | `SecurityEvents.View` |
 | `PUT /api/security-alerts/{id}/status` | `SecurityEvents.Manage` |
 | `GET /api/security-settings` | `SecuritySettings.View` |
 | `PUT /api/security-settings` | `SecuritySettings.Update` |
@@ -186,11 +186,11 @@ Compatibility note:
 
 Seeded development users:
 
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@identityhub.com` | `Admin@123` | Admin |
-| `manager@identityhub.com` | `Manager@123` | Manager |
-| `user@identityhub.com` | `User@123` | User |
+| Email | Password | Role | Phone | Date of birth |
+|-------|----------|------|-------|---------------|
+| `admin@identityhub.com` | `Admin@123` | Admin | `+5511987654321` (Brazil) | 1985-03-15 |
+| `manager@identityhub.com` | `Manager@123` | Manager | `+12125550199` (United States) | 1990-07-22 |
+| `user@identityhub.com` | `User@123` | User | `+351912345678` (Portugal) | 1995-11-08 |
 
 ## 6. Frontend Details
 
@@ -284,10 +284,33 @@ dotnet test IdentityHub.API.Tests
 
 EF migration examples:
 
+> The repository already includes migration `InitialCreate` under `IdentityHub.Infrastructure/Migrations`. Prefer `Update-Database` / `database update` to create the local database. Only run `Add-Migration` / `migrations add` again if you need a **new** migration after changing the model (then choose another name).
+
+**CLI** (terminal do VS Code, Visual Studio Developer PowerShell, ou qualquer shell):
+
 ```bash
-dotnet ef migrations add <Name> --project IdentityHub.Infrastructure --startup-project IdentityHub.API
+cd IdentityHubServer
+dotnet tool restore
+dotnet ef migrations add InitialCreate --project IdentityHub.Infrastructure --startup-project IdentityHub.API
 dotnet ef database update --project IdentityHub.Infrastructure --startup-project IdentityHub.API
 ```
+
+**Visual Studio** (Package Manager Console):
+
+1. Open `IdentityHubServer/IdentityHub.slnx` in Visual Studio.
+2. Set **IdentityHub.API** as the startup project (right-click → *Set as Startup Project*).
+3. Open **Tools → NuGet Package Manager → Package Manager Console**.
+4. In the PMC toolbar, set **Default project** to `IdentityHub.Infrastructure`.
+5. Run:
+
+```powershell
+Add-Migration InitialCreate -Project IdentityHub.Infrastructure -StartupProject IdentityHub.API
+Update-Database -Project IdentityHub.Infrastructure -StartupProject IdentityHub.API
+```
+
+The same `dotnet ef` CLI commands above also work from **View → Terminal** inside Visual Studio.
+
+> If `InitialCreate` already exists, skip `Add-Migration` / `migrations add` and run only `Update-Database` / `database update`. For later schema changes, use a new name (for example `AddUserSoftDelete`).
 
 ### 7.3 Frontend commands
 
@@ -315,42 +338,23 @@ The current codebase aligns with this README for:
 - Session hardening with `sid` and `permission_version`.
 - Environment-specific migration and seed behavior.
 
-### 8.2 Known API/frontend contract gaps
+### 8.2 API/frontend contract status
 
-These route contracts are currently inconsistent and should be fixed:
+Contract gaps previously reported for session history, user audit, and security-alert unread count are resolved:
 
-1. Current user session history
-- Frontend call: `GET /api/auth/sessions/history`
-- Backend route: `GET /api/auth/sessions/recent`
-
-2. Admin user session history
-- Frontend call: `GET /api/users/{id}/sessions/history`
-- Backend route: `GET /api/users/{id}/sessions`
-
-3. User audit history
-- Frontend call: `GET /api/users/{id}/audit`
-- Backend route: `GET /api/users/{id}/audit-logs`
-
-4. Security alert unread count
-- Frontend call: `GET /api/security-alerts/unread-count`
-- Backend route: not implemented.
-
-Impact:
-
-- Can cause runtime `404 Not Found` in profile, user detail, and top navbar scenarios.
-
-Recommended action:
-
-- Standardize one contract source (prefer backend routes), then update frontend service paths and add route-compatibility tests.
+1. Current user session history → frontend uses `GET /api/auth/sessions/recent`
+2. Admin user session history → frontend uses `GET /api/users/{id}/sessions`
+3. User audit history → frontend uses `GET /api/users/{id}/audit-logs`
+4. Security alert unread count → backend exposes `GET /api/security-alerts/unread-count` (counts alerts with status `Open`)
 
 ### 8.3 Dependency security snapshot
 
-- Backend build currently raises NuGet advisory warning `NU1903` for transitive SQLite package chain.
-- Frontend dependency audit currently reports multiple Angular advisories, including SSR-related critical severity in current version range.
+- Backend SQLite advisory `NU1903` (`SQLitePCLRaw.lib.e_sqlite3` 2.1.11) was remediated by upgrading EF Core / Identity packages to **10.0.12**.
+- Frontend dependency audit may still report Angular advisories, including SSR-related severity in the current version range.
 
 Recommended action:
 
-1. Remediate backend transitive advisory via package updates.
+1. Keep backend packages on the patched 10.0.x line (or newer servicing releases).
 2. Upgrade Angular dependencies to patched compatible versions.
 3. Re-run build and test suites, including SSR smoke checks.
 

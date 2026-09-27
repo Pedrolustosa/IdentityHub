@@ -9,6 +9,7 @@ public sealed class SecurityAlertsControllerAuthorizationTests
     [Theory]
     [InlineData("GetPaged")]
     [InlineData("GetById")]
+    [InlineData("GetUnreadCount")]
     public void ViewActions_ShouldInheritControllerPolicy(string methodName)
     {
         var method = typeof(SecurityAlertsController).GetMethod(methodName);
