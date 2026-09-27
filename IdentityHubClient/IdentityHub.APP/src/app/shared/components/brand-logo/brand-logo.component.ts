@@ -1,10 +1,9 @@
-import { NgClass } from '@angular/common';
 import { Component, Input, booleanAttribute } from '@angular/core';
 
 @Component({
   selector: 'app-brand-logo',
   standalone: true,
-  imports: [NgClass],
+  imports: [],
   templateUrl: './brand-logo.component.html',
   styleUrl: './brand-logo.component.css'
 })
