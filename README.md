@@ -156,6 +156,8 @@ Compatibility note:
 | `PUT /api/users/{id}/roles` | `Users.Roles.Update` |
 | `GET /api/users/{id}/sessions` | `Users.View` |
 | `DELETE /api/users/{id}/sessions/{sessionId}` | `Sessions.Revoke` |
+| `GET /api/sessions` | `Sessions.View` |
+| `DELETE /api/sessions/{sessionId}` | `Sessions.Revoke` |
 | `GET /api/users/{id}/audit-logs` | `Audit.View` |
 | `GET /api/roles`, `GET /api/roles/{id}` | `Roles.View` |
 | `POST /api/roles` | `Roles.Create` |

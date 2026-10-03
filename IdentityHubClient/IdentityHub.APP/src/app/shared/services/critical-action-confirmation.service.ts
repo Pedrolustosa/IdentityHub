@@ -32,6 +32,12 @@ export class CriticalActionConfirmationService {
     return this.confirm('Revoke this session now?');
   }
 
+  confirmRevokeSessionForUser(userLabel: string): boolean {
+    return this.confirm(
+      `Revoke session for ${userLabel}? The user will need to sign in again on that device.`
+    );
+  }
+
   confirmRevokeOtherSessions(): boolean {
     return this.confirm('Revoke all other active sessions for your account?');
   }
