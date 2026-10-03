@@ -1,0 +1,113 @@
+<section class="ih-page">
+  <header class="rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">System sessions</h1>
+    <p class="text-slate-600 dark:text-slate-300">Admin view of sign-in sessions across all users.</p>
+  </header>
+
+  <form class="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900" (ngSubmit)="applyFilters()">
+    <label class="flex min-w-[220px] flex-1 flex-col gap-1 text-sm">
+      <span class="font-medium text-slate-600 dark:text-slate-300">Search</span>
+      <input
+        type="search"
+        name="search"
+        class="rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-950"
+        placeholder="Email, name, IP, browser, OS"
+        [(ngModel)]="filters.search"
+      />
+    </label>
+
+    <label class="flex min-w-[180px] flex-col gap-1 text-sm">
+      <span class="font-medium text-slate-600 dark:text-slate-300">User id</span>
+      <input
+        type="text"
+        name="userId"
+        class="rounded-lg border border-slate-300 px-3 py-2 dark:border-slate-600 dark:bg-slate-950"
+        placeholder="Optional user id"
+        [(ngModel)]="filters.userId"
+      />
+    </label>
+
+    <label class="flex items-center gap-2 pb-2 text-sm text-slate-700 dark:text-slate-200">
+      <input type="checkbox" name="activeOnly" [(ngModel)]="filters.activeOnly" />
+      Active only
+    </label>
+
+    <div class="flex gap-2">
+      <button type="submit" class="btn-primary">Apply</button>
+      <button type="button" class="btn-secondary" (click)="resetFilters()">Reset</button>
+    </div>
+  </form>
+
+  <app-ux-state
+    [state]="isLoading ? 'loading' : loadError ? 'error' : sessions.length === 0 ? 'empty' : 'loaded'"
+    [error]="loadError"
+    title="No sessions found"
+    description="Try widening the filters or wait for new sign-ins."
+    (retry)="load()"
+  >
+    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <table class="w-full min-w-[1100px] text-sm">
+        <thead>
+          <tr class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+            <th class="px-3 py-3 text-left font-semibold">User</th>
+            <th class="px-3 py-3 text-left font-semibold">Email</th>
+            <th class="px-3 py-3 text-left font-semibold">IP</th>
+            <th class="px-3 py-3 text-left font-semibold">Browser</th>
+            <th class="px-3 py-3 text-left font-semibold">OS</th>
+            <th class="px-3 py-3 text-left font-semibold">Created</th>
+            <th class="px-3 py-3 text-left font-semibold">Status</th>
+            <th class="px-3 py-3 text-right font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (session of sessions; track session.id) {
+            <tr class="border-t border-slate-100 dark:border-slate-800">
+              <td class="px-3 py-2 text-slate-800 dark:text-slate-100">
+                <div class="font-medium">{{ session.fullName || 'Not provided' }}</div>
+                @if (session.isCurrent) {
+                  <span class="text-xs font-semibold text-sky-700 dark:text-sky-300">Current session</span>
+                }
+                <a class="mt-0.5 block text-xs text-sky-700 hover:underline dark:text-sky-300" [routerLink]="['/app/users', session.userId]">
+                  View user
+                </a>
+              </td>
+              <td class="px-3 py-2 text-slate-700 dark:text-slate-200">{{ session.email || '-' }}</td>
+              <td class="px-3 py-2 text-slate-700 dark:text-slate-200">{{ session.ipAddress || '-' }}</td>
+              <td class="px-3 py-2 text-slate-700 dark:text-slate-200">{{ session.browser || '-' }}</td>
+              <td class="px-3 py-2 text-slate-700 dark:text-slate-200">{{ session.operatingSystem || '-' }}</td>
+              <td class="px-3 py-2 text-slate-700 dark:text-slate-200">{{ session.createdAt | date: 'medium' }}</td>
+              <td class="px-3 py-2">
+                <span
+                  class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                  [ngClass]="session.isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'"
+                >
+                  {{ session.isActive ? 'Active' : 'Revoked' }}
+                </span>
+              </td>
+              <td class="px-3 py-2 text-right">
+                <button
+                  type="button"
+                  class="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+                  [disabled]="!canRevokeSessions || !session.isActive || revokingSessionId === session.id"
+                  (click)="revokeSession(session)"
+                >
+                  {{ revokingSessionId === session.id ? 'Revoking...' : 'Revoke' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <span>Page {{ page }} of {{ totalPages }} · {{ totalCount }} sessions</span>
+        <div class="flex gap-2">
+          <button type="button" class="btn-secondary" [disabled]="page <= 1" (click)="goToPage(page - 1)">Previous</button>
+          <button type="button" class="btn-secondary" [disabled]="page >= totalPages" (click)="goToPage(page + 1)">Next</button>
+        </div>
+      </div>
+    }
+  </app-ux-state>
+</section>

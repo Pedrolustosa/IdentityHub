@@ -238,6 +238,13 @@ public sealed class UsersCommandHandlersUnitTests
         public Task<List<UserSession>> GetRecentSessionsAsync(string userId, int take, CancellationToken cancellationToken = default)
             => Task.FromResult(new List<UserSession>());
 
+        public Task<(IReadOnlyList<UserSessionListItem> Items, int TotalCount)> GetPagedSessionsAsync(
+            SessionFilter filter,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult<(IReadOnlyList<UserSessionListItem>, int)>(([], 0));
+
         public Task<UserSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken = default)
             => Task.FromResult<UserSession?>(null);
 

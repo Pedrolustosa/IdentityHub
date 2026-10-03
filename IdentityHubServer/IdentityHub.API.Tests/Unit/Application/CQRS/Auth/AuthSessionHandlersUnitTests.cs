@@ -376,6 +376,13 @@ public sealed class AuthSessionHandlersUnitTests
         public Task<List<UserSession>> GetRecentSessionsAsync(string userId, int take, CancellationToken cancellationToken = default)
             => Task.FromResult(RecentSessionsByUserId.TryGetValue(userId, out var sessions) ? sessions.Take(take).ToList() : []);
 
+        public Task<(IReadOnlyList<UserSessionListItem> Items, int TotalCount)> GetPagedSessionsAsync(
+            SessionFilter filter,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult<(IReadOnlyList<UserSessionListItem>, int)>(([], 0));
+
         public Task<UserSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken = default)
             => Task.FromResult(SessionsById.TryGetValue(sessionId, out var session) ? session : null);
 

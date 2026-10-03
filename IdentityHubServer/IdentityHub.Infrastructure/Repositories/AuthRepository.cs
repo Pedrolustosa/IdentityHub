@@ -90,6 +90,82 @@ namespace IdentityHub.Infrastructure.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<(IReadOnlyList<UserSessionListItem> Items, int TotalCount)> GetPagedSessionsAsync(
+            SessionFilter filter,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var query =
+                from session in _context.UserSessions.AsNoTracking()
+                join user in _context.Users.IgnoreQueryFilters().AsNoTracking()
+                    on session.UserId equals user.Id into users
+                from user in users.DefaultIfEmpty()
+                select new { session, user };
+
+            if (filter.ActiveOnly)
+                query = query.Where(x => x.session.IsActive);
+
+            if (!string.IsNullOrWhiteSpace(filter.UserId))
+            {
+                var userId = filter.UserId.Trim();
+                query = query.Where(x => x.session.UserId == userId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var search = filter.Search.Trim().ToLowerInvariant();
+                query = query.Where(x =>
+                    (x.user != null && x.user.Email != null && x.user.Email.ToLower().Contains(search)) ||
+                    (x.user != null && x.user.FullName != null && x.user.FullName.ToLower().Contains(search)) ||
+                    x.session.IpAddress.ToLower().Contains(search) ||
+                    x.session.Browser.ToLower().Contains(search) ||
+                    x.session.OperatingSystem.ToLower().Contains(search));
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var pageRows = await query
+                .OrderByDescending(x => x.session.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new
+                {
+                    x.session.Id,
+                    x.session.UserId,
+                    x.session.IpAddress,
+                    x.session.Browser,
+                    x.session.OperatingSystem,
+                    x.session.CreatedAt,
+                    x.session.LastAccessAt,
+                    x.session.RevokedAt,
+                    x.session.IsActive,
+                    Email = x.user != null ? x.user.Email : null,
+                    FullName = x.user != null ? x.user.FullName : null
+                })
+                .ToListAsync(cancellationToken);
+
+            var items = pageRows.Select(x => new UserSessionListItem
+            {
+                Session = new UserSession
+                {
+                    Id = x.Id,
+                    UserId = x.UserId,
+                    IpAddress = x.IpAddress,
+                    Browser = x.Browser,
+                    OperatingSystem = x.OperatingSystem,
+                    CreatedAt = x.CreatedAt,
+                    LastAccessAt = x.LastAccessAt,
+                    RevokedAt = x.RevokedAt,
+                    IsActive = x.IsActive
+                },
+                Email = x.Email,
+                FullName = x.FullName
+            }).ToList();
+
+            return (items, totalCount);
+        }
+
         public Task<UserSession?> GetSessionByIdAsync(
             Guid sessionId,
             CancellationToken cancellationToken = default)
