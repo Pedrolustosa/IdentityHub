@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="IdentityHub.API/IdentityHub.API.csproj" />
+  <Project Path="IdentityHub.API.Tests/IdentityHub.API.Tests.csproj" />
   <Project Path="IdentityHub.Application/IdentityHub.Application.csproj" />
   <Project Path="IdentityHub.Domain/IdentityHub.Domain.csproj" />
   <Project Path="IdentityHub.Infrastructure/IdentityHub.Infrastructure.csproj" />
