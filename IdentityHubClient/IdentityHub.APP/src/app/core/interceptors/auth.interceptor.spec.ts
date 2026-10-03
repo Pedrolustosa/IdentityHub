@@ -9,15 +9,14 @@ import {
   provideHttpClientTesting
 } from '@angular/common/http/testing';
 import { authInterceptor } from './auth.interceptor';
+import { SessionTokensService } from '../services/session-tokens.service';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpTesting: HttpTestingController;
+  let tokens: SessionTokensService;
 
   beforeEach(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),
@@ -27,16 +26,17 @@ describe('authInterceptor', () => {
 
     http = TestBed.inject(HttpClient);
     httpTesting = TestBed.inject(HttpTestingController);
+    tokens = TestBed.inject(SessionTokensService);
+    tokens.clearAll();
   });
 
   afterEach(() => {
     httpTesting.verify();
-    localStorage.clear();
-    sessionStorage.clear();
+    tokens.clearAll();
   });
 
   it('adds bearer header when access token exists', () => {
-    localStorage.setItem('accessToken', 'token-123');
+    tokens.setAccessTokenInMemory('token-123');
 
     http.get('/api/test').subscribe();
 

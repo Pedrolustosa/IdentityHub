@@ -17,27 +17,51 @@ describe('SessionTokensService', () => {
     sessionStorage.clear();
   });
 
-  it('stores access token in localStorage when rememberMe is true', () => {
+  it('keeps the access token in memory only when rememberMe is true', () => {
     service.saveAccessToken('access', true);
 
-    expect(localStorage.getItem('accessToken')).toBe('access');
+    expect(service.getAccessToken()).toBe('access');
+    expect(localStorage.getItem('accessToken')).toBeNull();
     expect(sessionStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('ih_remember_me')).toBe('1');
   });
 
-  it('stores access token in sessionStorage when rememberMe is false', () => {
+  it('keeps the access token in memory only when rememberMe is false', () => {
     service.saveAccessToken('access', false);
 
-    expect(sessionStorage.getItem('accessToken')).toBe('access');
+    expect(service.getAccessToken()).toBe('access');
     expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(sessionStorage.getItem('accessToken')).toBeNull();
+    expect(sessionStorage.getItem('ih_remember_me')).toBe('0');
   });
 
-  it('clears all token storage entries', () => {
-    localStorage.setItem('accessToken', 'a');
-    sessionStorage.setItem('accessToken', 'a2');
+  it('updates the in-memory access token', () => {
+    service.saveAccessToken('old', true);
+    service.updateAccessToken('new');
+
+    expect(service.getAccessToken()).toBe('new');
+  });
+
+  it('clears memory token, preference, and legacy storage entries', () => {
+    service.saveAccessToken('access', true);
+    localStorage.setItem('accessToken', 'legacy');
+    sessionStorage.setItem('accessToken', 'legacy2');
 
     service.clearAll();
 
+    expect(service.getAccessToken()).toBeNull();
     expect(localStorage.getItem('accessToken')).toBeNull();
     expect(sessionStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('ih_remember_me')).toBeNull();
+  });
+
+  it('removes legacy access tokens without clearing remember preference', () => {
+    localStorage.setItem('ih_remember_me', '1');
+    localStorage.setItem('accessToken', 'legacy');
+
+    service.clearLegacyAccessTokens();
+
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('ih_remember_me')).toBe('1');
   });
 });

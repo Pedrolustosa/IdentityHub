@@ -59,7 +59,10 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         ),
         catchError((refreshErr: unknown) => {
           tokens.clearAll();
-          void router.navigate(['/login']);
+          const returnUrl = router.url.startsWith('/app') ? router.url : undefined;
+          void router.navigate(['/login'], {
+            queryParams: returnUrl ? { returnUrl } : undefined
+          });
           return throwError(() => refreshErr);
         })
       );

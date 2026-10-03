@@ -78,7 +78,7 @@ describe('authRefreshInterceptor', () => {
     tick();
 
     expect(tokensSpy.clearAll).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login'], { queryParams: undefined });
     expect(errored).toBeTrue();
   }));
 });

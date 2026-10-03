@@ -211,9 +211,14 @@ export class AuthService {
       });
   }
 
-  clearClientSessionAndNavigateToLogin(): void {
+  clearClientSessionAndNavigateToLogin(returnUrl?: string): void {
     this.sessionTokens.clearAll();
-    void this.router.navigate(['/login']);
+    const currentUrl = returnUrl ?? this.router.url;
+    const queryParams =
+      currentUrl.startsWith('/app') && !currentUrl.startsWith('/login')
+        ? { returnUrl: currentUrl }
+        : undefined;
+    void this.router.navigate(['/login'], { queryParams });
   }
 
   /** Identity role names from the JWT (e.g. Admin, Manager, User). */

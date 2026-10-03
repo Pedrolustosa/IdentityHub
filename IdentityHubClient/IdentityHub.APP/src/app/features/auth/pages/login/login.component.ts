@@ -8,6 +8,7 @@ import { SessionTokensService } from '../../../../core/services/session-tokens.s
 import { ToastrService } from 'ngx-toastr';
 import { BrandLogoComponent } from '../../../../shared/components/brand-logo/brand-logo.component';
 import { UxStateComponent } from '../../../../shared/components/ux-state/ux-state.component';
+import { resolveSafeReturnUrl } from '../../../../core/auth/safe-return-url';
 import { mapHttpToUiLoadError, toastMessageForUiLoadError, UiLoadError } from '../../../../shared/http/ui-load-error';
 import { normalizeToastMessage } from '../../../../shared/ui/toast-copy';
 
@@ -44,12 +45,20 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loginForm.patchValue({
+      rememberMe: this.sessionTokens.getRememberMePreference()
+    });
+
     this.route.queryParams.pipe(take(1)).subscribe((params) => {
       const email = params['email'];
       if (typeof email === 'string' && email.trim()) {
         this.loginForm.patchValue({ email: email.trim() });
       }
     });
+  }
+
+  private resolvePostLoginUrl(): string {
+    return resolveSafeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
   }
 
   get emailControl() {
@@ -92,7 +101,7 @@ export class LoginComponent implements OnInit {
 
           this.successMessage = 'Login successful.';
           this.toastr.success('You are now signed in.', 'Authentication');
-          void this.router.navigate(['/app/dashboard']);
+          void this.router.navigateByUrl(this.resolvePostLoginUrl());
         },
         error: (err: unknown) => {
           const mapped = mapHttpToUiLoadError(err, { authForm401AsInvalid: true });
