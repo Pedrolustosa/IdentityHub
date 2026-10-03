@@ -1,52 +1,53 @@
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Security;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace IdentityHub.Infrastructure.Services;
 
 public sealed class SecuritySettingsService : ISecuritySettingsService
 {
-    private readonly AppDbContext _dbContext;
+    public const string CacheKey = "identityhub:security-settings";
 
-    public SecuritySettingsService(AppDbContext dbContext)
+    private readonly AppDbContext _dbContext;
+    private readonly IMemoryCache _cache;
+
+    public SecuritySettingsService(AppDbContext dbContext, IMemoryCache cache)
     {
         _dbContext = dbContext;
+        _cache = cache;
     }
 
     public async Task<Result<SecuritySettingsResponse>> GetSettingsAsync(CancellationToken cancellationToken = default)
     {
-        // Get the first (and typically only) security settings record, or return defaults
+        if (_cache.TryGetValue(CacheKey, out SecuritySettingsResponse? cached) && cached is not null)
+            return Result<SecuritySettingsResponse>.Success(cached);
+
         var settings = await _dbContext.SecuritySettings
+            .AsNoTracking()
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (settings is null)
-        {
-            // Return default settings if none exist in database
-            var response = new SecuritySettingsResponse
+        var response = settings is null
+            ? SecuritySettingsDefaults.Create()
+            : new SecuritySettingsResponse
             {
-                AccessTokenMinutes = 30,
-                RefreshTokenDays = 7,
-                MaxLoginAttempts = 5,
-                LockDurationMinutes = 15,
-                RequireEmailConfirmation = true
+                AccessTokenMinutes = settings.AccessTokenMinutes,
+                RefreshTokenDays = settings.RefreshTokenDays,
+                MaxLoginAttempts = settings.MaxLoginAttempts,
+                LockDurationMinutes = settings.LockDurationMinutes,
+                RequireEmailConfirmation = settings.RequireEmailConfirmation
             };
 
-            return Result<SecuritySettingsResponse>.Success(response);
-        }
-
-        var result = new SecuritySettingsResponse
+        _cache.Set(CacheKey, response, new MemoryCacheEntryOptions
         {
-            AccessTokenMinutes = settings.AccessTokenMinutes,
-            RefreshTokenDays = settings.RefreshTokenDays,
-            MaxLoginAttempts = settings.MaxLoginAttempts,
-            LockDurationMinutes = settings.LockDurationMinutes,
-            RequireEmailConfirmation = settings.RequireEmailConfirmation
-        };
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+        });
 
-        return Result<SecuritySettingsResponse>.Success(result);
+        return Result<SecuritySettingsResponse>.Success(response);
     }
 
     public async Task<Result> UpdateSettingsAsync(UpdateSecuritySettingsRequest request, CancellationToken cancellationToken = default)
@@ -56,7 +57,6 @@ public sealed class SecuritySettingsService : ISecuritySettingsService
 
         if (settings is null)
         {
-            // Create new security settings if none exist
             settings = new SecuritySetting
             {
                 Id = Guid.NewGuid(),
@@ -72,7 +72,6 @@ public sealed class SecuritySettingsService : ISecuritySettingsService
         }
         else
         {
-            // Update existing security settings
             settings.AccessTokenMinutes = request.AccessTokenMinutes;
             settings.RefreshTokenDays = request.RefreshTokenDays;
             settings.MaxLoginAttempts = request.MaxLoginAttempts;
@@ -84,6 +83,7 @@ public sealed class SecuritySettingsService : ISecuritySettingsService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _cache.Remove(CacheKey);
 
         return Result.Success();
     }

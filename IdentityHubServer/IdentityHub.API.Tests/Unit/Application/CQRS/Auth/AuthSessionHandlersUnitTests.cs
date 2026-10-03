@@ -1,7 +1,9 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.CQRS.Auth.Handlers;
 using IdentityHub.Application.CQRS.Auth.Queries;
 using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
@@ -192,7 +194,8 @@ public sealed class AuthSessionHandlersUnitTests
             tokenService,
             userManager: null!,
             roleManager: null!,
-            securityAlertService: alerts);
+            securityAlertService: alerts,
+            securitySettingsService: new FakeSecuritySettingsService());
 
         var result = await handler.Handle(
             new RefreshCommand(new RefreshTokenRequest { RefreshToken = "missing" }),
@@ -247,7 +250,8 @@ public sealed class AuthSessionHandlersUnitTests
             tokenService,
             userManager: null!,
             roleManager: null!,
-            securityAlertService: alerts);
+            securityAlertService: alerts,
+            securitySettingsService: new FakeSecuritySettingsService());
 
         var result = await handler.Handle(
             new RefreshCommand(new RefreshTokenRequest { RefreshToken = refreshToken }),
@@ -287,7 +291,8 @@ public sealed class AuthSessionHandlersUnitTests
             tokenService,
             userManager: null!,
             roleManager: null!,
-            securityAlertService: alerts);
+            securityAlertService: alerts,
+            securitySettingsService: new FakeSecuritySettingsService());
 
         var result = await handler.Handle(
             new RefreshCommand(new RefreshTokenRequest { RefreshToken = refreshToken }),
@@ -312,7 +317,23 @@ public sealed class AuthSessionHandlersUnitTests
             })
             .Build();
 
-        return new TokenService(configuration);
+        return new TokenService(configuration, new FakeSecuritySettingsService());
+    }
+
+    private sealed class FakeSecuritySettingsService : ISecuritySettingsService
+    {
+        public Task<Result<SecuritySettingsResponse>> GetSettingsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result<SecuritySettingsResponse>.Success(new SecuritySettingsResponse
+            {
+                AccessTokenMinutes = 30,
+                RefreshTokenDays = 7,
+                MaxLoginAttempts = 5,
+                LockDurationMinutes = 15,
+                RequireEmailConfirmation = true
+            }));
+
+        public Task<Result> UpdateSettingsAsync(UpdateSecuritySettingsRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
     }
 
     private sealed class FakeAuthRepository : IAuthRepository

@@ -1,5 +1,6 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Security;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
@@ -18,19 +19,22 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ISecurityAlertService _securityAlertService;
+    private readonly ISecuritySettingsService _securitySettingsService;
 
     public RefreshCommandHandler(
         IAuthRepository repo,
         TokenService tokenService,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ISecurityAlertService securityAlertService)
+        ISecurityAlertService securityAlertService,
+        ISecuritySettingsService securitySettingsService)
     {
         _repo = repo;
         _tokenService = tokenService;
         _userManager = userManager;
         _roleManager = roleManager;
         _securityAlertService = securityAlertService;
+        _securitySettingsService = securitySettingsService;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshCommand cmd, CancellationToken ct)
@@ -61,6 +65,20 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
                 Error.Create("Auth.InvalidRefresh", "Invalid refresh token"));
         }
 
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            token.IsRevoked = true;
+            await _repo.SaveChangesAsync(ct);
+
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.AccountLocked", "Account is temporarily locked"));
+        }
+
+        var settings = await _securitySettingsService.GetOrDefaultAsync(ct);
+        var refreshTokenDays = settings.RefreshTokenDays > 0
+            ? settings.RefreshTokenDays
+            : SecuritySettingsDefaults.RefreshTokenDays;
+
         var roles = await _userManager.GetRolesAsync(user);
 
         var access = await _tokenService.GenerateToken(user, token.SessionId, roles, _userManager, _roleManager, ct);
@@ -77,7 +95,7 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
             TokenHash = newRefreshHash,
             UserId = user.Id,
             Created = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(refreshTokenDays)
         }, ct);
 
         var session = await _repo.GetSessionByIdAsync(token.SessionId, ct);
@@ -89,7 +107,8 @@ public sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, Resu
         return Result<AuthResponse>.Success(new AuthResponse
         {
             Token = access,
-            RefreshToken = newRefresh
+            RefreshToken = newRefresh,
+            RefreshTokenDays = refreshTokenDays
         });
     }
 

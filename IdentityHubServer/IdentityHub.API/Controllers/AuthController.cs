@@ -57,7 +57,7 @@ public sealed class AuthController : ControllerBase
     {
         var result = await _service.LoginAsync(request, cancellationToken);
         if (result.IsSuccess && result.Value is not null)
-            SetRefreshTokenCookie(result.Value.RefreshToken);
+            SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenDays);
 
         return result.ToActionResult();
     }
@@ -74,7 +74,7 @@ public sealed class AuthController : ControllerBase
 
         var result = await _service.RefreshAsync(effectiveRequest, cancellationToken);
         if (result.IsSuccess && result.Value is not null)
-            SetRefreshTokenCookie(result.Value.RefreshToken);
+            SetRefreshTokenCookie(result.Value.RefreshToken, result.Value.RefreshTokenDays);
 
         return result.ToActionResult();
     }
@@ -281,10 +281,12 @@ public sealed class AuthController : ControllerBase
         return string.Empty;
     }
 
-    private void SetRefreshTokenCookie(string refreshToken)
+    private void SetRefreshTokenCookie(string refreshToken, int refreshTokenDays)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
             return;
+
+        var days = refreshTokenDays > 0 ? refreshTokenDays : 7;
 
         Response.Cookies.Append(
             RefreshTokenCookieName,
@@ -294,7 +296,7 @@ public sealed class AuthController : ControllerBase
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Expires = DateTimeOffset.UtcNow.AddDays(days),
                 IsEssential = true
             });
     }

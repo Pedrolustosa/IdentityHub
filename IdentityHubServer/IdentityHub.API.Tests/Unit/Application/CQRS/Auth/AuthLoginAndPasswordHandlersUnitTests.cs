@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.CQRS.Auth.Handlers;
 using IdentityHub.Application.DTOs;
@@ -28,7 +29,8 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
             tokenService: CreateTokenService(),
             authRepository: new FakeAuthRepository(),
             clientDeviceInfoProvider: new FakeDeviceInfoProvider(),
-            securityAlertService: new FakeSecurityAlertService());
+            securityAlertService: new FakeSecurityAlertService(),
+            securitySettingsService: CreateSecuritySettings());
 
         var result = await handler.Handle(
             new LoginCommand(new LoginRequest { Email = "missing@identityhub.com", Password = "Password@123" }),
@@ -64,7 +66,8 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
             tokenService: CreateTokenService(),
             authRepository: new FakeAuthRepository(),
             clientDeviceInfoProvider: new FakeDeviceInfoProvider(),
-            securityAlertService: alerts);
+            securityAlertService: alerts,
+            securitySettingsService: CreateSecuritySettings());
 
         var result = await handler.Handle(
             new LoginCommand(new LoginRequest { Email = "u1@identityhub.com", Password = "wrong" }),
@@ -73,6 +76,7 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
         Assert.True(result.IsFailure);
         Assert.Equal("Auth.InvalidCredentials", result.Error?.Code);
         Assert.Equal(1, alerts.SuspiciousLoginCalls);
+        Assert.Equal(1, userManager.AccessFailedCalls);
     }
 
     [Fact]
@@ -101,7 +105,8 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
             tokenService: CreateTokenService(),
             authRepository: repository,
             clientDeviceInfoProvider: new FakeDeviceInfoProvider(),
-            securityAlertService: new FakeSecurityAlertService());
+            securityAlertService: new FakeSecurityAlertService(),
+            securitySettingsService: CreateSecuritySettings(requireEmailConfirmation: true));
 
         var result = await handler.Handle(
             new LoginCommand(new LoginRequest { Email = "u1@identityhub.com", Password = "Password@123" }),
@@ -111,6 +116,85 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
         Assert.Equal("Auth.EmailNotConfirmed", result.Error?.Code);
         Assert.Equal(0, repository.AddRefreshTokenCalls);
         Assert.Equal(0, repository.AddSessionCalls);
+    }
+
+    [Fact]
+    public async Task LoginCommandHandler_ShouldAllowUnconfirmedEmail_WhenRequireEmailConfirmationIsFalse()
+    {
+        var user = new ApplicationUser
+        {
+            Id = "u1",
+            Email = "u1@identityhub.com",
+            UserName = "u1@identityhub.com",
+            IsActive = true,
+            IsDeleted = false,
+            EmailConfirmed = false
+        };
+
+        var userManager = new StubUserManager
+        {
+            OnFindByEmailAsync = _ => Task.FromResult<ApplicationUser?>(user),
+            OnCheckPasswordAsync = (_, _) => Task.FromResult(true),
+            OnGetRolesAsync = _ => Task.FromResult<IList<string>>([]),
+            OnGetClaimsAsync = _ => Task.FromResult<IList<System.Security.Claims.Claim>>([])
+        };
+
+        var repository = new FakeAuthRepository();
+        var handler = new LoginCommandHandler(
+            userManager,
+            roleManager: null!,
+            tokenService: CreateTokenService(),
+            authRepository: repository,
+            clientDeviceInfoProvider: new FakeDeviceInfoProvider(),
+            securityAlertService: new FakeSecurityAlertService(),
+            securitySettingsService: CreateSecuritySettings(requireEmailConfirmation: false));
+
+        var result = await handler.Handle(
+            new LoginCommand(new LoginRequest { Email = "u1@identityhub.com", Password = "Password@123" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, repository.AddRefreshTokenCalls);
+        Assert.Equal(14, result.Value!.RefreshTokenDays);
+    }
+
+    [Fact]
+    public async Task LoginCommandHandler_ShouldLockAccount_WhenMaxLoginAttemptsReached()
+    {
+        var user = new ApplicationUser
+        {
+            Id = "u1",
+            Email = "u1@identityhub.com",
+            IsActive = true,
+            IsDeleted = false,
+            EmailConfirmed = true
+        };
+
+        var userManager = new StubUserManager
+        {
+            OnFindByEmailAsync = _ => Task.FromResult<ApplicationUser?>(user),
+            OnCheckPasswordAsync = (_, _) => Task.FromResult(false),
+            AccessFailedCount = 2
+        };
+
+        var handler = new LoginCommandHandler(
+            userManager,
+            roleManager: null!,
+            tokenService: CreateTokenService(),
+            authRepository: new FakeAuthRepository(),
+            clientDeviceInfoProvider: new FakeDeviceInfoProvider(),
+            securityAlertService: new FakeSecurityAlertService(),
+            securitySettingsService: CreateSecuritySettings(maxLoginAttempts: 3, lockDurationMinutes: 20));
+
+        var result = await handler.Handle(
+            new LoginCommand(new LoginRequest { Email = "u1@identityhub.com", Password = "wrong" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Auth.InvalidCredentials", result.Error?.Code);
+        Assert.Equal(1, userManager.SetLockoutEndDateCalls);
+        Assert.NotNull(userManager.LastLockoutEnd);
+        Assert.True(userManager.LastLockoutEnd > DateTimeOffset.UtcNow.AddMinutes(19));
     }
 
     [Fact]
@@ -142,7 +226,8 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
             tokenService: CreateTokenService(),
             authRepository: repository,
             clientDeviceInfoProvider: new FakeDeviceInfoProvider("10.1.1.1", "Chrome", "Windows"),
-            securityAlertService: new FakeSecurityAlertService());
+            securityAlertService: new FakeSecurityAlertService(),
+            securitySettingsService: CreateSecuritySettings(refreshTokenDays: 11));
 
         var result = await handler.Handle(
             new LoginCommand(new LoginRequest { Email = " u1@identityhub.com ", Password = "Password@123" }),
@@ -151,9 +236,11 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
         Assert.True(result.IsSuccess);
         Assert.False(string.IsNullOrWhiteSpace(result.Value!.Token));
         Assert.False(string.IsNullOrWhiteSpace(result.Value.RefreshToken));
+        Assert.Equal(11, result.Value.RefreshTokenDays);
         Assert.Equal(1, repository.AddRefreshTokenCalls);
         Assert.Equal(1, repository.AddSessionCalls);
         Assert.Equal(1, repository.SaveChangesCalls);
+        Assert.Equal(1, userManager.ResetAccessFailedCountCalls);
         Assert.Equal("10.1.1.1", repository.LastAddedSession?.IpAddress);
         Assert.Equal("Chrome", repository.LastAddedSession?.Browser);
         Assert.Equal("Windows", repository.LastAddedSession?.OperatingSystem);
@@ -266,7 +353,42 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
             })
             .Build();
 
-        return new TokenService(configuration);
+        return new TokenService(configuration, CreateSecuritySettings());
+    }
+
+    private static FakeSecuritySettingsService CreateSecuritySettings(
+        bool requireEmailConfirmation = true,
+        int refreshTokenDays = 14,
+        int maxLoginAttempts = 5,
+        int lockDurationMinutes = 15)
+        => new()
+        {
+            Settings = new SecuritySettingsResponse
+            {
+                AccessTokenMinutes = 30,
+                RefreshTokenDays = refreshTokenDays,
+                MaxLoginAttempts = maxLoginAttempts,
+                LockDurationMinutes = lockDurationMinutes,
+                RequireEmailConfirmation = requireEmailConfirmation
+            }
+        };
+
+    private sealed class FakeSecuritySettingsService : ISecuritySettingsService
+    {
+        public SecuritySettingsResponse Settings { get; set; } = new()
+        {
+            AccessTokenMinutes = 30,
+            RefreshTokenDays = 7,
+            MaxLoginAttempts = 5,
+            LockDurationMinutes = 15,
+            RequireEmailConfirmation = true
+        };
+
+        public Task<Result<SecuritySettingsResponse>> GetSettingsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result<SecuritySettingsResponse>.Success(Settings));
+
+        public Task<Result> UpdateSettingsAsync(UpdateSecuritySettingsRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
     }
 
     private sealed class StubUserManager : UserManager<ApplicationUser>
@@ -288,6 +410,13 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
 
         public Func<ApplicationUser, string, string, Task<IdentityResult>> OnChangePasswordAsync { get; set; }
             = (_, _, _) => Task.FromResult(IdentityResult.Success);
+
+        public bool IsLockedOut { get; set; }
+        public int AccessFailedCount { get; set; }
+        public int AccessFailedCalls { get; private set; }
+        public int ResetAccessFailedCountCalls { get; private set; }
+        public int SetLockoutEndDateCalls { get; private set; }
+        public DateTimeOffset? LastLockoutEnd { get; private set; }
 
         public StubUserManager()
             : base(
@@ -320,6 +449,34 @@ public sealed class AuthLoginAndPasswordHandlersUnitTests
 
         public override Task<IdentityResult> ChangePasswordAsync(ApplicationUser user, string currentPassword, string newPassword)
             => OnChangePasswordAsync(user, currentPassword, newPassword);
+
+        public override Task<bool> IsLockedOutAsync(ApplicationUser user)
+            => Task.FromResult(IsLockedOut);
+
+        public override Task<IdentityResult> AccessFailedAsync(ApplicationUser user)
+        {
+            AccessFailedCalls++;
+            AccessFailedCount++;
+            return Task.FromResult(IdentityResult.Success);
+        }
+
+        public override Task<int> GetAccessFailedCountAsync(ApplicationUser user)
+            => Task.FromResult(AccessFailedCount);
+
+        public override Task<IdentityResult> SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset? lockoutEnd)
+        {
+            SetLockoutEndDateCalls++;
+            LastLockoutEnd = lockoutEnd;
+            IsLockedOut = lockoutEnd.HasValue && lockoutEnd > DateTimeOffset.UtcNow;
+            return Task.FromResult(IdentityResult.Success);
+        }
+
+        public override Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser user)
+        {
+            ResetAccessFailedCountCalls++;
+            AccessFailedCount = 0;
+            return Task.FromResult(IdentityResult.Success);
+        }
     }
 
     private sealed class StubUserStore : IUserStore<ApplicationUser>

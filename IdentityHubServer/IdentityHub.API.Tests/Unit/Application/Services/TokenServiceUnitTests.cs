@@ -1,3 +1,6 @@
+using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Application.Services;
 using Microsoft.Extensions.Configuration;
 using Xunit;
@@ -20,7 +23,23 @@ public sealed class TokenServiceUnitTests
             })
             .Build();
 
-        _service = new TokenService(configuration);
+        _service = new TokenService(configuration, new FakeSecuritySettingsService());
+    }
+
+    private sealed class FakeSecuritySettingsService : ISecuritySettingsService
+    {
+        public Task<Result<SecuritySettingsResponse>> GetSettingsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result<SecuritySettingsResponse>.Success(new SecuritySettingsResponse
+            {
+                AccessTokenMinutes = 30,
+                RefreshTokenDays = 7,
+                MaxLoginAttempts = 5,
+                LockDurationMinutes = 15,
+                RequireEmailConfirmation = true
+            }));
+
+        public Task<Result> UpdateSettingsAsync(UpdateSecuritySettingsRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
     }
 
     [Fact]

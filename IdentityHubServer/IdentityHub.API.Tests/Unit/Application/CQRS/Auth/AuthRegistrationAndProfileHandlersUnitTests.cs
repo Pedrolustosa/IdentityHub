@@ -1,3 +1,4 @@
+using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.CQRS.Auth.Handlers;
 using IdentityHub.Application.DTOs;
@@ -26,7 +27,8 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
             userManager,
             new FakeEmailService(),
             new FakeEmailTemplateBuilder(),
-            BuildConfig("https://portal.identityhub.local/"));
+            BuildConfig("https://portal.identityhub.local/"),
+            CreateSecuritySettings());
 
         var result = await handler.Handle(
             new RegisterCommand(new RegisterRequest
@@ -54,7 +56,8 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
             userManager,
             new FakeEmailService(),
             new FakeEmailTemplateBuilder(),
-            BuildConfig("https://portal.identityhub.local/"));
+            BuildConfig("https://portal.identityhub.local/"),
+            CreateSecuritySettings());
 
         var result = await handler.Handle(
             new RegisterCommand(new RegisterRequest
@@ -85,7 +88,8 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
             userManager,
             emailService,
             templates,
-            BuildConfig("https://portal.identityhub.local/"));
+            BuildConfig("https://portal.identityhub.local/"),
+            CreateSecuritySettings(requireEmailConfirmation: true));
 
         var result = await handler.Handle(
             new RegisterCommand(new RegisterRequest
@@ -99,6 +103,7 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
         Assert.True(result.IsSuccess);
         Assert.Equal("new.user@identityhub.com", userManager.LastCreatedUser?.Email);
         Assert.Equal("new.user@identityhub.com", userManager.LastCreatedUser?.UserName);
+        Assert.False(userManager.LastCreatedUser?.EmailConfirmed);
         Assert.Equal(1, templates.ConfirmCalls);
         Assert.Contains("https://portal.identityhub.local/confirm-email?email=new.user@identityhub.com&token=", templates.LastActionUrl);
 
@@ -107,6 +112,39 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
 
         Assert.Equal(1, emailService.SendCalls);
         Assert.Equal("new.user@identityhub.com", emailService.LastTo);
+    }
+
+    [Fact]
+    public async Task RegisterCommandHandler_ShouldSkipConfirmationEmail_WhenRequireEmailConfirmationIsFalse()
+    {
+        var userManager = new StubUserManager
+        {
+            OnFindByEmailAsync = _ => Task.FromResult<ApplicationUser?>(null),
+            OnCreateWithPasswordAsync = (_, _) => Task.FromResult(IdentityResult.Success)
+        };
+        var emailService = new FakeEmailService();
+        var templates = new FakeEmailTemplateBuilder();
+
+        var handler = new RegisterCommandHandler(
+            userManager,
+            emailService,
+            templates,
+            BuildConfig("https://portal.identityhub.local/"),
+            CreateSecuritySettings(requireEmailConfirmation: false));
+
+        var result = await handler.Handle(
+            new RegisterCommand(new RegisterRequest
+            {
+                Email = "ready@identityhub.com",
+                Password = "Password@123",
+                FullName = "Ready"
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(userManager.LastCreatedUser?.EmailConfirmed);
+        Assert.Equal(0, templates.ConfirmCalls);
+        Assert.Equal(0, emailService.SendCalls);
     }
 
     [Fact]
@@ -202,6 +240,37 @@ public sealed class AuthRegistrationAndProfileHandlersUnitTests
                 ["Frontend:BaseUrl"] = baseUrl
             })
             .Build();
+    }
+
+    private static FakeSecuritySettingsService CreateSecuritySettings(bool requireEmailConfirmation = true)
+        => new()
+        {
+            Settings = new SecuritySettingsResponse
+            {
+                AccessTokenMinutes = 30,
+                RefreshTokenDays = 7,
+                MaxLoginAttempts = 5,
+                LockDurationMinutes = 15,
+                RequireEmailConfirmation = requireEmailConfirmation
+            }
+        };
+
+    private sealed class FakeSecuritySettingsService : ISecuritySettingsService
+    {
+        public SecuritySettingsResponse Settings { get; set; } = new()
+        {
+            AccessTokenMinutes = 30,
+            RefreshTokenDays = 7,
+            MaxLoginAttempts = 5,
+            LockDurationMinutes = 15,
+            RequireEmailConfirmation = true
+        };
+
+        public Task<Result<SecuritySettingsResponse>> GetSettingsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Result<SecuritySettingsResponse>.Success(Settings));
+
+        public Task<Result> UpdateSettingsAsync(UpdateSecuritySettingsRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult(Result.Success());
     }
 
     private sealed class StubUserManager : UserManager<ApplicationUser>
