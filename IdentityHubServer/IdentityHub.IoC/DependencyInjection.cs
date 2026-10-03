@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using IdentityHub.Application.Common.Behaviors;
+using IdentityHub.Application.Common.Security;
 using IdentityHub.Application.Interfaces;
 using IdentityHub.Application.Services;
 using IdentityHub.Domain.Entities;
@@ -25,9 +26,17 @@ namespace IdentityHub.IoC
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+                {
+                    // Threshold/duration come from SecuritySettings at login time.
+                    options.Lockout.AllowedForNewUsers = true;
+                    options.Lockout.MaxFailedAccessAttempts = int.MaxValue;
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(SecuritySettingsDefaults.LockDurationMinutes);
+                })
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddMemoryCache();
 
             services.AddValidatorsFromAssembly(typeof(AuthService).Assembly);
 

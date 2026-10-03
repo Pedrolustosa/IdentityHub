@@ -110,7 +110,7 @@ Rate limiting is applied to sensitive auth endpoints:
 | Section | Purpose |
 |---------|---------|
 | `ConnectionStrings:DefaultConnection` | SQLite connection (`Data Source=identityhub.db`). |
-| `Jwt` | Signing key, issuer, audience, access token lifetime (`ExpireMinutes`, default 15). |
+| `Jwt` | Signing key, issuer, audience. Access token lifetime prefers `SecuritySettings.AccessTokenMinutes` (admin UI / DB); `ExpireMinutes` is fallback only. |
 | `Frontend:BaseUrl` | Public SPA base URL used when generating links for user-facing flows. |
 | `Smtp` | Outbound email settings for confirmation/reset flows. |
 | `RateLimiting:Auth:*` | Optional per-endpoint auth throttling settings. |

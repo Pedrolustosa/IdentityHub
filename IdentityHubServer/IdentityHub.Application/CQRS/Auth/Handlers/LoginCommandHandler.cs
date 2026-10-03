@@ -1,5 +1,6 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
+using IdentityHub.Application.Common.Security;
 using IdentityHub.Application.CQRS.Auth.Commands;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Application.Interfaces;
@@ -19,6 +20,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
     private readonly IAuthRepository _authRepository;
     private readonly IClientDeviceInfoProvider _clientDeviceInfoProvider;
     private readonly ISecurityAlertService _securityAlertService;
+    private readonly ISecuritySettingsService _securitySettingsService;
 
     public LoginCommandHandler(
         UserManager<ApplicationUser> userManager,
@@ -26,7 +28,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         TokenService tokenService,
         IAuthRepository authRepository,
         IClientDeviceInfoProvider clientDeviceInfoProvider,
-        ISecurityAlertService securityAlertService)
+        ISecurityAlertService securityAlertService,
+        ISecuritySettingsService securitySettingsService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -34,6 +37,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         _authRepository = authRepository;
         _clientDeviceInfoProvider = clientDeviceInfoProvider;
         _securityAlertService = securityAlertService;
+        _securitySettingsService = securitySettingsService;
     }
 
     public async Task<Result<AuthResponse>> Handle(
@@ -41,6 +45,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         CancellationToken cancellationToken)
     {
         var email = command.Request.Email.Trim().ToLowerInvariant();
+        var settings = await _securitySettingsService.GetOrDefaultAsync(cancellationToken);
 
         var user = await _userManager.FindByEmailAsync(email);
 
@@ -48,20 +53,44 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             return Result<AuthResponse>.Failure(
                 Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
 
+        if (await _userManager.IsLockedOutAsync(user))
+            return Result<AuthResponse>.Failure(
+                Error.Create("Auth.AccountLocked", "Account is temporarily locked"));
+
         var passwordValid = await _userManager.CheckPasswordAsync(
             user,
             command.Request.Password);
 
         if (!passwordValid)
         {
+            await _userManager.AccessFailedAsync(user);
+
+            var failedCount = await _userManager.GetAccessFailedCountAsync(user);
+            var maxAttempts = settings.MaxLoginAttempts > 0
+                ? settings.MaxLoginAttempts
+                : SecuritySettingsDefaults.MaxLoginAttempts;
+
+            if (failedCount >= maxAttempts)
+            {
+                var lockMinutes = settings.LockDurationMinutes > 0
+                    ? settings.LockDurationMinutes
+                    : SecuritySettingsDefaults.LockDurationMinutes;
+
+                await _userManager.SetLockoutEndDateAsync(
+                    user,
+                    DateTimeOffset.UtcNow.AddMinutes(lockMinutes));
+            }
+
             await _securityAlertService.NotifySuspiciousLoginAsync(user, "Invalid credentials", cancellationToken);
             return Result<AuthResponse>.Failure(
                 Error.Create("Auth.InvalidCredentials", "Invalid credentials"));
         }
 
-        if (!user.EmailConfirmed)
+        if (settings.RequireEmailConfirmation && !user.EmailConfirmed)
             return Result<AuthResponse>.Failure(
                 Error.Create("Auth.EmailNotConfirmed", "Email not confirmed"));
+
+        await _userManager.ResetAccessFailedCountAsync(user);
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -72,11 +101,16 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             sessionId,
             roles,
             _userManager,
-            _roleManager);
+            _roleManager,
+            cancellationToken);
 
         var refreshToken = _tokenService.GenerateRefreshToken();
         var refreshTokenHash = _tokenService.ComputeRefreshTokenHash(refreshToken);
         var (ipAddress, browser, operatingSystem) = _clientDeviceInfoProvider.GetCurrent();
+
+        var refreshTokenDays = settings.RefreshTokenDays > 0
+            ? settings.RefreshTokenDays
+            : SecuritySettingsDefaults.RefreshTokenDays;
 
         await _authRepository.AddRefreshTokenAsync(new RefreshToken
         {
@@ -85,7 +119,7 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
             TokenHash = refreshTokenHash,
             UserId = user.Id,
             Created = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = DateTime.UtcNow.AddDays(refreshTokenDays),
             IsRevoked = false
         }, cancellationToken);
 
@@ -105,7 +139,8 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<A
         return Result<AuthResponse>.Success(new AuthResponse
         {
             Token = accessToken,
-            RefreshToken = refreshToken
+            RefreshToken = refreshToken,
+            RefreshTokenDays = refreshTokenDays
         });
     }
 }

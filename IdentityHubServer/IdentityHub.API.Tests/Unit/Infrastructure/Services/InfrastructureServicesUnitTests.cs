@@ -4,6 +4,7 @@ using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 
 namespace IdentityHub.API.Tests;
@@ -148,7 +149,7 @@ public sealed class InfrastructureServicesUnitTests
     public async Task SecuritySettingsService_GetSettingsAsync_ShouldReturnDefaults_WhenNoRecordExists()
     {
         await using var scope = await SqliteDbScope.CreateAsync();
-        var service = new SecuritySettingsService(scope.DbContext);
+        var service = new SecuritySettingsService(scope.DbContext, new MemoryCache(new MemoryCacheOptions()));
 
         var result = await service.GetSettingsAsync(CancellationToken.None);
 
@@ -178,7 +179,7 @@ public sealed class InfrastructureServicesUnitTests
         });
         await scope.DbContext.SaveChangesAsync();
 
-        var service = new SecuritySettingsService(scope.DbContext);
+        var service = new SecuritySettingsService(scope.DbContext, new MemoryCache(new MemoryCacheOptions()));
 
         var result = await service.GetSettingsAsync(CancellationToken.None);
 
@@ -194,7 +195,7 @@ public sealed class InfrastructureServicesUnitTests
     public async Task SecuritySettingsService_UpdateSettingsAsync_ShouldCreate_WhenNoRecordExists()
     {
         await using var scope = await SqliteDbScope.CreateAsync();
-        var service = new SecuritySettingsService(scope.DbContext);
+        var service = new SecuritySettingsService(scope.DbContext, new MemoryCache(new MemoryCacheOptions()));
 
         var request = new UpdateSecuritySettingsRequest
         {
@@ -235,7 +236,7 @@ public sealed class InfrastructureServicesUnitTests
         scope.DbContext.SecuritySettings.Add(existing);
         await scope.DbContext.SaveChangesAsync();
 
-        var service = new SecuritySettingsService(scope.DbContext);
+        var service = new SecuritySettingsService(scope.DbContext, new MemoryCache(new MemoryCacheOptions()));
         var request = new UpdateSecuritySettingsRequest
         {
             AccessTokenMinutes = 60,

@@ -1,3 +1,5 @@
+using IdentityHub.Application.Common.Security;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -12,10 +14,14 @@ namespace IdentityHub.Application.Services
     public class TokenService
     {
         private readonly IConfiguration _configuration;
+        private readonly ISecuritySettingsService _securitySettingsService;
 
-        public TokenService(IConfiguration configuration)
+        public TokenService(
+            IConfiguration configuration,
+            ISecuritySettingsService securitySettingsService)
         {
             _configuration = configuration;
+            _securitySettingsService = securitySettingsService;
         }
 
         public async Task<string> GenerateToken(
@@ -69,9 +75,12 @@ namespace IdentityHub.Application.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expireMinutes = double.TryParse(_configuration["Jwt:ExpireMinutes"], out var minutes)
-                ? minutes
-                : 60;
+            var settings = await _securitySettingsService.GetOrDefaultAsync(cancellationToken);
+            var expireMinutes = settings.AccessTokenMinutes > 0
+                ? settings.AccessTokenMinutes
+                : double.TryParse(_configuration["Jwt:ExpireMinutes"], out var minutes)
+                    ? minutes
+                    : SecuritySettingsDefaults.AccessTokenMinutes;
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
