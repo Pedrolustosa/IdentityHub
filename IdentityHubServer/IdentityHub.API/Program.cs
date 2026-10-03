@@ -2,11 +2,8 @@ using IdentityHub.API.Authorization;
 using IdentityHub.API.Middlewares;
 using IdentityHub.Application.DTOs;
 using IdentityHub.Domain.Entities;
-using IdentityHub.Domain.Interfaces;
 using IdentityHub.Infrastructure.Data;
 using IdentityHub.Infrastructure.Data.Seed;
-using IdentityHub.Infrastructure.Repositories;
-using IdentityHub.Infrastructure.Security;
 using IdentityHub.IoC;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -58,11 +55,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
-builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
