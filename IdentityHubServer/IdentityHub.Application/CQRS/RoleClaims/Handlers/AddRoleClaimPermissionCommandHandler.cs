@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.RoleClaims.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 using System.Security.Claims;
@@ -13,13 +14,16 @@ public sealed class AddRoleClaimPermissionCommandHandler
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IPermissionVersionService _permissionVersionService;
 
     public AddRoleClaimPermissionCommandHandler(
         IRoleRepository repository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        IPermissionVersionService permissionVersionService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
+        _permissionVersionService = permissionVersionService;
     }
 
     public async Task<Result> Handle(
@@ -52,6 +56,8 @@ public sealed class AddRoleClaimPermissionCommandHandler
             role,
             new Claim(PermissionClaimType, permission),
             cancellationToken);
+
+        await _permissionVersionService.BumpUsersInRoleAsync(role.Name, cancellationToken);
 
         await _auditLogRepository.WriteAsync(
             "Audit.RoleClaim.Added",

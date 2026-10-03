@@ -1,11 +1,10 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Roles.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Constants;
-using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace IdentityHub.Application.CQRS.Roles.Handlers;
@@ -16,16 +15,16 @@ public sealed class UpdateRolePermissionsCommandHandler
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IPermissionVersionService _permissionVersionService;
 
     public UpdateRolePermissionsCommandHandler(
         IRoleRepository repository,
         IAuditLogRepository auditLogRepository,
-        UserManager<ApplicationUser> userManager)
+        IPermissionVersionService permissionVersionService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
-        _userManager = userManager;
+        _permissionVersionService = permissionVersionService;
     }
 
     public async Task<Result> Handle(
@@ -85,15 +84,7 @@ public sealed class UpdateRolePermissionsCommandHandler
                 cancellationToken);
         }
 
-        if (!string.IsNullOrWhiteSpace(role.Name))
-        {
-            var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name);
-            foreach (var user in usersInRole)
-            {
-                user.PermissionVersion++;
-                await _userManager.UpdateAsync(user);
-            }
-        }
+        await _permissionVersionService.BumpUsersInRoleAsync(role.Name, cancellationToken);
 
         await _auditLogRepository.WriteAsync(
             "Audit.Role.PermissionsUpdated",

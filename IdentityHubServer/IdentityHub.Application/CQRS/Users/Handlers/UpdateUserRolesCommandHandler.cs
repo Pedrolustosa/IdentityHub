@@ -12,15 +12,18 @@ public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRo
     private readonly IUserRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
     private readonly ISecurityAlertService _securityAlertService;
+    private readonly IPermissionVersionService _permissionVersionService;
 
     public UpdateUserRolesCommandHandler(
         IUserRepository repository,
         IAuditLogRepository auditLogRepository,
-        ISecurityAlertService securityAlertService)
+        ISecurityAlertService securityAlertService,
+        IPermissionVersionService permissionVersionService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
         _securityAlertService = securityAlertService;
+        _permissionVersionService = permissionVersionService;
     }
 
     public async Task<Result> Handle(
@@ -41,6 +44,8 @@ public sealed class UpdateUserRolesCommandHandler : IRequestHandler<UpdateUserRo
             user,
             command.Request.Roles,
             cancellationToken);
+
+        await _permissionVersionService.BumpUserAsync(user, cancellationToken);
 
         var assignedRoles = string.Join(",", command.Request.Roles.Select(r => r.Trim()));
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using IdentityHub.Application.CQRS.RoleClaims.Commands;
 using IdentityHub.Application.CQRS.RoleClaims.Handlers;
 using IdentityHub.Application.CQRS.RoleClaims.Queries;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +20,8 @@ public sealed class RoleClaimHandlersUnitTests
         repository.Roles.Add(new IdentityRole("Admin") { Id = "r1" });
         repository.ClaimsByRoleId["r1"] = [new Claim("permission", "Users.View")];
 
-        var handler = new AddRoleClaimPermissionCommandHandler(repository, audit);
+        var permissionVersions = new FakePermissionVersionService();
+        var handler = new AddRoleClaimPermissionCommandHandler(repository, audit, permissionVersions);
 
         var result = await handler.Handle(new AddRoleClaimPermissionCommand("r1", " users.view "), CancellationToken.None);
 
@@ -27,6 +29,7 @@ public sealed class RoleClaimHandlersUnitTests
         Assert.Equal("RoleClaim.AlreadyExists", result.Error?.Code);
         Assert.Equal(0, repository.AddClaimCalls);
         Assert.Equal(0, audit.WriteCalls);
+        Assert.Equal(0, permissionVersions.BumpUsersInRoleCalls);
     }
 
     [Fact]
@@ -34,9 +37,10 @@ public sealed class RoleClaimHandlersUnitTests
     {
         var repository = new FakeRoleRepository();
         var audit = new FakeAuditLogRepository();
+        var permissionVersions = new FakePermissionVersionService();
         repository.Roles.Add(new IdentityRole("Admin") { Id = "r1" });
 
-        var handler = new AddRoleClaimPermissionCommandHandler(repository, audit);
+        var handler = new AddRoleClaimPermissionCommandHandler(repository, audit, permissionVersions);
 
         var result = await handler.Handle(new AddRoleClaimPermissionCommand("r1", " Users.Update "), CancellationToken.None);
 
@@ -44,6 +48,8 @@ public sealed class RoleClaimHandlersUnitTests
         Assert.Equal(1, repository.AddClaimCalls);
         Assert.Equal("Users.Update", repository.LastAddedClaim?.Value);
         Assert.Equal("Audit.RoleClaim.Added", audit.LastEventType);
+        Assert.Equal(1, permissionVersions.BumpUsersInRoleCalls);
+        Assert.Equal("Admin", permissionVersions.LastBumpedRoleName);
     }
 
     [Fact]
@@ -51,16 +57,38 @@ public sealed class RoleClaimHandlersUnitTests
     {
         var repository = new FakeRoleRepository();
         var audit = new FakeAuditLogRepository();
+        var permissionVersions = new FakePermissionVersionService();
         repository.Roles.Add(new IdentityRole("Admin") { Id = "r1" });
         repository.ClaimsByRoleId["r1"] = [new Claim("permission", "Users.View")];
 
-        var handler = new RemoveRoleClaimPermissionCommandHandler(repository, audit);
+        var handler = new RemoveRoleClaimPermissionCommandHandler(repository, audit, permissionVersions);
 
         var result = await handler.Handle(new RemoveRoleClaimPermissionCommand("r1", "Users.Update"), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(0, repository.RemoveClaimCalls);
         Assert.Equal(0, audit.WriteCalls);
+        Assert.Equal(0, permissionVersions.BumpUsersInRoleCalls);
+    }
+
+    [Fact]
+    public async Task RemoveRoleClaimPermissionCommandHandler_ShouldRemoveAndBumpPermissionVersion()
+    {
+        var repository = new FakeRoleRepository();
+        var audit = new FakeAuditLogRepository();
+        var permissionVersions = new FakePermissionVersionService();
+        repository.Roles.Add(new IdentityRole("Manager") { Id = "r1" });
+        repository.ClaimsByRoleId["r1"] = [new Claim("permission", "Users.View")];
+
+        var handler = new RemoveRoleClaimPermissionCommandHandler(repository, audit, permissionVersions);
+
+        var result = await handler.Handle(new RemoveRoleClaimPermissionCommand("r1", "Users.View"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, repository.RemoveClaimCalls);
+        Assert.Equal(1, permissionVersions.BumpUsersInRoleCalls);
+        Assert.Equal("Manager", permissionVersions.LastBumpedRoleName);
+        Assert.Equal("Audit.RoleClaim.Removed", audit.LastEventType);
     }
 
     [Fact]
@@ -68,6 +96,7 @@ public sealed class RoleClaimHandlersUnitTests
     {
         var repository = new FakeRoleRepository();
         var audit = new FakeAuditLogRepository();
+        var permissionVersions = new FakePermissionVersionService();
         repository.Roles.Add(new IdentityRole("Admin") { Id = "r1" });
         repository.ClaimsByRoleId["r1"] =
         [
@@ -75,7 +104,7 @@ public sealed class RoleClaimHandlersUnitTests
             new Claim("permission", "Roles.View")
         ];
 
-        var handler = new ReplaceRoleClaimPermissionsCommandHandler(repository, audit);
+        var handler = new ReplaceRoleClaimPermissionsCommandHandler(repository, audit, permissionVersions);
 
         var result = await handler.Handle(
             new ReplaceRoleClaimPermissionsCommand("r1", [" Users.Update ", "users.update", "Roles.View", ""]),
@@ -89,6 +118,8 @@ public sealed class RoleClaimHandlersUnitTests
         Assert.Contains("Roles.View", claims);
         Assert.Equal(2, claims.Count);
         Assert.Equal("Audit.RoleClaim.Replaced", audit.LastEventType);
+        Assert.Equal(1, permissionVersions.BumpUsersInRoleCalls);
+        Assert.Equal("Admin", permissionVersions.LastBumpedRoleName);
     }
 
     [Fact]
@@ -205,6 +236,22 @@ public sealed class RoleClaimHandlersUnitTests
         {
             WriteCalls++;
             LastEventType = eventType;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakePermissionVersionService : IPermissionVersionService
+    {
+        public int BumpUsersInRoleCalls { get; private set; }
+        public string? LastBumpedRoleName { get; private set; }
+
+        public Task BumpUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task BumpUsersInRoleAsync(string? roleName, CancellationToken cancellationToken = default)
+        {
+            BumpUsersInRoleCalls++;
+            LastBumpedRoleName = roleName;
             return Task.CompletedTask;
         }
     }

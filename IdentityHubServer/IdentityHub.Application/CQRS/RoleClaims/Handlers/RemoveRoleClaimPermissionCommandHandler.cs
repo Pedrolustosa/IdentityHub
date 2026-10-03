@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.RoleClaims.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
@@ -12,13 +13,16 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
     private const string PermissionClaimType = "permission";
     private readonly IRoleRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IPermissionVersionService _permissionVersionService;
 
     public RemoveRoleClaimPermissionCommandHandler(
         IRoleRepository repository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        IPermissionVersionService permissionVersionService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
+        _permissionVersionService = permissionVersionService;
     }
 
     public async Task<Result> Handle(
@@ -47,6 +51,8 @@ public sealed class RemoveRoleClaimPermissionCommandHandler
             return Result.Success();
 
         await _repository.RemoveClaimAsync(role, claim, cancellationToken);
+
+        await _permissionVersionService.BumpUsersInRoleAsync(role.Name, cancellationToken);
 
         await _auditLogRepository.WriteAsync(
             "Audit.RoleClaim.Removed",

@@ -94,7 +94,8 @@ public sealed class UsersHandlersUnitTests
         var alerts = new FakeSecurityAlertService();
         repository.Users.Add(new ApplicationUser { Id = "u1", Email = "user@identityhub.com" });
 
-        var handler = new UpdateUserRolesCommandHandler(repository, audit, alerts);
+        var permissionVersions = new FakePermissionVersionService();
+        var handler = new UpdateUserRolesCommandHandler(repository, audit, alerts, permissionVersions);
 
         var result = await handler.Handle(
             new UpdateUserRolesCommand("u1", new UpdateRolesRequest { Roles = [] }),
@@ -105,6 +106,7 @@ public sealed class UsersHandlersUnitTests
         Assert.Equal(0, repository.UpdateRolesCalls);
         Assert.Equal(0, alerts.CriticalActionCalls);
         Assert.Equal(0, audit.WriteCalls);
+        Assert.Equal(0, permissionVersions.BumpUserCalls);
     }
 
     [Fact]
@@ -113,9 +115,10 @@ public sealed class UsersHandlersUnitTests
         var repository = new FakeUserRepository();
         var audit = new FakeAuditLogRepository();
         var alerts = new FakeSecurityAlertService();
-        repository.Users.Add(new ApplicationUser { Id = "u1", Email = "user@identityhub.com" });
+        var permissionVersions = new FakePermissionVersionService();
+        repository.Users.Add(new ApplicationUser { Id = "u1", Email = "user@identityhub.com", PermissionVersion = 1 });
 
-        var handler = new UpdateUserRolesCommandHandler(repository, audit, alerts);
+        var handler = new UpdateUserRolesCommandHandler(repository, audit, alerts, permissionVersions);
 
         var result = await handler.Handle(
             new UpdateUserRolesCommand("u1", new UpdateRolesRequest { Roles = [" Admin ", "User"] }),
@@ -127,6 +130,8 @@ public sealed class UsersHandlersUnitTests
         Assert.Equal(1, alerts.CriticalActionCalls);
         Assert.Equal(1, audit.WriteCalls);
         Assert.Equal("Audit.User.RolesUpdated", audit.LastEventType);
+        Assert.Equal(1, permissionVersions.BumpUserCalls);
+        Assert.Equal("u1", permissionVersions.LastBumpedUserId);
     }
 
     private sealed class FakeUserRepository : IUserRepository
@@ -222,6 +227,23 @@ public sealed class UsersHandlersUnitTests
         }
 
         public Task NotifyRefreshTokenReuseAsync(ApplicationUser user, Guid sessionId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+    }
+
+    private sealed class FakePermissionVersionService : IPermissionVersionService
+    {
+        public int BumpUserCalls { get; private set; }
+        public string? LastBumpedUserId { get; private set; }
+
+        public Task BumpUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+        {
+            BumpUserCalls++;
+            LastBumpedUserId = user.Id;
+            user.PermissionVersion++;
+            return Task.CompletedTask;
+        }
+
+        public Task BumpUsersInRoleAsync(string? roleName, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
     }
 }
