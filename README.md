@@ -72,9 +72,12 @@ Layout zones:
 
 ### 4.1 Authentication
 
-- Access token is JWT-based and short-lived.
+- Access token is JWT-based and short-lived; the SPA keeps it **in memory only** (not `localStorage` / `sessionStorage`).
+- After a full page reload, the SPA bootstraps a new access token via the HttpOnly refresh cookie.
 - Refresh token is stored as `ih_refresh` cookie (`HttpOnly`, `Secure`, `SameSite=Strict`).
 - Refresh token is rotated on refresh requests.
+- Unauthenticated deep links preserve a safe `returnUrl` through `/login`.
+- MFA is not implemented yet.
 
 ### 4.2 Authorization
 

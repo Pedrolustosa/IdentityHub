@@ -1,10 +1,12 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { HttpBackend, provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideToastr } from 'ngx-toastr';
+import { initializeAuthSession } from './core/auth/initialize-auth-session';
 import { authRefreshInterceptor } from './core/interceptors/auth-refresh.interceptor';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { SessionTokensService } from './core/services/session-tokens.service';
 
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -18,6 +20,12 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, authRefreshInterceptor])
     ),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAuthSession,
+      deps: [SessionTokensService, HttpBackend],
+      multi: true
+    },
     provideAnimationsAsync(),
     provideToastr({
       positionClass: 'toast-top-right',
