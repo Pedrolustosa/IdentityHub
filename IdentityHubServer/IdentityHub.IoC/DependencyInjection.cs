@@ -49,6 +49,7 @@ namespace IdentityHub.IoC
             services.AddHttpContextAccessor();
 
             services.AddScoped<TokenService>();
+            services.AddScoped<IPermissionVersionService, PermissionVersionService>();
 
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();

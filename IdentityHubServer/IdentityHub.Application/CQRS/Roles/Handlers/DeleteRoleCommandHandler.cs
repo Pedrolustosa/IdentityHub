@@ -1,6 +1,7 @@
 ﻿using IdentityHub.Application.Common.Errors;
 using IdentityHub.Application.Common.Results;
 using IdentityHub.Application.CQRS.Roles.Commands;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Interfaces;
 using MediatR;
 
@@ -10,13 +11,16 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
 {
     private readonly IRoleRepository _repository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IPermissionVersionService _permissionVersionService;
 
     public DeleteRoleCommandHandler(
         IRoleRepository repository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        IPermissionVersionService permissionVersionService)
     {
         _repository = repository;
         _auditLogRepository = auditLogRepository;
+        _permissionVersionService = permissionVersionService;
     }
 
     public async Task<Result> Handle(
@@ -35,6 +39,9 @@ public sealed class DeleteRoleCommandHandler : IRequestHandler<DeleteRoleCommand
 
         var roleId = role.Id;
         var roleName = role.Name ?? string.Empty;
+
+        // Invalidate JWTs for members before the role (and its claims) disappears.
+        await _permissionVersionService.BumpUsersInRoleAsync(role.Name, cancellationToken);
 
         await _repository.DeleteAsync(role, cancellationToken);
 

@@ -3,6 +3,7 @@ using IdentityHub.Application.CQRS.Roles.Commands;
 using IdentityHub.Application.CQRS.Roles.Handlers;
 using IdentityHub.Application.CQRS.Roles.Queries;
 using IdentityHub.Application.DTOs;
+using IdentityHub.Application.Interfaces;
 using IdentityHub.Domain.Entities;
 using IdentityHub.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -56,7 +57,8 @@ public sealed class RolesHandlersUnitTests
         var audit = new FakeAuditLogRepository();
         repository.Roles.Add(new IdentityRole("Admin") { Id = "admin-role" });
 
-        var handler = new DeleteRoleCommandHandler(repository, audit);
+        var permissionVersions = new FakePermissionVersionService();
+        var handler = new DeleteRoleCommandHandler(repository, audit, permissionVersions);
 
         var result = await handler.Handle(new DeleteRoleCommand("admin-role"), CancellationToken.None);
 
@@ -64,6 +66,26 @@ public sealed class RolesHandlersUnitTests
         Assert.Equal("Role.AdminCannotBeDeleted", result.Error?.Code);
         Assert.Equal(0, repository.DeleteCalls);
         Assert.Equal(0, audit.WriteCalls);
+        Assert.Equal(0, permissionVersions.BumpUsersInRoleCalls);
+    }
+
+    [Fact]
+    public async Task DeleteRoleCommandHandler_ShouldBumpMembersBeforeDelete()
+    {
+        var repository = new FakeRoleRepository();
+        var audit = new FakeAuditLogRepository();
+        var permissionVersions = new FakePermissionVersionService();
+        repository.Roles.Add(new IdentityRole("Operator") { Id = "role-1" });
+
+        var handler = new DeleteRoleCommandHandler(repository, audit, permissionVersions);
+
+        var result = await handler.Handle(new DeleteRoleCommand("role-1"), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, permissionVersions.BumpUsersInRoleCalls);
+        Assert.Equal("Operator", permissionVersions.LastBumpedRoleName);
+        Assert.Equal(1, repository.DeleteCalls);
+        Assert.Equal("Audit.Role.Deleted", audit.LastEventType);
     }
 
     [Fact]
@@ -245,6 +267,22 @@ public sealed class RolesHandlersUnitTests
             WriteCalls++;
             LastEventType = eventType;
             LastDescription = description;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakePermissionVersionService : IPermissionVersionService
+    {
+        public int BumpUsersInRoleCalls { get; private set; }
+        public string? LastBumpedRoleName { get; private set; }
+
+        public Task BumpUserAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task BumpUsersInRoleAsync(string? roleName, CancellationToken cancellationToken = default)
+        {
+            BumpUsersInRoleCalls++;
+            LastBumpedRoleName = roleName;
             return Task.CompletedTask;
         }
     }
