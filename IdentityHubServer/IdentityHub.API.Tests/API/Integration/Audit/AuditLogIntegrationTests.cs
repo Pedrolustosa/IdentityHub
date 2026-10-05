@@ -109,18 +109,15 @@ public sealed class AuditLogIntegrationTests : IClassFixture<TestWebApplicationF
 
         var updatePermissionsResponse = await _client.PutAsJsonAsync($"/api/roles/{role.Id}/permissions", new
         {
-            permissions = new[] { "Dashboard.View" }
+            permissions = new[] { "Dashboard.View", "Users.View" }
         });
         Assert.Equal(HttpStatusCode.OK, updatePermissionsResponse.StatusCode);
 
-        var addClaimResponse = await _client.PostAsJsonAsync($"/api/role-claims/{role.Id}", "Users.View");
-        Assert.Equal(HttpStatusCode.OK, addClaimResponse.StatusCode);
-
-        var replaceClaimsResponse = await _client.PutAsJsonAsync($"/api/role-claims/{role.Id}", new[] { "Users.View", "Users.Update" });
-        Assert.Equal(HttpStatusCode.OK, replaceClaimsResponse.StatusCode);
-
-        var removeClaimResponse = await _client.DeleteAsync($"/api/role-claims/{role.Id}?permission=Users.Update");
-        Assert.Equal(HttpStatusCode.OK, removeClaimResponse.StatusCode);
+        var replacePermissionsResponse = await _client.PutAsJsonAsync($"/api/roles/{role.Id}/permissions", new
+        {
+            permissions = new[] { "Dashboard.View" }
+        });
+        Assert.Equal(HttpStatusCode.OK, replacePermissionsResponse.StatusCode);
 
         var deleteRoleResponse = await _client.DeleteAsync($"/api/roles/{role.Id}");
         Assert.Equal(HttpStatusCode.OK, deleteRoleResponse.StatusCode);
@@ -136,9 +133,6 @@ public sealed class AuditLogIntegrationTests : IClassFixture<TestWebApplicationF
         Assert.Contains("Audit.Role.Created", eventTypes);
         Assert.Contains("Audit.Role.Updated", eventTypes);
         Assert.Contains("Audit.Role.PermissionsUpdated", eventTypes);
-        Assert.Contains("Audit.RoleClaim.Added", eventTypes);
-        Assert.Contains("Audit.RoleClaim.Replaced", eventTypes);
-        Assert.Contains("Audit.RoleClaim.Removed", eventTypes);
         Assert.Contains("Audit.Role.Deleted", eventTypes);
     }
 

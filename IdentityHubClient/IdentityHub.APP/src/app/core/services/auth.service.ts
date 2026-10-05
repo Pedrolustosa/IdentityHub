@@ -158,7 +158,9 @@ export class AuthService {
   }
 
   revokeUserSessions(userId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/sessions/users/${encodeURIComponent(userId)}`);
+    return this.http.delete<void>(
+      `${environment.apiUrl}/users/${encodeURIComponent(userId)}/sessions`
+    );
   }
 
   getProfileSnapshotFromToken(): { email: string; fullName: string } | null {

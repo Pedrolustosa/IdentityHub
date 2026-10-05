@@ -158,7 +158,7 @@ Compatibility note:
 | `DELETE /api/users/{id}` | `Users.Delete` |
 | `PUT /api/users/{id}/roles` | `Users.Roles.Update` |
 | `GET /api/users/{id}/sessions` | `Users.View` |
-| `DELETE /api/users/{id}/sessions/{sessionId}` | `Sessions.Revoke` |
+| `DELETE /api/users/{id}/sessions` | `Sessions.Revoke` |
 | `GET /api/sessions` | `Sessions.View` |
 | `DELETE /api/sessions/{sessionId}` | `Sessions.Revoke` |
 | `GET /api/users/{id}/audit-logs` | `Audit.View` |
@@ -168,8 +168,6 @@ Compatibility note:
 | `DELETE /api/roles/{id}` | `Roles.Delete` |
 | `GET /api/roles/permissions/catalog`, `GET /api/roles/{id}/permissions` | `Roles.Permissions.View` |
 | `PUT /api/roles/{id}/permissions` | `Roles.Permissions.Update` |
-| `GET /api/role-claims/{roleId}` | `Roles.Permissions.View` |
-| `POST /api/role-claims/{roleId}`, `PUT /api/role-claims/{roleId}`, `DELETE /api/role-claims/{roleId}` | `Roles.Permissions.Update` |
 | `GET /api/audit-logs`, `GET /api/audit-logs/{id}`, `GET /api/audit-logs/export` | `Audit.View` |
 | `GET /api/security-alerts`, `GET /api/security-alerts/{id}`, `GET /api/security-alerts/unread-count` | `SecurityEvents.View` |
 | `PUT /api/security-alerts/{id}/status` | `SecurityEvents.Manage` |
@@ -180,7 +178,6 @@ Compatibility note:
 | `DELETE /api/user-invites/{id}` | `UserInvites.Cancel` |
 | `POST /api/auth/register`, `GET /api/auth/confirm-email`, `POST /api/auth/resend-confirmation`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/forgot-password`, `POST /api/auth/reset-password` | Anonymous |
 | `GET /api/auth/me`, `GET /api/auth/sessions`, `GET /api/auth/sessions/recent`, `DELETE /api/auth/sessions/{sessionId}`, `DELETE /api/auth/sessions/others`, `POST /api/auth/logout`, `POST /api/auth/change-password`, `PUT /api/auth/profile` | Authenticated |
-| `DELETE /api/auth/sessions/users/{targetUserId}` | `Sessions.Revoke` |
 
 ### 5.4 Database and seed
 

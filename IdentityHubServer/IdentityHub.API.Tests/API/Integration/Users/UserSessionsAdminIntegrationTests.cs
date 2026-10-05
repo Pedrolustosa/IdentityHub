@@ -53,7 +53,7 @@ public sealed class UserSessionsAdminIntegrationTests : IClassFixture<TestWebApp
     }
 
     [Fact]
-    public async Task RevokeUserSession_AsAdmin_ShouldDeactivateTargetSession()
+    public async Task RevokeSystemSession_AsAdmin_ShouldDeactivateTargetSession()
     {
         var managerLoginA = await LoginAsync("manager@identityhub.com", "Manager@123");
         var managerLoginB = await LoginAsync("manager@identityhub.com", "Manager@123");
@@ -71,7 +71,7 @@ public sealed class UserSessionsAdminIntegrationTests : IClassFixture<TestWebApp
             .First(u => string.Equals(u.Email, "manager@identityhub.com", StringComparison.OrdinalIgnoreCase))
             .Id;
 
-        var revokeResponse = await _client.DeleteAsync($"/api/users/{managerId}/sessions/{managerSessionA}");
+        var revokeResponse = await _client.DeleteAsync($"/api/sessions/{managerSessionA}");
         Assert.Equal(HttpStatusCode.OK, revokeResponse.StatusCode);
 
         var sessionsResponse = await _client.GetAsync($"/api/users/{managerId}/sessions?take=10");
@@ -101,6 +101,53 @@ public sealed class UserSessionsAdminIntegrationTests : IClassFixture<TestWebApp
 
         var activeMeResponse = await activeClient.GetAsync("/api/auth/me");
         Assert.Equal(HttpStatusCode.OK, activeMeResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RevokeAllUserSessions_AsAdmin_ShouldDeactivateAllTargetSessions()
+    {
+        var managerLoginA = await LoginAsync("manager@identityhub.com", "Manager@123");
+        var managerLoginB = await LoginAsync("manager@identityhub.com", "Manager@123");
+        var managerSessionA = ExtractSessionId(managerLoginA.Token);
+        var managerSessionB = ExtractSessionId(managerLoginB.Token);
+
+        var adminLogin = await LoginAsync("admin@identityhub.com", "Admin@123");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", adminLogin.Token);
+
+        var usersResponse = await _client.GetAsync("/api/users");
+        usersResponse.EnsureSuccessStatusCode();
+        var users = await usersResponse.Content.ReadFromJsonAsync<List<UserListDto>>();
+        Assert.NotNull(users);
+
+        var managerId = users!
+            .First(u => string.Equals(u.Email, "manager@identityhub.com", StringComparison.OrdinalIgnoreCase))
+            .Id;
+
+        var revokeResponse = await _client.DeleteAsync($"/api/users/{managerId}/sessions");
+        Assert.Equal(HttpStatusCode.NoContent, revokeResponse.StatusCode);
+
+        var sessionsResponse = await _client.GetAsync($"/api/users/{managerId}/sessions?take=10");
+        sessionsResponse.EnsureSuccessStatusCode();
+
+        var sessions = await sessionsResponse.Content.ReadFromJsonAsync<List<UserSessionDto>>();
+        Assert.NotNull(sessions);
+
+        Assert.Contains(sessions!, x => x.Id == managerSessionA && !x.IsActive && x.RevokedAt is not null);
+        Assert.Contains(sessions!, x => x.Id == managerSessionB && !x.IsActive && x.RevokedAt is not null);
+
+        using var revokedClientA = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+        revokedClientA.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerLoginA.Token);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await revokedClientA.GetAsync("/api/auth/me")).StatusCode);
+
+        using var revokedClientB = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost")
+        });
+        revokedClientB.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", managerLoginB.Token);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await revokedClientB.GetAsync("/api/auth/me")).StatusCode);
     }
 
     private async Task<AuthResponseDto> LoginAsync(string email, string password)

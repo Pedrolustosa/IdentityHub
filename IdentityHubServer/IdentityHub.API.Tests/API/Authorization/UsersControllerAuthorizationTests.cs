@@ -15,7 +15,7 @@ public sealed class UsersControllerAuthorizationTests
     [InlineData("Delete", "Users.Delete")]
     [InlineData("UpdateRoles", "Users.Roles.Update")]
     [InlineData("GetSessionsByUser", "Users.View")]
-    [InlineData("RevokeUserSession", "Sessions.Revoke")]
+    [InlineData("RevokeAllUserSessions", "Sessions.Revoke")]
     [InlineData("GetAuditLogsByUser", "Audit.View")]
     public void Action_ShouldDeclareExpectedPolicy(string methodName, string expectedPolicy)
     {
