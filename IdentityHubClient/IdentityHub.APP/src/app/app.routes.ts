@@ -1,28 +1,5 @@
 import { Routes } from '@angular/router';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
-import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
-import { ProfileComponent } from './features/profile/pages/profile/profile.component';
-import { MySessionsComponent } from './features/my-sessions/pages/my-sessions/my-sessions.component';
-import { MyAccessComponent } from './features/my-access/pages/my-access/my-access.component';
-import { UsersComponent } from './features/users/pages/users/users.component';
-import { UserCreateComponent } from './features/users/pages/users/user-create/user-create.component';
-import { UserDetailComponent } from './features/users/pages/users/user-detail/user-detail.component';
-import { UserEditComponent } from './features/users/pages/users/user-edit/user-edit.component';
-import { RoleClaimsComponent } from './features/role-claims/pages/role-claims/role-claims.component';
-import { RoleClaimsDetailComponent } from './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component';
-import { RoleClaimsEditComponent } from './features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component';
-import { AuditLogsComponent } from './features/audit-logs/pages/audit-logs/audit-logs.component';
-import { AuditLogDetailComponent } from './features/audit-logs/pages/audit-logs/audit-log-detail/audit-log-detail.component';
-import { SecurityAlertsComponent } from './features/security-alerts/pages/security-alerts/security-alerts.component';
-import { SecurityAlertDetailComponent } from './features/security-alerts/pages/security-alerts/security-alert-detail/security-alert-detail.component';
-import { PermissionsMatrixComponent } from './features/permissions/pages/permissions-matrix/permissions-matrix.component';
-import { PermissionsCatalogComponent } from './features/permissions/pages/permissions-catalog/permissions-catalog.component';
-import { SessionsComponent } from './features/sessions/pages/sessions/sessions.component';
-import { UserInvitesComponent } from './features/user-invites/pages/user-invites/user-invites.component';
-import { SecuritySettingsComponent } from './features/security-settings/pages/security-settings/security-settings.component';
-import { ActivityComponent } from './features/activity/pages/activity/activity.component';
-import { AccessDeniedComponent } from './features/access-denied/pages/access-denied/access-denied.component';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { authLayoutChildRoutes } from './features/auth/auth.routes';
@@ -35,30 +12,43 @@ export const routes: Routes = [
   },
   {
     path: 'app',
-    component: MainLayoutComponent,
+    loadComponent: () =>
+      import('./layouts/main-layout/main-layout.component').then((m) => m.MainLayoutComponent),
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
-        component: DashboardComponent,
+        loadComponent: () =>
+          import('./features/dashboard/pages/dashboard/dashboard.component').then(
+            (m) => m.DashboardComponent
+          ),
         canActivate: [permissionGuard],
         data: { permission: 'Dashboard.View', title: 'Dashboard', breadcrumbs: [{ label: 'Dashboard' }] }
       },
       { path: 'change-password', redirectTo: 'profile', pathMatch: 'full' },
       {
         path: 'profile',
-        component: ProfileComponent,
+        loadComponent: () =>
+          import('./features/profile/pages/profile/profile.component').then(
+            (m) => m.ProfileComponent
+          ),
         data: { title: 'Profile', breadcrumbs: [{ label: 'Profile' }] }
       },
       {
         path: 'my-sessions',
-        component: MySessionsComponent,
+        loadComponent: () =>
+          import('./features/my-sessions/pages/my-sessions/my-sessions.component').then(
+            (m) => m.MySessionsComponent
+          ),
         data: { title: 'My Sessions', breadcrumbs: [{ label: 'My Sessions' }] }
       },
       {
         path: 'my-access',
-        component: MyAccessComponent,
+        loadComponent: () =>
+          import('./features/my-access/pages/my-access/my-access.component').then(
+            (m) => m.MyAccessComponent
+          ),
         data: { title: 'My Access', breadcrumbs: [{ label: 'My Access' }] }
       },
       {
@@ -73,19 +63,28 @@ export const routes: Routes = [
       },
       {
         path: 'access-denied',
-        component: AccessDeniedComponent,
+        loadComponent: () =>
+          import('./features/access-denied/pages/access-denied/access-denied.component').then(
+            (m) => m.AccessDeniedComponent
+          ),
         data: { title: 'Access denied', breadcrumbs: [{ label: 'Access denied' }] }
       },
       { path: 'home', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'audit-logs',
-        component: AuditLogsComponent,
+        loadComponent: () =>
+          import('./features/audit-logs/pages/audit-logs/audit-logs.component').then(
+            (m) => m.AuditLogsComponent
+          ),
         canActivate: [permissionGuard],
         data: { permission: 'Audit.View', title: 'Audit Logs', breadcrumbs: [{ label: 'Audit Logs' }] }
       },
       {
         path: 'audit-logs/:id',
-        component: AuditLogDetailComponent,
+        loadComponent: () =>
+          import('./features/audit-logs/pages/audit-logs/audit-log-detail/audit-log-detail.component').then(
+            (m) => m.AuditLogDetailComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Audit.View',
@@ -98,13 +97,23 @@ export const routes: Routes = [
       },
       {
         path: 'security-alerts',
-        component: SecurityAlertsComponent,
+        loadComponent: () =>
+          import('./features/security-alerts/pages/security-alerts/security-alerts.component').then(
+            (m) => m.SecurityAlertsComponent
+          ),
         canActivate: [permissionGuard],
-        data: { permission: 'SecurityEvents.View', title: 'Security Alerts', breadcrumbs: [{ label: 'Security Alerts' }] }
+        data: {
+          permission: 'SecurityEvents.View',
+          title: 'Security Alerts',
+          breadcrumbs: [{ label: 'Security Alerts' }]
+        }
       },
       {
         path: 'security-alerts/:id',
-        component: SecurityAlertDetailComponent,
+        loadComponent: () =>
+          import(
+            './features/security-alerts/pages/security-alerts/security-alert-detail/security-alert-detail.component'
+          ).then((m) => m.SecurityAlertDetailComponent),
         canActivate: [permissionGuard],
         data: {
           permission: 'SecurityEvents.View',
@@ -117,7 +126,10 @@ export const routes: Routes = [
       },
       {
         path: 'permissions/matrix',
-        component: PermissionsMatrixComponent,
+        loadComponent: () =>
+          import('./features/permissions/pages/permissions-matrix/permissions-matrix.component').then(
+            (m) => m.PermissionsMatrixComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Permissions.Matrix.View',
@@ -127,7 +139,10 @@ export const routes: Routes = [
       },
       {
         path: 'permissions/catalog',
-        component: PermissionsCatalogComponent,
+        loadComponent: () =>
+          import('./features/permissions/pages/permissions-catalog/permissions-catalog.component').then(
+            (m) => m.PermissionsCatalogComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Permissions.Catalog.View',
@@ -137,7 +152,10 @@ export const routes: Routes = [
       },
       {
         path: 'sessions',
-        component: SessionsComponent,
+        loadComponent: () =>
+          import('./features/sessions/pages/sessions/sessions.component').then(
+            (m) => m.SessionsComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Sessions.View',
@@ -147,7 +165,10 @@ export const routes: Routes = [
       },
       {
         path: 'user-invites',
-        component: UserInvitesComponent,
+        loadComponent: () =>
+          import('./features/user-invites/pages/user-invites/user-invites.component').then(
+            (m) => m.UserInvitesComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'UserInvites.View',
@@ -157,7 +178,10 @@ export const routes: Routes = [
       },
       {
         path: 'security-settings',
-        component: SecuritySettingsComponent,
+        loadComponent: () =>
+          import('./features/security-settings/pages/security-settings/security-settings.component').then(
+            (m) => m.SecuritySettingsComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'SecuritySettings.View',
@@ -167,7 +191,10 @@ export const routes: Routes = [
       },
       {
         path: 'activity',
-        component: ActivityComponent,
+        loadComponent: () =>
+          import('./features/activity/pages/activity/activity.component').then(
+            (m) => m.ActivityComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Activity.View',
@@ -177,7 +204,10 @@ export const routes: Routes = [
       },
       {
         path: 'roles/:roleId/permissions/edit',
-        component: RoleClaimsEditComponent,
+        loadComponent: () =>
+          import('./features/role-claims/pages/role-claims/role-claims-edit/role-claims-edit.component').then(
+            (m) => m.RoleClaimsEditComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Roles.Permissions.Update',
@@ -191,7 +221,10 @@ export const routes: Routes = [
       },
       {
         path: 'roles/:roleId/permissions',
-        component: RoleClaimsDetailComponent,
+        loadComponent: () =>
+          import(
+            './features/role-claims/pages/role-claims/role-claims-detail/role-claims-detail.component'
+          ).then((m) => m.RoleClaimsDetailComponent),
         canActivate: [permissionGuard],
         data: {
           permission: 'Roles.Permissions.View',
@@ -204,16 +237,26 @@ export const routes: Routes = [
       },
       {
         path: 'roles',
-        component: RoleClaimsComponent,
+        loadComponent: () =>
+          import('./features/role-claims/pages/role-claims/role-claims.component').then(
+            (m) => m.RoleClaimsComponent
+          ),
         canActivate: [permissionGuard],
-        data: { permission: 'Roles.View', title: 'Role Permissions', breadcrumbs: [{ label: 'Role Permissions' }] }
+        data: {
+          permission: 'Roles.View',
+          title: 'Role Permissions',
+          breadcrumbs: [{ label: 'Role Permissions' }]
+        }
       },
       { path: 'role-claims', redirectTo: 'roles', pathMatch: 'full' },
       { path: 'role-claims/:roleId', redirectTo: 'roles/:roleId/permissions', pathMatch: 'full' },
       { path: 'role-claims/:roleId/edit', redirectTo: 'roles/:roleId/permissions/edit', pathMatch: 'full' },
       {
         path: 'users/create',
-        component: UserCreateComponent,
+        loadComponent: () =>
+          import('./features/users/pages/users/user-create/user-create.component').then(
+            (m) => m.UserCreateComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Users.Create',
@@ -226,7 +269,10 @@ export const routes: Routes = [
       },
       {
         path: 'users/:id/edit',
-        component: UserEditComponent,
+        loadComponent: () =>
+          import('./features/users/pages/users/user-edit/user-edit.component').then(
+            (m) => m.UserEditComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Users.Update',
@@ -240,7 +286,10 @@ export const routes: Routes = [
       },
       {
         path: 'users/:id',
-        component: UserDetailComponent,
+        loadComponent: () =>
+          import('./features/users/pages/users/user-detail/user-detail.component').then(
+            (m) => m.UserDetailComponent
+          ),
         canActivate: [permissionGuard],
         data: {
           permission: 'Users.View',
@@ -253,7 +302,8 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        component: UsersComponent,
+        loadComponent: () =>
+          import('./features/users/pages/users/users.component').then((m) => m.UsersComponent),
         canActivate: [permissionGuard],
         data: { permission: 'Users.View', title: 'Users', breadcrumbs: [{ label: 'Users' }] }
       }
