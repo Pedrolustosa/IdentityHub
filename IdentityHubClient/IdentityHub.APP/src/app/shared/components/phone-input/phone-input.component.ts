@@ -1,10 +1,12 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   ElementRef,
   HostListener,
+  Inject,
   Input,
   OnDestroy,
+  PLATFORM_ID,
   ViewChild,
   forwardRef
 } from '@angular/core';
@@ -73,14 +75,23 @@ export class PhoneInputComponent implements ControlValueAccessor, Validator, OnD
   private nationalDigits = '';
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
+  private readonly isBrowser: boolean;
   private readonly onCapturedScroll = (): void => this.onViewportChange();
 
-  constructor(private readonly host: ElementRef<HTMLElement>) {
-    document.addEventListener('scroll', this.onCapturedScroll, true);
+  constructor(
+    private readonly host: ElementRef<HTMLElement>,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      document.addEventListener('scroll', this.onCapturedScroll, true);
+    }
   }
 
   ngOnDestroy(): void {
-    document.removeEventListener('scroll', this.onCapturedScroll, true);
+    if (this.isBrowser) {
+      document.removeEventListener('scroll', this.onCapturedScroll, true);
+    }
   }
 
   get flagAsset(): PhoneCountryFlagAsset {
