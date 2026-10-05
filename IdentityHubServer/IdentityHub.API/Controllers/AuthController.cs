@@ -145,26 +145,6 @@ public sealed class AuthController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize(Policy = "Sessions.Revoke")]
-    [HttpDelete("sessions/users/{targetUserId}")]
-    public async Task<IActionResult> RevokeUserSessions(
-        string targetUserId,
-        CancellationToken cancellationToken)
-    {
-        var sessions = await _service.GetActiveSessionsAsync(targetUserId, null, cancellationToken);
-        if (!sessions.IsSuccess)
-            return sessions.ToActionResult();
-
-        foreach (var session in sessions.Value ?? [])
-        {
-            var revoke = await _service.RevokeSessionAsync(targetUserId, session.Id, cancellationToken);
-            if (!revoke.IsSuccess)
-                return revoke.ToActionResult();
-        }
-
-        return NoContent();
-    }
-
     [Authorize]
     [HttpDelete("sessions/others")]
     public async Task<IActionResult> RevokeOtherSessions(CancellationToken cancellationToken)

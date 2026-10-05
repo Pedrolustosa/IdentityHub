@@ -135,29 +135,6 @@ public sealed class AuthControllerUnitTests
         Assert.Contains("ih_refresh=", setCookie, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public async Task RevokeUserSessions_ShouldReturnFirstRevokeFailure()
-    {
-        var targetUserId = "target-user";
-        var session1 = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
-        var session2 = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
-
-        var service = new FakeAuthService
-        {
-            GetActiveSessionsResult = Result<IReadOnlyList<UserSessionResponse>>.Success([session1, session2]),
-            RevokeSessionById = id => id == session2.Id
-                ? Result.Failure(Error.Create("Auth.Forbidden", "blocked"))
-                : Result.Success()
-        };
-
-        var controller = CreateController(service, userId: "admin");
-
-        var action = await controller.RevokeUserSessions(targetUserId, CancellationToken.None);
-
-        var objectResult = Assert.IsType<ObjectResult>(action);
-        Assert.Equal(StatusCodes.Status403Forbidden, objectResult.StatusCode);
-    }
-
     private static AuthController CreateController(FakeAuthService service, string? userId = null, string? sid = null)
     {
         var controller = new AuthController(service);

@@ -104,6 +104,43 @@ public sealed class UsersAndRolesControllersUnitTests
     }
 
     [Fact]
+    public async Task UsersController_RevokeAllUserSessions_ShouldReturnNoContent_WhenAllRevokesSucceed()
+    {
+        var session = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
+        var authService = new FakeAuthService
+        {
+            GetActiveSessionsResult = Result<IReadOnlyList<UserSessionResponse>>.Success([session]),
+            RevokeSessionResult = Result.Success()
+        };
+        var controller = CreateUsersController(new FakeUserService(), authService, new FakeAuditLogService());
+
+        var action = await controller.RevokeAllUserSessions("target", CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(action);
+        Assert.Contains(session.Id, authService.RevokedSessionIds);
+    }
+
+    [Fact]
+    public async Task UsersController_RevokeAllUserSessions_ShouldReturnFirstRevokeFailure()
+    {
+        var session1 = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
+        var session2 = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
+        var authService = new FakeAuthService
+        {
+            GetActiveSessionsResult = Result<IReadOnlyList<UserSessionResponse>>.Success([session1, session2]),
+            RevokeSessionById = id => id == session2.Id
+                ? Result.Failure(Error.Create("Auth.Forbidden", "blocked"))
+                : Result.Success()
+        };
+        var controller = CreateUsersController(new FakeUserService(), authService, new FakeAuditLogService());
+
+        var action = await controller.RevokeAllUserSessions("target", CancellationToken.None);
+
+        var objectResult = Assert.IsType<ObjectResult>(action);
+        Assert.Equal(StatusCodes.Status403Forbidden, objectResult.StatusCode);
+    }
+
+    [Fact]
     public async Task RolesController_Create_ShouldReturnOk_WhenServiceSucceeds()
     {
         var roleService = new FakeRoleService { CreateResult = Result.Success() };
@@ -321,10 +358,14 @@ public sealed class UsersAndRolesControllersUnitTests
     private sealed class FakeAuthService : IAuthService
     {
         public Result<IReadOnlyList<UserSessionResponse>> RecentSessionsResult { get; set; } = Result<IReadOnlyList<UserSessionResponse>>.Success([]);
+        public Result<IReadOnlyList<UserSessionResponse>> GetActiveSessionsResult { get; set; } = Result<IReadOnlyList<UserSessionResponse>>.Success([]);
+        public Result RevokeSessionResult { get; set; } = Result.Success();
+        public Func<Guid, Result>? RevokeSessionById { get; set; }
 
         public string LastRecentSessionsUserId { get; private set; } = string.Empty;
         public Guid? LastRecentSessionsCurrentSessionId { get; private set; }
         public int LastRecentSessionsTake { get; private set; }
+        public List<Guid> RevokedSessionIds { get; } = [];
 
         public Task<Result> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
             => Task.FromResult(Result.Success());
@@ -339,7 +380,7 @@ public sealed class UsersAndRolesControllersUnitTests
             => Task.FromResult(Result<MeResponse>.Success(new MeResponse()));
 
         public Task<Result<IReadOnlyList<UserSessionResponse>>> GetActiveSessionsAsync(string userId, Guid? currentSessionId, CancellationToken cancellationToken)
-            => Task.FromResult(Result<IReadOnlyList<UserSessionResponse>>.Success([]));
+            => Task.FromResult(GetActiveSessionsResult);
 
         public Task<Result<IReadOnlyList<UserSessionResponse>>> GetRecentSessionsAsync(string userId, Guid? currentSessionId, int take, CancellationToken cancellationToken)
         {
@@ -353,7 +394,10 @@ public sealed class UsersAndRolesControllersUnitTests
             => Task.FromResult(Result.Success());
 
         public Task<Result> RevokeSessionAsync(string userId, Guid sessionId, CancellationToken cancellationToken)
-            => Task.FromResult(Result.Success());
+        {
+            RevokedSessionIds.Add(sessionId);
+            return Task.FromResult(RevokeSessionById?.Invoke(sessionId) ?? RevokeSessionResult);
+        }
 
         public Task<Result> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
             => Task.FromResult(Result.Success());

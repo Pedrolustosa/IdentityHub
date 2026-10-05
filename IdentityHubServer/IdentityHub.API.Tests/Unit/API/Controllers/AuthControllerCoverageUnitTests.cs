@@ -145,22 +145,6 @@ public sealed class AuthControllerCoverageUnitTests
     }
 
     [Fact]
-    public async Task RevokeUserSessions_ShouldReturnNoContent_WhenAllRevokesSucceed()
-    {
-        var session = new UserSessionResponse { Id = Guid.NewGuid(), IsCurrent = false };
-        var service = new FakeAuthService
-        {
-            GetActiveSessionsResult = Result<IReadOnlyList<UserSessionResponse>>.Success([session]),
-            RevokeSessionResult = Result.Success()
-        };
-        var controller = CreateController(service, userId: "admin");
-
-        var action = await controller.RevokeUserSessions("target", CancellationToken.None);
-
-        Assert.IsType<NoContentResult>(action);
-    }
-
-    [Fact]
     public async Task RevokeOtherSessions_ShouldReturnUnauthorized_WhenUserIdClaimMissing()
     {
         var controller = CreateController(new FakeAuthService());

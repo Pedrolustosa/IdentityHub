@@ -54,7 +54,6 @@ namespace IdentityHub.IoC
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<IRoleClaimService, RoleClaimService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IAuditLogService, AuditLogService>();
             services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();

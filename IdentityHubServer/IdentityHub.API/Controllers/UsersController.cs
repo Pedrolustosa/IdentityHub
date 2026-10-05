@@ -112,15 +112,24 @@ public sealed class UsersController(
         return result.ToActionResult();
     }
 
-    [HttpDelete("{id}/sessions/{sessionId:guid}")]
+    [HttpDelete("{id}/sessions")]
     [Authorize(Policy = "Sessions.Revoke")]
-    public async Task<IActionResult> RevokeUserSession(
+    public async Task<IActionResult> RevokeAllUserSessions(
         string id,
-        Guid sessionId,
         CancellationToken cancellationToken = default)
     {
-        var result = await _authService.RevokeSessionAsync(id, sessionId, cancellationToken);
-        return result.ToActionResult();
+        var sessions = await _authService.GetActiveSessionsAsync(id, null, cancellationToken);
+        if (!sessions.IsSuccess)
+            return sessions.ToActionResult();
+
+        foreach (var session in sessions.Value ?? [])
+        {
+            var revoke = await _authService.RevokeSessionAsync(id, session.Id, cancellationToken);
+            if (!revoke.IsSuccess)
+                return revoke.ToActionResult();
+        }
+
+        return NoContent();
     }
 
     [HttpGet("{id}/audit-logs")]
